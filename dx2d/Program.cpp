@@ -6,8 +6,8 @@ int main()
 	dx2d::Core* engine = new dx2d::Core(800, 600);
 	engine->SetWindowTitle("Hello");
 
-	XMFLOAT2 triangle[] = { { 0.0f, -1}, { 0.0f, 1}, { 0.5, 0 } };
-	DrawManager->AddPoly(triangle, 3);
+	XMFLOAT2 path[] = { { 0.0f, 0.0f }, { 0.0f, 0.1f }, { 0.1f, 0.1f }, { 0.1f, 0.0f }, {0,0} };
+	DrawManager->AddRect(1, 1);
 
 	engine->Run();
 	engine->Destroy();

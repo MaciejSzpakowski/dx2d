@@ -22,7 +22,7 @@ namespace dx2d
 		scd.BufferCount = 1;                                    // one back buffer
 		scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;     // use 32-bit color
 		scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;      // how swap chain is to be used
-		scd.OutputWindow = window->GetHandle();                 // the window to be used
+		scd.OutputWindow = window->handle;                 // the window to be used
 		scd.SampleDesc.Quality = 0;
 		scd.SampleDesc.Count = 1;                               // no anti aliasing
 		scd.Windowed = TRUE;                                    // windowed/full-screen mode
@@ -54,14 +54,12 @@ namespace dx2d
 
 		////   VIEWPORT    ////
 		// Set the viewport
-		RECT rect;
-		GetClientRect(window->GetHandle(), &rect);
 		D3D11_VIEWPORT viewport;
 		ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
 		viewport.TopLeftX = 0;
 		viewport.TopLeftY = 0;
-		viewport.Width = (float)rect.right;
-		viewport.Height = (float)rect.bottom;
+		viewport.Width = sizex;
+		viewport.Height = sizey;
 		context->RSSetViewports(1, &viewport);		
 		
 		////    VS and PS    ////
@@ -88,8 +86,9 @@ namespace dx2d
 		PS->Release();
 		context->IASetInputLayout(layoutPosCol);
 
-		//draw manager		
+		//library objects	
 		drawManager = new CDrawManager;
+		camera = new CCamera;
 	}
 
 	ID3D11Device* Core::GetDevice()
@@ -107,6 +106,16 @@ namespace dx2d
 		return drawManager;
 	}
 
+	CCamera* Core::GetCamera()
+	{
+		return camera;
+	}
+
+	HWND Core::GetWindowHandle()
+	{
+		return window->handle;
+	}
+
 	int Core::Run()
 	{
 		return window->Run();
@@ -114,7 +123,7 @@ namespace dx2d
 
 	void Core::SetWindowTitle(const char* title)
 	{
-		SetWindowText(window->GetHandle(), title);
+		SetWindowText(window->handle, title);
 	}
 
 	void Core::SetBackBufferColor(float color[4])
@@ -128,7 +137,8 @@ namespace dx2d
 	void Core::Destroy()
 	{
 		//engine objects
-		drawManager;
+		camera->Destroy();
+		drawManager->Destroy();
 		//com objects
 		layoutPosCol->Release();
 		defaultPS->Release();

@@ -139,9 +139,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Drawable.cpp" />
     <ClCompile Include="DrawManager.cpp" />
     <ClCompile Include="Core.cpp" />
+    <ClCompile Include="Dynamic.cpp" />
     <ClCompile Include="Functions.cpp" />
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="Window.cpp" />

@@ -7,8 +7,10 @@ namespace dx2d
 		D3D11_RASTERIZER_DESC rd;
 		ZeroMemory(&rd, sizeof(rd));
 		rd.FillMode = D3D11_FILL_WIREFRAME;
+		rd.CullMode = D3D11_CULL_NONE;
 		Device->CreateRasterizerState(&rd, &wireframe);
 		rd.FillMode = D3D11_FILL_SOLID;
+		rd.CullMode = D3D11_CULL_FRONT;
 		Device->CreateRasterizerState(&rd, &solid);
 	}
 
@@ -16,14 +18,22 @@ namespace dx2d
 	{
 		Polygon* newPoly = new Polygon(points, n);
 		Polygons.push_back(newPoly);
-		newPoly->index = Polygons.size() - 1;
+		newPoly->index = (int)Polygons.size() - 1;
 		return newPoly;
+	}
+
+	Rectangle* CDrawManager::AddRect(float sizex, float sizey)
+	{
+		Rectangle* newRect = new Rectangle(sizex,sizey);
+		Polygons.push_back(newRect);
+		newRect->index = (int)Polygons.size() - 1;
+		return newRect;
 	}
 
 	void CDrawManager::DrawAll()
 	{
-		Context->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		//Context->RSSetState(wireframe);
+		Context->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP);
+		Context->RSSetState(wireframe);
 		for (Polygon* p : Polygons)
 			if(p->Visible)
 				p->Draw();
@@ -31,7 +41,7 @@ namespace dx2d
 
 	void CDrawManager::Destroy()
 	{
-		for (int i = Polygons.size() - 1; i >= 0; i++)
+		for (int i = (int)Polygons.size() - 1; i >= 0; i--)
 			Polygons[i]->Destroy();
 		wireframe->Release();
 		solid->Release();

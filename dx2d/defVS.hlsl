@@ -1,25 +1,27 @@
+cbuffer cbPerObject
+{
+	float4x4 WorldViewProj;
+};
+
 struct VS_INPUT
 {
-	float4 vPosition : POSITION;
-	float3 vColor : COLOR;
+	float4 pos : POSITION;
+	float3 col : COLOR;
 	//if layout would define this
 	//float OffsetX : SOME_MORE_DATA;
 };
 
 struct VS_OUTPUT
 {
-	float4 vPosition : SV_POSITION;
-	float3 vColor : COLOR;
+	float4 pos : SV_POSITION;
+	float3 col : COLOR;
 };
 
-VS_OUTPUT main(VS_INPUT Input)
+VS_OUTPUT main(VS_INPUT input)
 {
-	VS_OUTPUT Output;
-	/*Output.vPosition.x = Input.vPosition.x + Input.OffsetX;
-	Output.vPosition.y = Input.vPosition.y;
-	Output.vPosition.z = Input.vPosition.z;
-	Output.vPosition.w = Input.vPosition.w;*/
-	Output.vPosition = Input.vPosition;
-	Output.vColor = Input.vColor;
-	return Output;
+	VS_OUTPUT output;
+	output.pos = mul(input.pos, WorldViewProj);
+	//output.pos.x = input.pos.x + input.OffsetX;
+	output.col = input.col;
+	return output;
 }

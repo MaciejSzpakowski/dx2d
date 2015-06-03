@@ -15,6 +15,9 @@ namespace dx2d
 	using DirectX::XMFLOAT4;
 	using DirectX::XMFLOAT3;
 	using DirectX::XMFLOAT2;
+	using DirectX::XMVECTOR;
+	using DirectX::XMMATRIX;
+	using DirectX::XMVectorSet;
 	using std::vector;
 
 	//prototypes
@@ -23,6 +26,7 @@ namespace dx2d
 	class Drawable;
 	class Polygon;
 	class CDrawManager;
+	class CCamera;
 	void Render(Core* d3d);	
 
 	//externals
@@ -32,6 +36,7 @@ namespace dx2d
 #define Device dx2d::Global->GetDevice()
 #define Context dx2d::Global->GetContext()
 #define DrawManager dx2d::Global->GetDrawManager()
+#define Camera dx2d::Global->GetCamera()
 
 	class Window
 	{
@@ -44,10 +49,6 @@ namespace dx2d
 	public:
 		Window(int sizex, int sizey);
 		int Run();
-		HWND GetHandle()
-		{
-			return handle;
-		}
 	};
 
 	class Core
@@ -62,6 +63,7 @@ namespace dx2d
 		ID3D11PixelShader* defaultPS;
 		ID3D11InputLayout* layoutPosCol; //vertex input layout pos:float[3] col:float[4]
 		CDrawManager* drawManager;
+		CCamera* camera;
 		float backBufferColor[4];
 		friend void Render(Core* d3d);
 	public:
@@ -69,6 +71,8 @@ namespace dx2d
 		ID3D11Device* GetDevice();
 		ID3D11DeviceContext* GetContext();
 		CDrawManager* GetDrawManager();
+		HWND GetWindowHandle();
+		CCamera* GetCamera();
 		void SetWindowTitle(const char* title);
 		void SetBackBufferColor(float color[4]);
 		int Run();
@@ -81,10 +85,17 @@ namespace dx2d
 		XMFLOAT4 Color;
 	};
 
-	class Object
+	class Dynamic
 	{
-	private:
+	protected:
+		XMVECTOR position;
+		XMFLOAT3 rotation;
+		XMFLOAT3 velocity;
+		XMFLOAT3 acceleration;
+		XMFLOAT3 spin;
 	public:
+		XMFLOAT3 GetPosition();
+		void SetPosition(XMFLOAT3 _position);
 	};
 
 	class Drawable
@@ -99,14 +110,23 @@ namespace dx2d
 		virtual void Draw() = 0;
 	};
 
-	class Polygon : public Drawable
+	class Polygon : public Drawable, Dynamic
 	{
 	protected:
 		ID3D11Buffer* vertexBuffer;
 	public:
+		Polygon();
 		Polygon(XMFLOAT2 points[], int n);
 		void Draw() override;
 		void Destroy();
+	};
+
+	class Rectangle : public Polygon
+	{
+	public:
+		float ScaleX;
+		float ScaleY;
+		Rectangle(float scalex, float scaley);
 	};
 
 	class CDrawManager
@@ -119,8 +139,31 @@ namespace dx2d
 	public:
 		CDrawManager();
 		Polygon* AddPoly(XMFLOAT2 points[], int n);
+		Rectangle* AddRect(float sizex, float sizey);
 		void DrawAll();
 		void Destroy();
 		void Remove(Polygon* p);
+	};
+
+	struct cbPerObject
+	{
+		XMMATRIX  WorldViewProj;
+	};
+
+	class CCamera : public Dynamic
+	{
+	private:
+		ID3D11Buffer* cbPerObjectBuffer;
+		XMMATRIX worldViewProj;
+		XMMATRIX world;
+		XMMATRIX view;
+		XMMATRIX proj;
+		XMVECTOR target;
+		XMVECTOR up;
+		cbPerObject cbPerObj;
+		friend void Render(Core* d3d);
+	public:
+		CCamera();
+		void Destroy();
 	};
 }
