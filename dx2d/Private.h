@@ -9,13 +9,12 @@
 #pragma comment (lib, "D3DCompiler.lib")
 #pragma comment(linker, "/subsystem:windows /ENTRY:mainCRTStartup")
 
-using DirectX::XMFLOAT4;
-using DirectX::XMFLOAT3;
-using DirectX::XMFLOAT2;
-
 namespace dx2d
 {
 	//using	
+	using DirectX::XMFLOAT4;
+	using DirectX::XMFLOAT3;
+	using DirectX::XMFLOAT2;
 	using std::vector;
 
 	//prototypes

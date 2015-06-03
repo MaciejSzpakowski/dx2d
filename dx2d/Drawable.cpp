@@ -6,21 +6,42 @@ namespace dx2d
 	{
 		vertexCount = n;
 
-		D3D11_BUFFER_DESC bd;
+		//method 1
+		/*D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
-		bd.Usage = D3D11_USAGE_DYNAMIC;                // write access access by CPU and GPU
+		bd.Usage = D3D11_USAGE_DYNAMIC;                // CPU writes, GPU reads
 		bd.ByteWidth = sizeof(VERTEX) * 3;             // size is the VERTEX struct * 3
 		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;       // use as a vertex buffer
-		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;    // allow CPU to write in buffer
-		Device->CreateBuffer(&bd, NULL, &vertexBuffer);// create the buffer
+		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;    // CPU writes
+		Device->CreateBuffer(&bd, NULL, &vertexBuffer);
 
 		VERTEX* vertices = new VERTEX[n];
 		for (int i = 0; i < n; i++)
 			vertices[i] = { points[i].x, points[i].y, 0.0f, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) };
+
 		D3D11_MAPPED_SUBRESOURCE ms;
 		Context->Map(vertexBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 		memcpy(ms.pData, vertices, sizeof(VERTEX)*n);
 		Context->Unmap(vertexBuffer, NULL);
+		delete[] vertices;*/
+
+		//method 2
+		D3D11_BUFFER_DESC bd;
+		ZeroMemory(&bd, sizeof(bd));
+		bd.Usage = D3D11_USAGE_DEFAULT;				   // GPU writes and reads
+		bd.ByteWidth = sizeof(VERTEX) * 3;	           // size is the VERTEX struct * 3
+		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;       // use as a vertex buffer
+		bd.CPUAccessFlags = 0;		                   // CPU does nothing
+
+		VERTEX* vertices = new VERTEX[n];
+		for (int i = 0; i < n; i++)
+			vertices[i] = { points[i].x, points[i].y, 0.0f, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) };
+
+		D3D11_SUBRESOURCE_DATA InitData;
+		ZeroMemory(&InitData, sizeof(InitData));
+		InitData.pSysMem = vertices;                   //Memory in CPU to copy in to GPU
+
+		Device->CreateBuffer(&bd, &InitData, &vertexBuffer);
 		delete[] vertices;
 	}
 

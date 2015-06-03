@@ -15,22 +15,20 @@ namespace dx2d
 		backBufferColor[2] = 1.0f;
 		backBufferColor[3] = 1.0f;
 
+		//// *********** PIPELINE SETUP STARTS HERE *********** ////
 		// create a struct to hold information about the swap chain
 		DXGI_SWAP_CHAIN_DESC scd;
-
-		// clear out the struct for use
 		ZeroMemory(&scd, sizeof(DXGI_SWAP_CHAIN_DESC));
-
-		// fill the swap chain description struct
 		scd.BufferCount = 1;                                    // one back buffer
 		scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;     // use 32-bit color
 		scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;      // how swap chain is to be used
 		scd.OutputWindow = window->GetHandle();                 // the window to be used
-		scd.SampleDesc.Count = 4;                               // how many multisamples
+		scd.SampleDesc.Quality = 0;
+		scd.SampleDesc.Count = 1;                               // no anti aliasing
 		scd.Windowed = TRUE;                                    // windowed/full-screen mode
-		//scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;   // alternative fullscreen mode
+		//scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;     // alternative fullscreen mode
 
-		// create a device, device context and swap chain using the information in the scd struct
+		////    DEVICE, DEVICE CONTEXT AND SWAP CHAIN    ////
 		D3D11CreateDeviceAndSwapChain(NULL,
 			D3D_DRIVER_TYPE_HARDWARE,
 			NULL,
@@ -44,30 +42,31 @@ namespace dx2d
 			NULL,
 			&context);
 
+		////    BACK BUFFER AS RENDER TARGET    ////
 		// get the address of the back buffer
-		ID3D11Texture2D* pBackBuffer;
-		swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
-
+		ID3D11Texture2D* buf;
+		swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&buf);
 		// use the back buffer address to create the render target
-		device->CreateRenderTargetView(pBackBuffer, NULL, &backBuffer);
-		pBackBuffer->Release();
-
+		device->CreateRenderTargetView(buf, NULL, &backBuffer);
+		buf->Release();
 		// set the render target as the back buffer
 		context->OMSetRenderTargets(1, &backBuffer, NULL);
 
+		////   VIEWPORT    ////
 		// Set the viewport
+		RECT rect;
+		GetClientRect(window->GetHandle(), &rect);
 		D3D11_VIEWPORT viewport;
 		ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
-
 		viewport.TopLeftX = 0;
 		viewport.TopLeftY = 0;
-		viewport.Width = (float)sizex;
-		viewport.Height = (float)sizey;
-
-		context->RSSetViewports(1, &viewport);
+		viewport.Width = (float)rect.right;
+		viewport.Height = (float)rect.bottom;
+		context->RSSetViewports(1, &viewport);		
 		
+		////    VS and PS    ////
 		//default shaders
-		ID3D10Blob *VS, *PS; //DO I HAVE TO RELEASE THIS ?
+		ID3D10Blob *VS, *PS; //release this after CreateInputLayout()
 		HRESULT r1 = D3DCompileFromFile(L"defVS.hlsl", 0, 0, "main", "vs_5_0", 0, 0, &VS, 0);
 		HRESULT r2 = D3DCompileFromFile(L"defPS.hlsl", 0, 0, "main", "ps_5_0", 0, 0, &PS, 0);
 		device->CreateVertexShader(VS->GetBufferPointer(), VS->GetBufferSize(), NULL, &defaultVS);
@@ -75,14 +74,18 @@ namespace dx2d
 		context->VSSetShader(defaultVS, 0, 0);
 		context->PSSetShader(defaultPS, 0, 0);
 		
+		////    INPUT LAYOUT    ////
 		//defaul input layout
 		D3D11_INPUT_ELEMENT_DESC ied[] =
 		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,
-			D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			//if you need to pass something on your own to PS or VS
+			//{ "SOME_MORE_DATA", 0, DXGI_FORMAT_R32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 		};
 		device->CreateInputLayout(ied, 2, VS->GetBufferPointer(), VS->GetBufferSize(), &layoutPosCol);
+		VS->Release();
+		PS->Release();
 		context->IASetInputLayout(layoutPosCol);
 
 		//draw manager		

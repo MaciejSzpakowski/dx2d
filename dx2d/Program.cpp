@@ -1,4 +1,5 @@
 #include "Private.h"
+using DirectX::XMFLOAT2;
 
 int main()
 {
