@@ -2,12 +2,13 @@
 
 namespace dx2d
 {
-	Core::Core(int sizex, int sizey)
+	Core::Core(int sizex, int sizey, std::function<void()> worker)
 	{
 		//assign global variable
 		Global = this;
 		//create window
 		window = new Window(sizex, sizey);
+		window->Worker = worker;
 		window->Render = Render;
 
 		backBufferColor[0] = 1.0f;
@@ -58,8 +59,8 @@ namespace dx2d
 		ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
 		viewport.TopLeftX = 0;
 		viewport.TopLeftY = 0;
-		viewport.Width = sizex;
-		viewport.Height = sizey;
+		viewport.Width = (float)sizex;
+		viewport.Height = (float)sizey;
 		context->RSSetViewports(1, &viewport);		
 		
 		////    VS and PS    ////

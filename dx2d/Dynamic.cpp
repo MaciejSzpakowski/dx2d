@@ -2,15 +2,43 @@
 
 namespace dx2d
 {
-	XMFLOAT3 Dynamic::GetPosition()
+	Dynamic::Dynamic()
 	{
-		XMFLOAT3 result;
-		DirectX::XMStoreFloat3(&result, position);
-		return result;
+		Position = XMFLOAT3(0, 0, 0);
+		Rotation = XMFLOAT3(0, 0, 0);
+		Velocity = XMFLOAT3(0, 0, 0);
+		Acceleration = XMFLOAT3(0, 0, 0);
+		Spin = XMFLOAT3(0, 0, 0);
+
+		//Create the buffer to send to the cbuffer in effect file
+		D3D11_BUFFER_DESC cbbd;
+		ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
+		cbbd.Usage = D3D11_USAGE_DEFAULT;
+		cbbd.ByteWidth = sizeof(XMMATRIX);
+		cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbbd.CPUAccessFlags = 0;
+		cbbd.MiscFlags = 0;
+
+		Device->CreateBuffer(&cbbd, NULL, &cbPerObjectBuffer16);
 	}
 
-	void Dynamic::SetPosition(XMFLOAT3 _position)
+	void Dynamic::Transform()
 	{
-		position = DirectX::XMLoadFloat3(&_position);
+		AddFloat3(&Acceleration, &Velocity);
+		AddFloat3(&Velocity, &Position);
+		AddFloat3(&Spin, &Rotation);
+		XMMATRIX scale = GetScaleMatrix();
+		XMMATRIX rot = DirectX::XMMatrixRotationRollPitchYaw(Rotation.x,Rotation.y,Rotation.z);
+		XMMATRIX loc = DirectX::XMMatrixTranslation(Position.x, Position.y, Position.z);
+		XMMATRIX world = scale * rot * loc;
+		XMMATRIX worldViewProj = world * Camera->view * Camera->proj;
+		worldViewProj = DirectX::XMMatrixTranspose(worldViewProj);
+		Context->UpdateSubresource(cbPerObjectBuffer16, 0, NULL, &worldViewProj, 0, 0);
+		Context->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer16);
+	}
+
+	Dynamic::~Dynamic()
+	{
+		cbPerObjectBuffer16->Release();
 	}
 }

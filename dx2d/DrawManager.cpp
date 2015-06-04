@@ -11,7 +11,13 @@ namespace dx2d
 		Device->CreateRasterizerState(&rd, &wireframe);
 		rd.FillMode = D3D11_FILL_SOLID;
 		rd.CullMode = D3D11_CULL_FRONT;
-		Device->CreateRasterizerState(&rd, &solid);
+		Device->CreateRasterizerState(&rd, &solid);		
+	}
+
+	void CDrawManager::Add(Polygon* p)
+	{
+		Polygons.push_back(p);
+		p->index = (int)Polygons.size() - 1;
 	}
 
 	Polygon* CDrawManager::AddPoly(XMFLOAT2 points[], int n)
@@ -30,13 +36,24 @@ namespace dx2d
 		return newRect;
 	}
 
+	Circle* CDrawManager::AddCircle(float radius, unsigned char resolution)
+	{
+		Circle* newCircle = new Circle(radius, resolution);
+		Polygons.push_back(newCircle);
+		newCircle->index = (int)Polygons.size() - 1;
+		return newCircle;
+	}
+
 	void CDrawManager::DrawAll()
 	{
 		Context->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP);
 		Context->RSSetState(wireframe);
 		for (Polygon* p : Polygons)
-			if(p->Visible)
+			if (p->Visible)
+			{
+				p->Transform();
 				p->Draw();
+			}
 	}
 
 	void CDrawManager::Destroy()

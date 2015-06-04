@@ -69,7 +69,7 @@ namespace dx2d
 			}
 			else
 			{
-				//Worker();				
+				Worker();
 				Render(Global);
 			}
 		}
