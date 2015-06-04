@@ -3,12 +3,15 @@
 namespace dx2d
 {
 	Core* Global;
+	CKey Key;
 
 	void Render(Core* d3d)
 	{
+		Camera->CamTransform();
 		d3d->context->ClearRenderTargetView(d3d->backBuffer, d3d->backBufferColor);
 		DrawManager->DrawAll();
 		d3d->swapChain->Present(0, 0);
+		InputManager->Activity();
 	}
 
 	Core* NewCore(int sizex, int sizey, std::function<void()> worker)

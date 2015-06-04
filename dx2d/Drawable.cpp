@@ -2,6 +2,14 @@
 
 namespace dx2d
 {
+	SColor::SColor(float _r, float _g, float _b, float _a)
+	{
+		r = _r;
+		g = _g;
+		b = _b;
+		a = _a;
+	}
+
 	Drawable::Drawable()
 	{
 		Visible = true;
@@ -26,7 +34,7 @@ namespace dx2d
 
 	Polygon::Polygon(XMFLOAT2 points[], int n)
 	{
-		Color = XMFLOAT4(0, 0, 0, 1);
+		Color = SColor(0, 0, 0, 1);
 		vertexCount = n;
 
 		/*/method 1
@@ -58,7 +66,7 @@ namespace dx2d
 
 		VERTEX* vertices = new VERTEX[n];
 		for (int i = 0; i < n; i++)
-			vertices[i] = { points[i].x, points[i].y, 0.0f, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) };
+			vertices[i] = { points[i].x, points[i].y, 0.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) };
 
 		D3D11_SUBRESOURCE_DATA sd;
 		ZeroMemory(&sd, sizeof(sd));
@@ -88,11 +96,11 @@ namespace dx2d
 
 		VERTEX vertices[] = 
 		{
-			{ -0.5f, -0.5f, 0.0f, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
-			{ 0.5f, -0.5f, 0.0f, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
-			{ 0.5f, 0.5f, 0.0f, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
-			{ -0.5f, 0.5f, 0.0f, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
-			{ -0.5f, -0.5f, 0.0f, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) }
+			{ -0.5f, -0.5f, 0.0f, XMFLOAT4(1, 1, 1, 1.0f) },
+			{ 0.5f, -0.5f, 0.0f, XMFLOAT4(1, 1, 1, 1.0f) },
+			{ 0.5f, 0.5f, 0.0f, XMFLOAT4(1, 1, 1, 1.0f) },
+			{ -0.5f, 0.5f, 0.0f, XMFLOAT4(1, 1, 1, 1.0f) },
+			{ -0.5f, -0.5f, 0.0f, XMFLOAT4(1, 1, 1, 1.0f) }
 		};
 
 		D3D11_SUBRESOURCE_DATA sd;
@@ -109,7 +117,7 @@ namespace dx2d
 
 	Circle::Circle(float radius, unsigned char resolution)
 	{
-		vertexCount = resolution;
+		vertexCount = resolution + 1;
 		Radius = radius;
 
 		D3D11_BUFFER_DESC bd;
@@ -124,7 +132,7 @@ namespace dx2d
 		float delta = XM_2PI / (vertexCount - 1);
 		for (int i = 0; i < vertexCount; i++)
 		{
-			vertices[i] = { cos(angle)*radius, sin(angle)*radius, 0.0f, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) };
+			vertices[i] = { cos(angle)*radius, sin(angle)*radius, 0.0f, XMFLOAT4(1, 1, 1, 1.0f) };
 			angle += delta;
 		}
 

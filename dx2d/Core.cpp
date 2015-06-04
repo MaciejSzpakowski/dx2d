@@ -90,6 +90,7 @@ namespace dx2d
 		//library objects	
 		drawManager = new CDrawManager;
 		camera = new CCamera;
+		inputManager = new CInputManager;
 	}
 
 	ID3D11Device* Core::GetDevice()
@@ -110,6 +111,11 @@ namespace dx2d
 	CCamera* Core::GetCamera()
 	{
 		return camera;
+	}
+
+	CInputManager* Core::GetInputManager()
+	{
+		return inputManager;
 	}
 
 	HWND Core::GetWindowHandle()
@@ -138,6 +144,7 @@ namespace dx2d
 	void Core::Destroy()
 	{
 		//engine objects
+		inputManager->Destroy();
 		camera->Destroy();
 		drawManager->Destroy();
 		//com objects

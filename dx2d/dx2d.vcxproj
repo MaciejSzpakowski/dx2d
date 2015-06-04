@@ -145,10 +145,12 @@
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="Dynamic.cpp" />
     <ClCompile Include="Functions.cpp" />
+    <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Keys.h" />
     <ClInclude Include="Private.h" />
   </ItemGroup>
   <ItemGroup>

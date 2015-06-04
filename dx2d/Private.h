@@ -6,6 +6,7 @@
 #include <DirectXMath.h>
 #include <cmath>
 #include <vector>
+#include "Keys.h"
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "D3DCompiler.lib")
 #pragma comment(linker, "/subsystem:windows /ENTRY:mainCRTStartup")
@@ -32,23 +33,34 @@ namespace dx2d
 	class Circle;
 	class CDrawManager;
 	class CCamera;
+	class CInputManager;
+	class Sprite;
 	void Render(Core* d3d);
 	Core* NewCore(int sizex, int sizey, std::function<void()> worker);
 	void AddFloat3(XMFLOAT3* src, XMFLOAT3* dst);
 
 	//externals
 	extern Core* Global;
+	extern CKey Key;
 
 	//defines
 #define Device Global->GetDevice()
 #define Context Global->GetContext()
 #define DrawManager Global->GetDrawManager()
 #define Camera Global->GetCamera()
+#define InputManager Global->GetInputManager()
 	
 	struct VERTEX
 	{
 		FLOAT X, Y, Z;
 		XMFLOAT4 Color;
+	};
+
+	struct SColor
+	{
+		float r, g, b, a;
+		SColor(){}
+		SColor(float _r,float _g,float _b,float _a);
 	};
 
 	class Window
@@ -77,6 +89,7 @@ namespace dx2d
 		ID3D11InputLayout* layoutPosCol; //vertex input layout pos:float[3] col:float[4]
 		CDrawManager* drawManager;
 		CCamera* camera;
+		CInputManager* inputManager;
 		float backBufferColor[4];
 		friend void Render(Core* d3d);
 	public:
@@ -86,6 +99,7 @@ namespace dx2d
 		CDrawManager* GetDrawManager();
 		HWND GetWindowHandle();
 		CCamera* GetCamera();
+		CInputManager* GetInputManager();
 		void SetWindowTitle(const char* title);
 		void SetBackBufferColor(float color[4]);
 		int Run();
@@ -119,7 +133,7 @@ namespace dx2d
 	public:
 		Drawable();
 		bool Visible;
-		XMFLOAT4 Color;
+		SColor Color;
 		virtual void Draw() = 0;
 		~Drawable();
 	};
@@ -178,13 +192,46 @@ namespace dx2d
 	private:		
 		XMMATRIX view;
 		XMMATRIX proj;
-		XMVECTOR target;
 		XMVECTOR up;		
 		friend void Render(Core* d3d);
 		friend class Dynamic;
 		XMMATRIX GetScaleMatrix() override;
+		void CamTransform();
 	public:
 		CCamera();
+		void Destroy();
+	};
+
+	class CInputManager
+	{
+	private:
+		int keyCount;
+		bool* curState;
+		bool* prevState;
+		POINT* curMouse;
+		POINT* prevMouse;
+	public:
+		CInputManager();
+		bool IsKeyDown(int vkey);
+		bool IsKeyPressed(int vkey);
+		bool IsKeyReleased(int vkey);
+		bool IsAnyKeyDown();
+		void GetCursorDelta(POINT* pos);
+		char GetChar();
+		//offset, where to start looking
+		char GetKey(int offset);
+		void ResetKey(int vkey);
+		void Activity();
+		void Destroy();
+	};
+
+	class Sprite : public Drawable, public Dynamic
+	{
+	protected:
+		ID3D11ShaderResourceView* shaderResource;
+		ID3D11SamplerState* samplerState;
+	public:
+		Sprite(const char* texture);
 		void Destroy();
 	};
 }
