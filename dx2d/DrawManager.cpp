@@ -44,22 +44,50 @@ namespace dx2d
 		return newCircle;
 	}
 
+	Sprite* CDrawManager::AddSprite(const char* texture)
+	{
+		Sprite* newSprite = new Sprite(texture);
+		Sprites.push_back(newSprite);
+		newSprite->index = (int)Sprites.size() - 1;
+		return newSprite;
+	}
+
+	void CDrawManager::Add(Sprite* s)
+	{
+		Sprites.push_back(s);
+		s->index = (int)Sprites.size() - 1;
+	}
+
 	void CDrawManager::DrawAll()
 	{
 		Context->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP);
 		Context->RSSetState(wireframe);
 		for (Polygon* p : Polygons)
+		{
+			p->Transform();
 			if (p->Visible)
-			{
-				p->Transform();
+			{				
 				p->Draw();
 			}
+		}
+			
+		Context->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		for (Sprite* s : Sprites)
+		{
+			s->Transform();
+			if (s->Visible)
+			{				
+				s->Draw();
+			}
+		}
 	}
 
 	void CDrawManager::Destroy()
 	{
 		for (int i = (int)Polygons.size() - 1; i >= 0; i--)
 			Polygons[i]->Destroy();
+		for (int i = (int)Sprites.size() - 1; i >= 0; i--)
+			Sprites[i]->Destroy();
 		wireframe->Release();
 		solid->Release();
 		delete this;
@@ -67,6 +95,8 @@ namespace dx2d
 
 	void CDrawManager::Remove(Polygon* p)
 	{
+		if (p->index == -1)
+			return;
 		if (Polygons.size() == 0 || Polygons[p->index] != p)
 		{
 			MessageBox(0, "This polygon is not in CDrawManager.Polygons", "Error", MB_ICONERROR);
@@ -83,5 +113,29 @@ namespace dx2d
 			Polygons[p->index]->index = p->index;
 			Polygons.pop_back();
 		}
+		p->index = -1;
+	}
+
+	void CDrawManager::Remove(Sprite* s)
+	{
+		if (s->index == -1)
+			return;
+		if (Sprites.size() == 0 || Sprites[s->index] != s)
+		{
+			MessageBox(0, "This sprite is not in CDrawManager.Sprites", "Error", MB_ICONERROR);
+			return;
+		}
+		else if (s->index == Polygons.size() - 1)
+		{
+			Sprites.pop_back();
+		}
+		else
+		{
+			//move end to where p is and update index
+			Sprites[s->index] = Sprites.back();
+			Sprites[s->index]->index = s->index;
+			Sprites.pop_back();
+		}
+		s->index = -1;
 	}
 }

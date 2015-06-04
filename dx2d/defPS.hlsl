@@ -5,12 +5,13 @@ cbuffer dataPSbuffer
 
 struct VS_OUTPUT
 {
-	float4 vPosition : SV_POSITION;
-	float3 vColor : COLOR;
+	float4 pos : SV_POSITION;
+	float3 col : COLOR;
+	float2 tex : TEXCOORD;
 };
 
-float4 main(VS_OUTPUT Input) : SV_Target
+float4 main(VS_OUTPUT input) : SV_Target
 {
-	return float4(Input.vColor.r * inColor[0], Input.vColor.g * inColor[1], 
-		Input.vColor.b * inColor[2], inColor[3]);
+	return float4(input.col.r * inColor[0], input.col.g * inColor[1],
+		input.col.b * inColor[2], inColor[3]);
 }

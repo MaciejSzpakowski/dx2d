@@ -34,6 +34,7 @@ namespace dx2d
 
 	Polygon::Polygon(XMFLOAT2 points[], int n)
 	{
+		index = -1;
 		Color = SColor(0, 0, 0, 1);
 		vertexCount = n;
 
@@ -66,7 +67,7 @@ namespace dx2d
 
 		VERTEX* vertices = new VERTEX[n];
 		for (int i = 0; i < n; i++)
-			vertices[i] = { points[i].x, points[i].y, 0.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) };
+			vertices[i] = { points[i].x, points[i].y, 1, 1, 1, 0, 0 };
 
 		D3D11_SUBRESOURCE_DATA sd;
 		ZeroMemory(&sd, sizeof(sd));
@@ -84,8 +85,8 @@ namespace dx2d
 	Rectangle::Rectangle(float scalex, float scaley)
 	{
 		vertexCount = 5;
-		ScaleX = scalex;
-		ScaleY = scaley;
+		Scale.x = scalex;
+		Scale.y = scaley;
 		//method 2
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
@@ -96,11 +97,11 @@ namespace dx2d
 
 		VERTEX vertices[] = 
 		{
-			{ -0.5f, -0.5f, 0.0f, XMFLOAT4(1, 1, 1, 1.0f) },
-			{ 0.5f, -0.5f, 0.0f, XMFLOAT4(1, 1, 1, 1.0f) },
-			{ 0.5f, 0.5f, 0.0f, XMFLOAT4(1, 1, 1, 1.0f) },
-			{ -0.5f, 0.5f, 0.0f, XMFLOAT4(1, 1, 1, 1.0f) },
-			{ -0.5f, -0.5f, 0.0f, XMFLOAT4(1, 1, 1, 1.0f) }
+			{ -0.5f, -0.5f, 1, 1, 1, 0, 0 },
+			{ 0.5f, -0.5f, 1, 1, 1, 0, 0 },
+			{ 0.5f, 0.5f, 1, 1, 1, 0, 0 },
+			{ -0.5f, 0.5f, 1, 1, 1, 0, 0 },
+			{ -0.5f, -0.5f, 1, 1, 1, 0, 0 }
 		};
 
 		D3D11_SUBRESOURCE_DATA sd;
@@ -112,7 +113,7 @@ namespace dx2d
 
 	XMMATRIX Rectangle::GetScaleMatrix()
 	{
-		return DirectX::XMMatrixScaling(ScaleX, ScaleY, 1);
+		return DirectX::XMMatrixScaling(Scale.x, Scale.y, 1);
 	}
 
 	Circle::Circle(float radius, unsigned char resolution)
@@ -132,7 +133,7 @@ namespace dx2d
 		float delta = XM_2PI / (vertexCount - 1);
 		for (int i = 0; i < vertexCount; i++)
 		{
-			vertices[i] = { cos(angle)*radius, sin(angle)*radius, 0.0f, XMFLOAT4(1, 1, 1, 1.0f) };
+			vertices[i] = { cos(angle)*radius, sin(angle)*radius, 1, 1, 1, 0, 0 };
 			angle += delta;
 		}
 

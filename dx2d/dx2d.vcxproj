@@ -147,6 +147,7 @@
     <ClCompile Include="Functions.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="Program.cpp" />
+    <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>

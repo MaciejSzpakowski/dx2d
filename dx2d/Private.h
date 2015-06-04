@@ -53,7 +53,8 @@ namespace dx2d
 	struct VERTEX
 	{
 		FLOAT X, Y, Z;
-		XMFLOAT4 Color;
+		FLOAT R, G, B;
+		FLOAT U, V;
 	};
 
 	struct SColor
@@ -86,7 +87,7 @@ namespace dx2d
 		ID3D11DeviceContext* context;
 		ID3D11VertexShader* defaultVS;
 		ID3D11PixelShader* defaultPS;
-		ID3D11InputLayout* layoutPosCol; //vertex input layout pos:float[3] col:float[4]
+		ID3D11InputLayout* layout; //vertex input layout pos:float[3] uv:float[2]
 		CDrawManager* drawManager;
 		CCamera* camera;
 		CInputManager* inputManager;
@@ -128,6 +129,7 @@ namespace dx2d
 	protected:
 		int vertexCount;
 		int index;
+		ID3D11Buffer* vertexBuffer;
 		ID3D11Buffer* cbPerObjectBuffer4;
 		friend class CDrawManager;
 	public:
@@ -140,8 +142,7 @@ namespace dx2d
 
 	class Polygon : public Drawable,public Dynamic
 	{
-	protected:
-		ID3D11Buffer* vertexBuffer;
+	protected:		
 		XMMATRIX GetScaleMatrix() override;
 	public:
 		Polygon();
@@ -155,8 +156,7 @@ namespace dx2d
 	protected:
 		XMMATRIX GetScaleMatrix() override;
 	public:
-		float ScaleX;
-		float ScaleY;
+		XMFLOAT2 Scale;
 		Rectangle(float scalex, float scaley);		
 	};
 
@@ -173,6 +173,7 @@ namespace dx2d
 	{
 	private:
 		vector<Polygon*> Polygons;
+		vector<Sprite*> Sprites;
 		ID3D11RasterizerState* wireframe;
 		ID3D11RasterizerState* solid;
 		friend void Render(Core* d3d);
@@ -185,6 +186,9 @@ namespace dx2d
 		void Destroy();
 		void Remove(Polygon* p);
 		void Add(Polygon* p);
+		Sprite* AddSprite(const char* texture);
+		void Add(Sprite* sprite);
+		void Remove(Sprite* sprite);
 	};	
 
 	class CCamera : public Dynamic
@@ -230,8 +234,11 @@ namespace dx2d
 	protected:
 		ID3D11ShaderResourceView* shaderResource;
 		ID3D11SamplerState* samplerState;
+		XMMATRIX GetScaleMatrix() override;
 	public:
+		XMFLOAT2 Scale;
 		Sprite(const char* texture);
+		void Draw() override;
 		void Destroy();
 	};
 }
