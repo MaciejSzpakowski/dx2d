@@ -29,20 +29,26 @@ void Activity()
 
 int main()
 {
+	AllocConsole();
+	freopen("CONOUT$", "w", stdout);
+	printf("Hello\n");
 	Core* engine = NewCore(800, 600, Activity);
 
 	engine->SetWindowTitle("Hello");
-	c1 = DrawManager->AddCircle(1, 10);
 	c2 = DrawManager->AddCircle(2, 20);
 	c2->Position = XMFLOAT3(0, 5, 0);
-	c2->Color = SColor(0, 1, 0.5, 1);
+	c2->Color = SColor(0, 0, 1, 1);
 	c3 = DrawManager->AddCircle(2, 3);
 	c3->Position = XMFLOAT3(10, 10, 0);
 	c3->Spin = XMFLOAT3(0, 0, -0.04f);
-	c3->Color = SColor(1.0f, 0.6f, 0.2f, 1);
+	c3->Color = SColor(1.0f, 0.6f, 0, 1);
 	r1 = DrawManager->AddRect(2, 4);
 	r1->Position = XMFLOAT3(-3, 2, 0);
 	r1->Spin = XMFLOAT3(0, 0, 0.03f);
+	r1->Color = SColor(1, 0, 0.0f, 0.3f);
+	Sprite* s = DrawManager->AddSprite("");
+	s->Scale = XMFLOAT2(3, 3);
+	s->Color = SColor(0, 0.5, 0.5, 0.3f);
 
 	engine->Run();
 	engine->Destroy();

@@ -70,7 +70,8 @@ namespace dx2d
 				p->Draw();
 			}
 		}
-			
+		
+		Context->RSSetState(solid);
 		Context->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		for (Sprite* s : Sprites)
 		{

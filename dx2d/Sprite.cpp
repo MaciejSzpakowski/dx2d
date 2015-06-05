@@ -4,9 +4,82 @@ namespace dx2d
 {
 	Sprite::Sprite(const char* texture)
 	{
-		index = -1;
-		//D3DX11CreateShaderResourceViewFromFile(d3d11Device, L"braynzar.jpg",
-		//	NULL, NULL, &CubesTexture, NULL);
+		HRESULT r1;
+		/*index = -1;
+		shaderResource = nullptr;
+		//experiment
+		unsigned char *texArray = new unsigned char[4 * 32 * 32];
+
+		for (int i = 0; i < 32 * 32; i+=4)
+		{
+			texArray[i] = 255;
+			texArray[i+1] = 255;
+			texArray[i+2] = 255;
+			texArray[i+3] = 255;
+		}			
+
+		D3D11_TEXTURE2D_DESC desc;
+		ZeroMemory(&desc, sizeof(D3D11_TEXTURE2D_DESC));
+		desc.Width = 1;
+		desc.Height = 1;
+		desc.MipLevels = desc.ArraySize = 1;
+		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		desc.SampleDesc.Count = 1;
+		desc.Usage = D3D11_USAGE_DYNAMIC;
+		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		desc.MiscFlags = 0;
+		ID3D11Texture2D *pTexture1 = NULL;
+
+		int ia = -1;
+		D3D11_SUBRESOURCE_DATA boxTexInitData;
+		ZeroMemory(&boxTexInitData, sizeof(D3D11_SUBRESOURCE_DATA));
+		boxTexInitData.pSysMem = &ia;
+		
+		HRESULT r1 = Device->CreateTexture2D(&desc, &boxTexInitData, &pTexture1);
+		delete[] texArray;*/
+
+		ID3D11Texture2D *tex;
+		D3D11_TEXTURE2D_DESC tdesc;
+		D3D11_SUBRESOURCE_DATA tbsd;
+
+		int *buf = new int[32*32];
+
+		for (int i = 0; i<32; i++)
+			for (int j = 0; j<32; j++)
+			{
+				if ((i & 32) == (j & 32))
+					buf[i*32 + j] = 0x00000000;
+				else
+					buf[i*32 + j] = 0xffffffff;
+			}
+
+		tbsd.pSysMem = (void *)buf;
+		tbsd.SysMemPitch = 32 * 4;
+		tbsd.SysMemSlicePitch = 32*32 * 4; // Not needed since this is a 2d texture
+
+		tdesc.Width = 32;
+		tdesc.Height = 32;
+		tdesc.MipLevels = 1;
+		tdesc.ArraySize = 1;
+
+		tdesc.SampleDesc.Count = 1;
+		tdesc.SampleDesc.Quality = 0;
+		tdesc.Usage = D3D11_USAGE_DEFAULT;
+		tdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		tdesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+		tdesc.CPUAccessFlags = 0;
+		tdesc.MiscFlags = 0;
+
+		r1 = Device->CreateTexture2D(&tdesc, &tbsd, &tex);
+
+
+		delete[] buf;
+
+		r1 = Device->CreateShaderResourceView(tex, 0, &shaderResource);
+		
+		//ends here
 		D3D11_SAMPLER_DESC sampDesc;
 		ZeroMemory(&sampDesc, sizeof(sampDesc));
 		sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
