@@ -66,8 +66,8 @@ namespace dx2d
 		////    VS and PS    ////
 		//default shaders
 		ID3D10Blob *VS, *PS; //release this after CreateInputLayout()
-		HRESULT r1 = D3DCompileFromFile(L"defVS.hlsl", 0, 0, "main", "vs_5_0", 0, 0, &VS, 0);
-		HRESULT r2 = D3DCompileFromFile(L"defPS.hlsl", 0, 0, "main", "ps_5_0", 0, 0, &PS, 0);
+		D3DCompileFromFile(L"VertexShader.hlsl", 0, 0, "main", "vs_5_0", 0, 0, &VS, 0);
+		D3DCompileFromFile(L"PixelShader.hlsl", 0, 0, "main", "ps_5_0", 0, 0, &PS, 0);
 		device->CreateVertexShader(VS->GetBufferPointer(), VS->GetBufferSize(), NULL, &defaultVS);
 		device->CreatePixelShader(PS->GetBufferPointer(), PS->GetBufferSize(), NULL, &defaultPS);
 		context->VSSetShader(defaultVS, 0, 0);
@@ -140,6 +140,49 @@ namespace dx2d
 		backBufferColor[1] = color[1];
 		backBufferColor[2] = color[2];
 		backBufferColor[3] = color[3];
+	}
+
+	ID3D11Texture2D* Core::CreateTexture2D(const char* file)
+	{
+		ID3D11Texture2D *tex;
+		D3D11_TEXTURE2D_DESC tdesc;
+		D3D11_SUBRESOURCE_DATA tbsd;
+		int w = 64;
+		int h = 64;
+
+		int *buf = new int[w*h];
+
+		for (int i = 0; i<h; i++)
+			for (int j = 0; j<w; j++)
+			{
+				if ((i & 32) == (j & 32))
+					buf[i*w + j] = 0xffff2200;
+				else
+					buf[i*w + j] = 0xffffaabb;
+			}
+
+		tbsd.pSysMem = (void *)buf;
+		tbsd.SysMemPitch = w * 4;
+		tbsd.SysMemSlicePitch = w*h * 4; // Not needed since this is a 2d texture
+
+		tdesc.Width = w;
+		tdesc.Height = h;
+		tdesc.MipLevels = 1;
+		tdesc.ArraySize = 1;
+
+		tdesc.SampleDesc.Count = 1;
+		tdesc.SampleDesc.Quality = 0;
+		tdesc.Usage = D3D11_USAGE_DEFAULT;
+		tdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		tdesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+		tdesc.CPUAccessFlags = 0;
+		tdesc.MiscFlags = 0;
+
+		Device->CreateTexture2D(&tdesc, &tbsd, &tex);
+
+		delete[] buf;
+		return tex;
 	}
 
 	void Core::Destroy()

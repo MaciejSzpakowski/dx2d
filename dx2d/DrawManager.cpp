@@ -72,7 +72,7 @@ namespace dx2d
 		}
 		
 		Context->RSSetState(solid);
-		Context->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		for (Sprite* s : Sprites)
 		{
 			s->Transform();

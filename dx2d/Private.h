@@ -60,6 +60,7 @@ namespace dx2d
 	struct SColor
 	{
 		float r, g, b, a;
+		int x1, x2, x3, x4;
 		SColor(){}
 		SColor(float _r,float _g,float _b,float _a);
 	};
@@ -104,13 +105,14 @@ namespace dx2d
 		void SetWindowTitle(const char* title);
 		void SetBackBufferColor(float color[4]);
 		int Run();
+		ID3D11Texture2D* CreateTexture2D(const char* file);
 		void Destroy();
 	};	
 
 	class Dynamic
 	{
 	protected:
-		ID3D11Buffer* cbPerObjectBuffer16;
+		ID3D11Buffer* cbBufferVS;
 		void Transform();
 		virtual XMMATRIX GetScaleMatrix() = 0;
 		friend class CDrawManager;
@@ -130,7 +132,7 @@ namespace dx2d
 		int vertexCount;
 		int index;
 		ID3D11Buffer* vertexBuffer;
-		ID3D11Buffer* cbPerObjectBuffer4;
+		ID3D11Buffer* cbBufferPS;
 		friend class CDrawManager;
 	public:
 		Drawable();
@@ -232,6 +234,7 @@ namespace dx2d
 	class Sprite : public Drawable, public Dynamic
 	{
 	protected:
+		ID3D11Buffer* indexBuffer;
 		ID3D11ShaderResourceView* shaderResource;
 		ID3D11SamplerState* samplerState;
 		XMMATRIX GetScaleMatrix() override;

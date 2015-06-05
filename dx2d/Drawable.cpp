@@ -13,7 +13,7 @@ namespace dx2d
 	Drawable::Drawable()
 	{
 		Visible = true;
-		//Create the buffer to send to the cbuffer in effect file
+
 		D3D11_BUFFER_DESC cbbd;
 		ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
 		cbbd.Usage = D3D11_USAGE_DEFAULT;
@@ -21,12 +21,12 @@ namespace dx2d
 		cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		cbbd.CPUAccessFlags = 0;
 		cbbd.MiscFlags = 0;
-		Device->CreateBuffer(&cbbd, NULL, &cbPerObjectBuffer4);
+		HRESULT hr = Device->CreateBuffer(&cbbd, NULL, &cbBufferPS);
 	}
 
 	Drawable::~Drawable()
 	{
-		cbPerObjectBuffer4->Release();
+		cbBufferPS->Release();
 	}
 
 	Polygon::Polygon()
@@ -35,7 +35,11 @@ namespace dx2d
 	Polygon::Polygon(XMFLOAT2 points[], int n)
 	{
 		index = -1;
-		Color = SColor(0, 0, 0, 1);
+		Color = SColor(0, 0, 0, 0);
+		Color.x1 = 0;
+		Color.x2 = 0;
+		Color.x3 = 0;
+		Color.x4 = 0;
 		vertexCount = n;
 
 		/*/method 1
@@ -152,8 +156,8 @@ namespace dx2d
 
 	void Polygon::Draw()
 	{
-		Context->UpdateSubresource(cbPerObjectBuffer4, 0, NULL, &Color, 0, 0);
-		Context->PSSetConstantBuffers(0, 1, &cbPerObjectBuffer4);
+		Context->UpdateSubresource(cbBufferPS, 0, NULL, &Color, 0, 0);
+		Context->PSSetConstantBuffers(0, 1, &cbBufferPS);
 		UINT stride = sizeof(VERTEX);
 		UINT offset = 0;
 		Context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);

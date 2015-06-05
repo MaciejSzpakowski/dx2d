@@ -19,7 +19,7 @@ namespace dx2d
 		cbbd.CPUAccessFlags = 0;
 		cbbd.MiscFlags = 0;
 
-		Device->CreateBuffer(&cbbd, NULL, &cbPerObjectBuffer16);
+		Device->CreateBuffer(&cbbd, NULL, &cbBufferVS);		
 	}
 
 	void Dynamic::Transform()
@@ -33,12 +33,12 @@ namespace dx2d
 		XMMATRIX world = scale * rot * loc;
 		XMMATRIX worldViewProj = world * Camera->view * Camera->proj;
 		worldViewProj = DirectX::XMMatrixTranspose(worldViewProj);
-		Context->UpdateSubresource(cbPerObjectBuffer16, 0, NULL, &worldViewProj, 0, 0);
-		Context->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer16);
+		Context->UpdateSubresource(cbBufferVS, 0, NULL, &worldViewProj, 0, 0);
+		Context->VSSetConstantBuffers(0, 1, &cbBufferVS);
 	}
 
 	Dynamic::~Dynamic()
 	{
-		cbPerObjectBuffer16->Release();
+		cbBufferVS->Release();
 	}
 }
