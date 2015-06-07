@@ -166,7 +166,7 @@ namespace dx2d
 
 	void Polygon::Destroy()
 	{
-		DrawManager->Remove(this);
+		DrawManager->RemovePoly(this);
 		vertexBuffer->Release();
 		delete this;
 	}

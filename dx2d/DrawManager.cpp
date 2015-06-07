@@ -14,7 +14,7 @@ namespace dx2d
 		Device->CreateRasterizerState(&rd, &solid);		
 	}
 
-	void CDrawManager::Add(Polygon* p)
+	void CDrawManager::AddPoly(Polygon* p)
 	{
 		Polygons.push_back(p);
 		p->index = (int)Polygons.size() - 1;
@@ -44,18 +44,31 @@ namespace dx2d
 		return newCircle;
 	}
 
-	Sprite* CDrawManager::AddSprite(const char* texture)
+	Sprite* CDrawManager::AddSprite(const WCHAR* textureFile)
 	{
-		Sprite* newSprite = new Sprite(texture);
+		Sprite* newSprite = new Sprite(textureFile);
 		Sprites.push_back(newSprite);
 		newSprite->index = (int)Sprites.size() - 1;
 		return newSprite;
 	}
 
-	void CDrawManager::Add(Sprite* s)
+	void CDrawManager::AddSprite(Sprite* s)
 	{
 		Sprites.push_back(s);
 		s->index = (int)Sprites.size() - 1;
+	}
+
+	Text* CDrawManager::AddText(std::wstring text)
+	{
+		Text* newText = new Text(text);
+		Sprites.push_back(newText);
+		newText->index = (int)Sprites.size() - 1;
+		return newText;
+	}
+
+	void CDrawManager::AddText(Text* t)
+	{
+		AddSprite(t);
 	}
 
 	void CDrawManager::DrawAll()
@@ -94,7 +107,7 @@ namespace dx2d
 		delete this;
 	}
 
-	void CDrawManager::Remove(Polygon* p)
+	void CDrawManager::RemovePoly(Polygon* p)
 	{
 		if (p->index == -1)
 			return;
@@ -117,7 +130,7 @@ namespace dx2d
 		p->index = -1;
 	}
 
-	void CDrawManager::Remove(Sprite* s)
+	void CDrawManager::RemoveSprite(Sprite* s)
 	{
 		if (s->index == -1)
 			return;
@@ -138,5 +151,10 @@ namespace dx2d
 			Sprites.pop_back();
 		}
 		s->index = -1;
+	}
+
+	void CDrawManager::RemoveText(Text* t)
+	{
+		RemoveSprite(t);
 	}
 }

@@ -22,6 +22,8 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 	}
 	else
 	{
-		return ObjTexture.Sample(ObjSamplerState, input.TexCoord);
+		float4 result = ObjTexture.Sample(ObjSamplerState, input.TexCoord);
+			clip(result.a-0.01f);
+			return float4(result.b*color[0], result.g*color[1], result.r*color[2], result.a*color[3]);
 	}
 }

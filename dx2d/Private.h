@@ -6,6 +6,7 @@
 #include <DirectXMath.h>
 #include <cmath>
 #include <vector>
+#include <string>
 #include "Keys.h"
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "D3DCompiler.lib")
@@ -35,6 +36,7 @@ namespace dx2d
 	class CCamera;
 	class CInputManager;
 	class Sprite;
+	class Text;
 	void Render(Core* d3d);
 	Core* NewCore(int sizex, int sizey, std::function<void()> worker);
 	void AddFloat3(XMFLOAT3* src, XMFLOAT3* dst);
@@ -89,12 +91,15 @@ namespace dx2d
 		ID3D11VertexShader* defaultVS;
 		ID3D11PixelShader* defaultPS;
 		ID3D11InputLayout* layout; //vertex input layout pos:float[3] uv:float[2]
+		ID3D11DepthStencilView* depthStencilView;
+		ID3D11Texture2D* depthStencilBuffer;		
 		CDrawManager* drawManager;
 		CCamera* camera;
 		CInputManager* inputManager;
 		float backBufferColor[4];
 		friend void Render(Core* d3d);
 	public:
+		ID3D11BlendState* blendState;
 		Core(int sizex, int sizey, std::function<void()> worker);
 		ID3D11Device* GetDevice();
 		ID3D11DeviceContext* GetContext();
@@ -105,7 +110,8 @@ namespace dx2d
 		void SetWindowTitle(const char* title);
 		void SetBackBufferColor(float color[4]);
 		int Run();
-		ID3D11Texture2D* CreateTexture2D(const char* file);
+		ID3D11Texture2D* CreateTexture2D(const WCHAR* file);
+		ID3D11Texture2D* CreateTexture2DFromText(std::wstring text);
 		void Destroy();
 	};	
 
@@ -184,13 +190,18 @@ namespace dx2d
 		Polygon* AddPoly(XMFLOAT2 points[], int n);
 		Rectangle* AddRect(float sizex, float sizey);
 		Circle* AddCircle(float radius, unsigned char resolution);
+		void AddPoly(Polygon* p);
 		void DrawAll();
 		void Destroy();
-		void Remove(Polygon* p);
-		void Add(Polygon* p);
-		Sprite* AddSprite(const char* texture);
-		void Add(Sprite* sprite);
-		void Remove(Sprite* sprite);
+		void RemovePoly(Polygon* p);		
+		//add sprite from file
+		//supported file formats: BMP, GIF, JPEG, PNG, TIFF, Exif, WMF, EMF
+		Sprite* AddSprite(const WCHAR* texture);
+		void AddSprite(Sprite* s);
+		Text* AddText(std::wstring text);
+		void AddText(Text* t);
+		void RemoveSprite(Sprite* s);
+		void RemoveText(Text* t);
 	};	
 
 	class CCamera : public Dynamic
@@ -240,8 +251,16 @@ namespace dx2d
 		XMMATRIX GetScaleMatrix() override;
 	public:
 		XMFLOAT2 Scale;
-		Sprite(const char* texture);
+		Sprite(){}
+		Sprite(const WCHAR* texture);
 		void Draw() override;
 		void Destroy();
+	};
+
+	class Text : public Sprite
+	{
+	protected:
+	public:
+		Text(std::wstring text);
 	};
 }

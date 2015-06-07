@@ -1,4 +1,5 @@
 #include "Private.h"
+#include <gdiplus.h>
 
 namespace dx2d
 {
@@ -31,27 +32,40 @@ namespace dx2d
 
 		////    DEVICE, DEVICE CONTEXT AND SWAP CHAIN    ////
 		D3D11CreateDeviceAndSwapChain(NULL,
-			D3D_DRIVER_TYPE_HARDWARE,
-			NULL,
-			NULL,
-			NULL,
-			NULL,
+			D3D_DRIVER_TYPE_HARDWARE,NULL,NULL,NULL,NULL,
 			D3D11_SDK_VERSION,
 			&scd,
 			&swapChain,
-			&device,
-			NULL,
+			&device,NULL,
 			&context);
 
-		////    BACK BUFFER AS RENDER TARGET    ////
+		////    BACK BUFFER AS RENDER TARGET, DEPTH STENCIL   ////
 		// get the address of the back buffer
 		ID3D11Texture2D* buf;
 		swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&buf);
 		// use the back buffer address to create the render target
 		device->CreateRenderTargetView(buf, NULL, &backBuffer);
 		buf->Release();
+		//Describe our Depth/Stencil Buffer
+		D3D11_TEXTURE2D_DESC depthStencilDesc;
+		depthStencilDesc.Width = sizex;
+		depthStencilDesc.Height = sizey;
+		depthStencilDesc.MipLevels = 1;
+		depthStencilDesc.ArraySize = 1;
+		depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		depthStencilDesc.SampleDesc.Count = 1;
+		depthStencilDesc.SampleDesc.Quality = 0;
+		depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
+		depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+		depthStencilDesc.CPUAccessFlags = 0;
+		depthStencilDesc.MiscFlags = 0;
+		//Create the Depth/Stencil View
+		device->CreateTexture2D(&depthStencilDesc, NULL, &depthStencilBuffer);
+		device->CreateDepthStencilView(depthStencilBuffer, NULL, &depthStencilView);
+
+		//Set our Render Target
 		// set the render target as the back buffer
-		context->OMSetRenderTargets(1, &backBuffer, NULL);
+		context->OMSetRenderTargets(1, &backBuffer, depthStencilView);
 
 		////   VIEWPORT    ////
 		// Set the viewport
@@ -61,6 +75,8 @@ namespace dx2d
 		viewport.TopLeftY = 0;
 		viewport.Width = (float)sizex;
 		viewport.Height = (float)sizey;
+		viewport.MinDepth = 0.0f;
+		viewport.MaxDepth = 1.0f;
 		context->RSSetViewports(1, &viewport);		
 		
 		////    VS and PS    ////
@@ -87,6 +103,23 @@ namespace dx2d
 		VS->Release();
 		PS->Release();
 		context->IASetInputLayout(layout);
+
+		///    BLEND STATE    ////
+		D3D11_BLEND_DESC blendDesc;
+		ZeroMemory(&blendDesc, sizeof(blendDesc));
+		D3D11_RENDER_TARGET_BLEND_DESC rtbd;
+		ZeroMemory(&rtbd, sizeof(rtbd));
+		rtbd.BlendEnable = true;
+		rtbd.SrcBlend = D3D11_BLEND_SRC_COLOR;
+		rtbd.DestBlend = D3D11_BLEND_BLEND_FACTOR;
+		rtbd.BlendOp = D3D11_BLEND_OP_ADD;
+		rtbd.SrcBlendAlpha = D3D11_BLEND_ONE;
+		rtbd.DestBlendAlpha = D3D11_BLEND_ZERO;
+		rtbd.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		rtbd.RenderTargetWriteMask = D3D10_COLOR_WRITE_ENABLE_ALL;
+		blendDesc.AlphaToCoverageEnable = false;
+		blendDesc.RenderTarget[0] = rtbd;
+		device->CreateBlendState(&blendDesc, &blendState);
 
 		//library objects	
 		drawManager = new CDrawManager;
@@ -142,26 +175,92 @@ namespace dx2d
 		backBufferColor[3] = color[3];
 	}
 
-	ID3D11Texture2D* Core::CreateTexture2D(const char* file)
+	ID3D11Texture2D* Core::CreateTexture2D(const WCHAR* file)
 	{
+		ULONG_PTR m_gdiplusToken;
+		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+		Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
+
+		Gdiplus::Bitmap* gdibitmap = new Gdiplus::Bitmap(file);
+		UINT h = gdibitmap->GetHeight();
+		UINT w = gdibitmap->GetWidth();
+
+		HBITMAP hbitmap;		
+		Gdiplus::Color c(0, 0, 0);
+		gdibitmap->GetHBITMAP(c, &hbitmap);
+		delete gdibitmap;
+		Gdiplus::GdiplusShutdown(m_gdiplusToken);
+
+		BITMAP bitmap;
+		GetObject(hbitmap, sizeof(bitmap), (LPVOID)&bitmap);
+		BYTE* data = (BYTE*)bitmap.bmBits;
+
 		ID3D11Texture2D *tex;
 		D3D11_TEXTURE2D_DESC tdesc;
 		D3D11_SUBRESOURCE_DATA tbsd;
-		int w = 64;
-		int h = 64;
 
-		int *buf = new int[w*h];
+		tbsd.pSysMem = (void *)data;
+		tbsd.SysMemPitch = w * 4;
+		tbsd.SysMemSlicePitch = w*h * 4; // Not needed since this is a 2d texture
 
-		for (int i = 0; i<h; i++)
-			for (int j = 0; j<w; j++)
-			{
-				if ((i & 32) == (j & 32))
-					buf[i*w + j] = 0xffff2200;
-				else
-					buf[i*w + j] = 0xffffaabb;
-			}
+		tdesc.Width = w;
+		tdesc.Height = h;
+		tdesc.MipLevels = 1;
+		tdesc.ArraySize = 1;
 
-		tbsd.pSysMem = (void *)buf;
+		tdesc.SampleDesc.Count = 1;
+		tdesc.SampleDesc.Quality = 0;
+		tdesc.Usage = D3D11_USAGE_DEFAULT;
+		tdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		tdesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+		tdesc.CPUAccessFlags = 0;
+		tdesc.MiscFlags = 0;
+
+		Device->CreateTexture2D(&tdesc, &tbsd, &tex);	
+
+		DeleteObject(hbitmap);
+
+		return tex;
+	}
+
+	ID3D11Texture2D* Core::CreateTexture2DFromText(std::wstring text)
+	{
+		ULONG_PTR m_gdiplusToken;
+		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+		Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
+
+		UINT h = 80;
+		UINT w = 80;
+		Gdiplus::Bitmap* gdibitmap = new Gdiplus::Bitmap(h, w, PixelFormat32bppARGB);
+		Gdiplus::Graphics* g = new Gdiplus::Graphics(gdibitmap);		
+		Gdiplus::PointF point(0, 0);
+		Gdiplus::Rect rect(0, 0, w, h);
+		Gdiplus::Font* font = new Gdiplus::Font(&Gdiplus::FontFamily(L"Arial"), 14);
+		Gdiplus::SolidBrush* brush = new Gdiplus::SolidBrush(Gdiplus::Color::White);
+		Gdiplus::SolidBrush* brush1 = new Gdiplus::SolidBrush(Gdiplus::Color::Black);
+		g->FillRectangle(brush1, rect);
+		g->DrawString(text.c_str(), (INT)text.length(), font, point, brush);
+		delete g;
+		delete brush;
+		delete brush1;
+		delete font;
+
+		HBITMAP hbitmap;
+		Gdiplus::Color c(0, 0, 0);
+		gdibitmap->GetHBITMAP(c, &hbitmap);
+		delete gdibitmap;
+		Gdiplus::GdiplusShutdown(m_gdiplusToken);
+
+		BITMAP bitmap;
+		GetObject(hbitmap, sizeof(bitmap), (LPVOID)&bitmap);
+		BYTE* data = (BYTE*)bitmap.bmBits;
+
+		ID3D11Texture2D *tex = nullptr;
+		D3D11_TEXTURE2D_DESC tdesc;
+		D3D11_SUBRESOURCE_DATA tbsd;
+
+		tbsd.pSysMem = (void *)data;
 		tbsd.SysMemPitch = w * 4;
 		tbsd.SysMemSlicePitch = w*h * 4; // Not needed since this is a 2d texture
 
@@ -181,7 +280,8 @@ namespace dx2d
 
 		Device->CreateTexture2D(&tdesc, &tbsd, &tex);
 
-		delete[] buf;
+		DeleteObject(hbitmap);
+
 		return tex;
 	}
 
@@ -196,6 +296,10 @@ namespace dx2d
 		defaultPS->Release();
 		defaultVS->Release();
 		swapChain->Release();
+		depthStencilView->Release();
+		depthStencilBuffer->Release();
+		blendState->Release();
+		backBuffer->Release();
 		device->Release();
 		context->Release();		
 		delete window;
