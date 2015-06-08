@@ -5,10 +5,10 @@
 
 using namespace dx2d;
 
-Circle* c1;
 Circle* c2;
 Circle* c3;
 Sprite* brick;
+Sprite* s1;
 dx2d::Rectangle* r1;
 std::vector<Sprite*> sprites;
 int t1;
@@ -43,48 +43,58 @@ void Activity()
 		Camera->Spin.z = move;
 	if (InputManager->IsKeyDown('E'))
 		Camera->Spin.z = -move;
-	char c1 = InputManager->GetChar();
-	if (c1 != 0)
-		printf("%c", c1);
+	
+	static float angle = 0;
+	//s1->Color.a = (sin(angle) + 1) / 2;
+	//brick->Color.a = (sin(angle+XM_PI) + 1) / 2;
+	if (InputManager->IsKeyDown('A'))
+		brick->Position.z -= 0.01f;
+	if (InputManager->IsKeyDown('Z'))
+		brick->Position.z += 0.01f;
+	angle += 0.002f;
+	if (InputManager->IsKeyPressed('S'))
+	{
+		LARGE_INTEGER li;
+		QueryPerformanceCounter(&li);
+		long long ll = li.QuadPart;
+		printf("%llu\n", ll);
+	}
+
+	//char c1 = InputManager->GetChar();
+	//if (c1 != 0)
+	//	printf("%c", c1);
 }
 
 int main(int argc,char** argv)
 {
-
-	AllocConsole();
-	freopen("CONOUT$", "w", stdout);
-	printf("Hello\n");
 	Core* engine = NewCore(800, 600, Activity);
 
+	engine->OpenConsole();
+	engine->SetBackgroundColor(SColor(0, 0, 0, 1));
 	srand((int)time(0));
 	t1 = (int)time(0);
 	fps = 0;
 	engine->SetWindowTitle("Hello");
-	c2 = DrawManager->AddCircle(2, 20);
+	/*c2 = DrawManager->AddCircle(2, 20);
 	c2->Position = XMFLOAT3(0, 5, 0);
 	c2->Color = SColor(0, 0, 1, 0);
-	c3 = DrawManager->AddCircle(2, 3);
+	/*c3 = DrawManager->AddCircle(2, 3);
 	c3->Position = XMFLOAT3(10, 10, 0);
 	c3->Spin = XMFLOAT3(0, 0, -0.004f);
 	c3->Color = SColor(1.0f, 0.6f, 0, 0);
 	r1 = DrawManager->AddRect(2, 4);
 	r1->Position = XMFLOAT3(-3, 2, 0);
 	r1->Spin = XMFLOAT3(0, 0, 0.003f);
-	r1->Color = SColor(1, 0, 0.0f, 0);
-	brick = DrawManager->AddSprite(L"C:/bajery/bLeNdEr/tekstury/bricks.jpeg");
-	brick->Scale = XMFLOAT2(20, 15);
-	brick->Position.z = 1;
-	for (int i = 0; i <= 200; i++)
-	{
-		if (i % 10 == 0)
-			printf("%i\n", i);
-		float x = (float)rand() / (2 << 15) * 40 - 10;
-		float y = (float)rand() / (2 << 15) * 40 - 10;
-		Sprite* s1 = DrawManager->AddSprite(L"c:/bajery/blender.png");
-		s1->Position = XMFLOAT3(x, y, -1);
-		s1->Spin.z = x / 1333 + y/1333;
-		s1->Scale = XMFLOAT2(1, 1);
-	}
+	r1->Color = SColor(1, 0, 0.0f, 0);*/
+	brick = DrawManager->AddSprite(L"brick.jpg");
+	brick->Scale = XMFLOAT2(22, 17);
+	brick->Position.z = 0.03f;
+	s1 = DrawManager->AddSprite(L"leaf.png");
+	s1->Scale = XMFLOAT2(10, 10);
+	s1->Position.z = 0;
+	Sprite* s2 = DrawManager->AddSprite(L"leaf.png");
+	s2->Scale = XMFLOAT2(10, 10);
+	s2->Position = XMFLOAT3(3, 0, -1);
 
 	engine->Run();
 	engine->Destroy();

@@ -7,10 +7,6 @@ namespace dx2d
 		vertexBuffer = nullptr;
 		Scale = XMFLOAT2(1, 1);
 		Color = SColor(1, 1, 1, 1);
-		Color.x1 = 1;
-		Color.x2 = 1;
-		Color.x3 = 1;
-		Color.x4 = 1;		
 
 		auto tex = Global->CreateTexture2D(textureFile);
 		Device->CreateShaderResourceView(tex, 0, &shaderResource);
@@ -54,10 +50,6 @@ namespace dx2d
 	{
 		Scale = XMFLOAT2(1, 1);
 		Color = SColor(1, 1, 1, 1);
-		Color.x1 = 1;
-		Color.x2 = 1;
-		Color.x3 = 1;
-		Color.x4 = 1;
 		
 		auto tex = Global->CreateTexture2DFromText(text);
 		Device->CreateShaderResourceView(tex, 0, &shaderResource);

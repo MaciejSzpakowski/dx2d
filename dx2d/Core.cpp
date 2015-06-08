@@ -46,6 +46,7 @@ namespace dx2d
 		// use the back buffer address to create the render target
 		device->CreateRenderTargetView(buf, NULL, &backBuffer);
 		buf->Release();
+
 		//Describe our Depth/Stencil Buffer
 		D3D11_TEXTURE2D_DESC depthStencilDesc;
 		depthStencilDesc.Width = sizex;
@@ -63,7 +64,6 @@ namespace dx2d
 		device->CreateTexture2D(&depthStencilDesc, NULL, &depthStencilBuffer);
 		device->CreateDepthStencilView(depthStencilBuffer, NULL, &depthStencilView);
 
-		//Set our Render Target
 		// set the render target as the back buffer
 		context->OMSetRenderTargets(1, &backBuffer, depthStencilView);
 
@@ -105,26 +105,42 @@ namespace dx2d
 		context->IASetInputLayout(layout);
 
 		///    BLEND STATE    ////
-		D3D11_BLEND_DESC blendDesc;
+		D3D11_BLEND_DESC blendDesc;		
 		ZeroMemory(&blendDesc, sizeof(blendDesc));
 		D3D11_RENDER_TARGET_BLEND_DESC rtbd;
 		ZeroMemory(&rtbd, sizeof(rtbd));
 		rtbd.BlendEnable = true;
-		rtbd.SrcBlend = D3D11_BLEND_SRC_COLOR;
-		rtbd.DestBlend = D3D11_BLEND_BLEND_FACTOR;
+		rtbd.SrcBlend = D3D11_BLEND_SRC_ALPHA;
+		rtbd.DestBlend = D3D11_BLEND_INV_DEST_ALPHA;
 		rtbd.BlendOp = D3D11_BLEND_OP_ADD;
-		rtbd.SrcBlendAlpha = D3D11_BLEND_ONE;
+		rtbd.SrcBlendAlpha = D3D11_BLEND_ZERO;
 		rtbd.DestBlendAlpha = D3D11_BLEND_ZERO;
 		rtbd.BlendOpAlpha = D3D11_BLEND_OP_ADD;
 		rtbd.RenderTargetWriteMask = D3D10_COLOR_WRITE_ENABLE_ALL;
 		blendDesc.AlphaToCoverageEnable = false;
 		blendDesc.RenderTarget[0] = rtbd;
 		device->CreateBlendState(&blendDesc, &blendState);
+		context->OMSetBlendState(blendState, 0, 0xffffffff);
+		if (blendState == nullptr)
+			exit(0);
 
-		//library objects	
+		//// *********** PIPELINE SETUP ENDS HERE *********** ////
+
+		//library objects
 		drawManager = new CDrawManager;
 		camera = new CCamera;
 		inputManager = new CInputManager;
+
+		//timer
+		LARGE_INTEGER li;
+		if (!QueryPerformanceFrequency(&li))
+		{
+			MessageBox(0, "QueryPerformanceFrequency() failed", "Error", MB_ICONERROR);
+			exit(0);
+		}
+		frequency = double(li.QuadPart);
+		QueryPerformanceCounter(&li);
+		startTime = li.QuadPart;
 	}
 
 	ID3D11Device* Core::GetDevice()
@@ -167,12 +183,12 @@ namespace dx2d
 		SetWindowText(window->handle, title);
 	}
 
-	void Core::SetBackBufferColor(float color[4])
+	void Core::SetBackgroundColor(SColor color)
 	{
-		backBufferColor[0] = color[0];
-		backBufferColor[1] = color[1];
-		backBufferColor[2] = color[2];
-		backBufferColor[3] = color[3];
+		backBufferColor[0] = color.r;
+		backBufferColor[1] = color.g;
+		backBufferColor[2] = color.b;
+		backBufferColor[3] = color.a;
 	}
 
 	ID3D11Texture2D* Core::CreateTexture2D(const WCHAR* file)
@@ -192,8 +208,17 @@ namespace dx2d
 		Gdiplus::GdiplusShutdown(m_gdiplusToken);
 
 		BITMAP bitmap;
-		GetObject(hbitmap, sizeof(bitmap), (LPVOID)&bitmap);
+		GetObject(hbitmap, sizeof(bitmap), (LPVOID)&bitmap);		
 		BYTE* data = (BYTE*)bitmap.bmBits;
+		//ID3D11Texture2D and BITMAP have red and blue swapped
+		//swap it back
+		//this for loop is ~10% of the function
+		for (int i = 0; i < h*w * 4; i += 4)
+		{
+			BYTE temp = data[i];
+			data[i] = data[i + 2];
+			data[i + 2] = temp;
+		}
 
 		ID3D11Texture2D *tex;
 		D3D11_TEXTURE2D_DESC tdesc;
@@ -283,6 +308,17 @@ namespace dx2d
 		DeleteObject(hbitmap);
 
 		return tex;
+	}
+
+	void Core::OpenConsole()
+	{
+		AllocConsole();
+		freopen("CONOUT$", "w", stdout);
+	}
+
+	void Core::CloseConsole()
+	{
+		FreeConsole();
 	}
 
 	void Core::Destroy()

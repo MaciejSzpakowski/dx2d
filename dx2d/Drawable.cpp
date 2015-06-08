@@ -36,10 +36,6 @@ namespace dx2d
 	{
 		index = -1;
 		Color = SColor(0, 0, 0, 0);
-		Color.x1 = 0;
-		Color.x2 = 0;
-		Color.x3 = 0;
-		Color.x4 = 0;
 		vertexCount = n;
 
 		/*/method 1
@@ -71,7 +67,7 @@ namespace dx2d
 
 		VERTEX* vertices = new VERTEX[n];
 		for (int i = 0; i < n; i++)
-			vertices[i] = { points[i].x, points[i].y, 1, 1, 1, 0, 0 };
+			vertices[i] = { points[i].x, points[i].y, 0, 1, 1, 0, 0 };
 
 		D3D11_SUBRESOURCE_DATA sd;
 		ZeroMemory(&sd, sizeof(sd));
@@ -101,11 +97,11 @@ namespace dx2d
 
 		VERTEX vertices[] = 
 		{
-			{ -0.5f, -0.5f, 1, 1, 1, 0, 0 },
-			{ 0.5f, -0.5f, 1, 1, 1, 0, 0 },
-			{ 0.5f, 0.5f, 1, 1, 1, 0, 0 },
-			{ -0.5f, 0.5f, 1, 1, 1, 0, 0 },
-			{ -0.5f, -0.5f, 1, 1, 1, 0, 0 }
+			{ -0.5f, -0.5f, 0, 1, 1, 0, 0 },
+			{ 0.5f, -0.5f, 0, 1, 1, 0, 0 },
+			{ 0.5f, 0.5f, 0, 1, 1, 0, 0 },
+			{ -0.5f, 0.5f, 0, 1, 1, 0, 0 },
+			{ -0.5f, -0.5f, 0, 1, 1, 0, 0 }
 		};
 
 		D3D11_SUBRESOURCE_DATA sd;
@@ -137,7 +133,7 @@ namespace dx2d
 		float delta = XM_2PI / (vertexCount - 1);
 		for (int i = 0; i < vertexCount; i++)
 		{
-			vertices[i] = { cos(angle)*radius, sin(angle)*radius, 1, 1, 1, 0, 0 };
+			vertices[i] = { cos(angle)*radius, sin(angle)*radius, 0, 1, 1, 0, 0 };
 			angle += delta;
 		}
 

@@ -62,9 +62,16 @@ namespace dx2d
 	struct SColor
 	{
 		float r, g, b, a;
-		int x1, x2, x3, x4;
 		SColor(){}
 		SColor(float _r,float _g,float _b,float _a);
+		SColor& operator = (const XMFLOAT4& other)
+		{
+			r = other.x;
+			g = other.y;
+			b = other.z;
+			a = other.w;
+			return *this;
+		}
 	};
 
 	class Window
@@ -90,7 +97,7 @@ namespace dx2d
 		ID3D11DeviceContext* context;
 		ID3D11VertexShader* defaultVS;
 		ID3D11PixelShader* defaultPS;
-		ID3D11InputLayout* layout; //vertex input layout pos:float[3] uv:float[2]
+		ID3D11InputLayout* layout; //vertex input layout pos:float[3] col:float[3] uv:float[2]
 		ID3D11DepthStencilView* depthStencilView;
 		ID3D11Texture2D* depthStencilBuffer;		
 		CDrawManager* drawManager;
@@ -98,6 +105,8 @@ namespace dx2d
 		CInputManager* inputManager;
 		float backBufferColor[4];
 		friend void Render(Core* d3d);
+		double frequency;
+		long long startTime;
 	public:
 		ID3D11BlendState* blendState;
 		Core(int sizex, int sizey, std::function<void()> worker);
@@ -108,10 +117,12 @@ namespace dx2d
 		CCamera* GetCamera();
 		CInputManager* GetInputManager();
 		void SetWindowTitle(const char* title);
-		void SetBackBufferColor(float color[4]);
+		void SetBackgroundColor(SColor color);
 		int Run();
 		ID3D11Texture2D* CreateTexture2D(const WCHAR* file);
 		ID3D11Texture2D* CreateTexture2DFromText(std::wstring text);
+		void OpenConsole();
+		void CloseConsole();
 		void Destroy();
 	};	
 

@@ -27,5 +27,5 @@ namespace dx2d
 		dst->x += src->x;
 		dst->y += src->y;
 		dst->z += src->z;
-	}
+	}	
 }
