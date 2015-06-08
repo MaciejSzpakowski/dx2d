@@ -19,7 +19,7 @@ void Activity()
 {
 	Sleep(1);
 	fps++;
-	if ((t2 = time(0)) != t1)
+	if ((t2 = (int)time(0)) != t1)
 	{
 		t1 = t2;
 		char sfps[10];
@@ -43,6 +43,9 @@ void Activity()
 		Camera->Spin.z = move;
 	if (InputManager->IsKeyDown('E'))
 		Camera->Spin.z = -move;
+	char c1 = InputManager->GetChar();
+	if (c1 != 0)
+		printf("%c", c1);
 }
 
 int main(int argc,char** argv)
@@ -53,8 +56,8 @@ int main(int argc,char** argv)
 	printf("Hello\n");
 	Core* engine = NewCore(800, 600, Activity);
 
-	srand(time(0));
-	t1 = time(0);
+	srand((int)time(0));
+	t1 = (int)time(0);
 	fps = 0;
 	engine->SetWindowTitle("Hello");
 	c2 = DrawManager->AddCircle(2, 20);
@@ -71,7 +74,7 @@ int main(int argc,char** argv)
 	brick = DrawManager->AddSprite(L"C:/bajery/bLeNdEr/tekstury/bricks.jpeg");
 	brick->Scale = XMFLOAT2(20, 15);
 	brick->Position.z = 1;
-	for (int i = 0; i <= 2000; i++)
+	for (int i = 0; i <= 200; i++)
 	{
 		if (i % 10 == 0)
 			printf("%i\n", i);
@@ -79,7 +82,7 @@ int main(int argc,char** argv)
 		float y = (float)rand() / (2 << 15) * 40 - 10;
 		Sprite* s1 = DrawManager->AddSprite(L"c:/bajery/blender.png");
 		s1->Position = XMFLOAT3(x, y, -1);
-		s1->Spin.z = x / 333 + y/333;
+		s1->Spin.z = x / 1333 + y/1333;
 		s1->Scale = XMFLOAT2(1, 1);
 	}
 

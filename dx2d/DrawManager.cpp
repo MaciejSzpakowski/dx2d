@@ -11,7 +11,44 @@ namespace dx2d
 		Device->CreateRasterizerState(&rd, &wireframe);
 		rd.FillMode = D3D11_FILL_SOLID;
 		rd.CullMode = D3D11_CULL_FRONT;
-		Device->CreateRasterizerState(&rd, &solid);		
+		Device->CreateRasterizerState(&rd, &solid);
+
+		//sprite shared buffers
+		VERTEX v[] =
+		{
+			{ -1.0f, -1.0f, 0, 0, 0, 0, 0, 0 },
+			{ 1.0f, -1.0f, 0, 0, 0, 0, 1, 0 },
+			{ 1.0f, 1.0f, 0, 0, 0, 0, 1, 1 },
+			{ -1.0f, 1.0f, 0, 0, 0, 0, 0, 1 },
+		};
+		int indices[] = { 0, 1, 2, 0, 2, 3, };
+
+		D3D11_BUFFER_DESC indexBufferDesc;
+		ZeroMemory(&indexBufferDesc, sizeof(indexBufferDesc));
+		indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		indexBufferDesc.ByteWidth = sizeof(int) * 6;
+		indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+		indexBufferDesc.CPUAccessFlags = 0;
+		indexBufferDesc.MiscFlags = 0;
+
+		D3D11_SUBRESOURCE_DATA srd;
+		srd.pSysMem = indices;
+		Device->CreateBuffer(&indexBufferDesc, &srd, &indexBufferSprite);
+
+		Context->IASetIndexBuffer(indexBufferSprite, DXGI_FORMAT_R32_UINT, 0);
+
+		D3D11_BUFFER_DESC vertexBufferDesc;
+		ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
+		vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		vertexBufferDesc.ByteWidth = sizeof(VERTEX) * 4;
+		vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		vertexBufferDesc.CPUAccessFlags = 0;
+		vertexBufferDesc.MiscFlags = 0;
+
+		D3D11_SUBRESOURCE_DATA vertexBufferData;
+		ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
+		vertexBufferData.pSysMem = v;
+		Device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &vertexBufferSprite);
 	}
 
 	void CDrawManager::AddPoly(Polygon* p)
@@ -86,6 +123,9 @@ namespace dx2d
 		
 		Context->RSSetState(solid);
 		Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		UINT stride = sizeof(VERTEX);
+		UINT offset = 0;
+		Context->IASetVertexBuffers(0, 1, &vertexBufferSprite, &stride, &offset);
 		for (Sprite* s : Sprites)
 		{
 			s->Transform();
@@ -102,6 +142,8 @@ namespace dx2d
 			Polygons[i]->Destroy();
 		for (int i = (int)Sprites.size() - 1; i >= 0; i--)
 			Sprites[i]->Destroy();
+		indexBufferSprite->Release();
+		vertexBufferSprite->Release();
 		wireframe->Release();
 		solid->Release();
 		delete this;

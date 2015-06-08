@@ -180,6 +180,8 @@ namespace dx2d
 	class CDrawManager
 	{
 	private:
+		ID3D11Buffer* indexBufferSprite;
+		ID3D11Buffer* vertexBufferSprite;
 		vector<Polygon*> Polygons;
 		vector<Sprite*> Sprites;
 		ID3D11RasterizerState* wireframe;
@@ -234,8 +236,9 @@ namespace dx2d
 		bool IsKeyReleased(int vkey);
 		bool IsAnyKeyDown();
 		void GetCursorDelta(POINT* pos);
-		char GetChar();
+		char GetChar(bool enableShift=true, bool enableCapslock=true);
 		//offset, where to start looking
+		bool IsCapslockActive();
 		char GetKey(int offset);
 		void ResetKey(int vkey);
 		void Activity();
@@ -244,8 +247,7 @@ namespace dx2d
 
 	class Sprite : public Drawable, public Dynamic
 	{
-	protected:
-		ID3D11Buffer* indexBuffer;
+	protected:		
 		ID3D11ShaderResourceView* shaderResource;
 		ID3D11SamplerState* samplerState;
 		XMMATRIX GetScaleMatrix() override;

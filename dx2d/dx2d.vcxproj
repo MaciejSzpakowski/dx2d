@@ -168,6 +168,10 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\..\..\..\..\bajery\blender.png" />
+    <Image Include="..\..\..\..\..\..\..\bajery\bLeNdEr\tekstury\bricks.jpeg" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

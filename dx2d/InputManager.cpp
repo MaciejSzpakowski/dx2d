@@ -27,7 +27,9 @@ namespace dx2d
 
 		//get current state
 		for (int i = 0; i < keyCount; i++)
+		{
 			curState[i] = (GetAsyncKeyState(i) & 0x8000) && true;
+		}
 
 		GetCursorPos(curMouse);
 	}
@@ -61,8 +63,37 @@ namespace dx2d
 		point->y = curMouse->y - prevMouse->y;
 	}
 
-	char CInputManager::GetChar()
+	bool CInputManager::IsCapslockActive()
 	{
+		return false;
+	}
+
+	char CInputManager::GetChar(bool enableShift, bool enableCapslock)
+	{
+		BYTE input[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Q', 'W', 'E', 'R', 'T',
+			'Y', 'U', 'I', 'O', 'P', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L',
+			'Z', 'X', 'C', 'V', 'B', 'N', 'M', 0xc0, 0xbd, 0xbb, 0xdc, 0xdb, 
+			0xdd, 0xba, 0xde, 0xbc, 0xbe, 0xbf,
+			' ', 0x0d, '\t', '\b' };
+		BYTE output[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'q', 'w', 'e', 'r', 't',
+			'y', 'u', 'i', 'o', 'p', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l',
+			'z', 'x', 'c', 'v', 'b', 'n', 'm', '`', '-', '=', '\\', '[', ']', ';', '\'', ',', '.', '/',
+			' ', '\n', '\t', '\b' };
+		BYTE output2[] = { ')', '!', '@', '#', '$', '%', '^', '&', '*', '(', 'Q', 'W', 'E', 'R', 'T',
+			'Y', 'U', 'I', 'O', 'P', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L',
+			'Z', 'X', 'C', 'V', 'B', 'N', 'M', '~', '_', '+', '|', '{', '}', ':', '\"', '<', '>', '?',
+			' ', '\n', '\t', '\b' };
+		char mod = (enableShift && IsKeyDown(Key.Shift)) + (enableCapslock && IsCapslockActive());
+		for (int i = 0; i < sizeof(input); i++)
+		{
+			if (IsKeyPressed(input[i]))
+			{
+				if (mod != 1)
+					return output2[i];
+				else
+					return output[i];
+			}
+		}
 		return 0;
 	}
 
