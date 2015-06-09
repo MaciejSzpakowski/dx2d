@@ -82,7 +82,6 @@ namespace dx2d
 	namespace Functions
 	{
 		CCore* NewCore(int sizex, int sizey, std::function<void()> worker);
-		void AddFloat3(XMFLOAT3* src, XMFLOAT3* dst);
 		ID3D11Texture2D* CreateTexture2D(BYTE* data, int width, int height);
 		ID3D11Texture2D* CreateTexture2D(const WCHAR* file);
 		ID3D11Texture2D* CreateTexture2DFromText(std::wstring text);
@@ -104,10 +103,15 @@ namespace dx2d
 		float backBufferColor[4];		
 		double frequency;
 		long long startTime;
+		long long prevFrameTime;
+		double gameTime;
+		double frameTime;
+		void UpdateGameTime();
 
 		friend void Render(CCore* d3d);
 		friend ID3D11DeviceContext* GetContext();
 		friend ID3D11Device* GetDevice();
+		friend void AddFloat3(XMFLOAT3* src, XMFLOAT3* dst);
 	public:
 		ID3D11BlendState* blendState;
 		CCore(int sizex, int sizey, std::function<void()> worker);
@@ -120,6 +124,8 @@ namespace dx2d
 		int Run();
 		void OpenConsole();
 		void CloseConsole();
+		double GetGameTime();
+		double GetFrameTime();
 		void Destroy();
 	};	
 

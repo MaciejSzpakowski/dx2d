@@ -2,6 +2,8 @@
 
 namespace dx2d
 {
+	void AddFloat3(XMFLOAT3* src, XMFLOAT3* dst);
+
 	CCamera::CCamera()
 	{
 		//Camera information
@@ -27,9 +29,9 @@ namespace dx2d
 
 	void CCamera::CamTransform()
 	{
-		Functions::AddFloat3(&Acceleration, &Velocity);
-		Functions::AddFloat3(&Velocity, &Position);
-		Functions::AddFloat3(&Spin, &Rotation);
+		AddFloat3(&Acceleration, &Velocity);
+		AddFloat3(&Velocity, &Position);
+		AddFloat3(&Spin, &Rotation);
 		XMVECTOR position = DirectX::XMLoadFloat3(&Position);
 		XMVECTOR target = XMVectorSet(Position.x, Position.y, Position.z + 20, 0);
 		XMMATRIX rotz = DirectX::XMMatrixRotationZ(Rotation.z);

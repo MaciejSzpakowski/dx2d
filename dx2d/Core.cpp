@@ -141,6 +141,20 @@ namespace dx2d
 		frequency = double(li.QuadPart);
 		QueryPerformanceCounter(&li);
 		startTime = li.QuadPart;
+		prevFrameTime = startTime;
+		gameTime = 0;
+		frameTime = 0;
+	}
+
+	void CCore::UpdateGameTime()
+	{
+		LARGE_INTEGER currentTime;
+		long long frameTickCount;
+		QueryPerformanceCounter(&currentTime);
+		frameTickCount = currentTime.QuadPart - prevFrameTime;
+		frameTime = double(frameTickCount) / frequency;
+		prevFrameTime = currentTime.QuadPart;
+		gameTime = double(currentTime.QuadPart - startTime) / frequency;
 	}
 
 	HWND CCore::GetWindowHandle()
@@ -166,8 +180,6 @@ namespace dx2d
 		backBufferColor[3] = color.a;
 	}
 
-	
-
 	void CCore::OpenConsole()
 	{
 		AllocConsole();
@@ -178,6 +190,16 @@ namespace dx2d
 	void CCore::CloseConsole()
 	{
 		FreeConsole();
+	}
+
+	double CCore::GetFrameTime()
+	{
+		return frameTime;
+	}
+
+	double CCore::GetGameTime()
+	{
+		return gameTime;
 	}
 
 	void CCore::Destroy()

@@ -17,6 +17,7 @@ namespace dx2d
 		DrawManager->DrawAll();
 		d3d->swapChain->Present(0, 0);
 		Input->Activity();
+		d3d->UpdateGameTime();
 	}
 
 	ID3D11Device* GetDevice()
@@ -29,20 +30,21 @@ namespace dx2d
 		return Core->context;
 	}
 
+	//applies time factor
+	void AddFloat3(XMFLOAT3* src, XMFLOAT3* dst)
+	{
+		dst->x += (src->x * Core->frameTime);
+		dst->y += (src->y * Core->frameTime);
+		dst->z += (src->z * Core->frameTime);
+	}
+
 	namespace Functions
 	{
 		CCore* NewCore(int sizex, int sizey, std::function<void()> worker)
 		{
 			CCore* core = new CCore(sizex, sizey, worker);
 			return core;
-		}
-
-		void AddFloat3(XMFLOAT3* src, XMFLOAT3* dst)
-		{
-			dst->x += src->x;
-			dst->y += src->y;
-			dst->z += src->z;
-		}
+		}	
 
 		ID3D11Texture2D* CreateTexture2D(BYTE* data, int width, int height)
 		{

@@ -2,6 +2,8 @@
 
 namespace dx2d
 {
+	void AddFloat3(XMFLOAT3* src, XMFLOAT3* dst);
+
 	CDynamic::CDynamic()
 	{
 		Position = XMFLOAT3(0, 0, 0);
@@ -24,9 +26,9 @@ namespace dx2d
 
 	void CDynamic::Transform()
 	{
-		Functions::AddFloat3(&Acceleration, &Velocity);
-		Functions::AddFloat3(&Velocity, &Position);
-		Functions::AddFloat3(&Spin, &Rotation);
+		AddFloat3(&Acceleration, &Velocity);
+		AddFloat3(&Velocity, &Position);
+		AddFloat3(&Spin, &Rotation);
 		XMMATRIX scale = GetScaleMatrix();
 		XMMATRIX rot = DirectX::XMMatrixRotationRollPitchYaw(Rotation.x,Rotation.y,Rotation.z);
 		XMMATRIX loc = DirectX::XMMatrixTranslation(Position.x, Position.y, Position.z);

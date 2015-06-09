@@ -51,6 +51,11 @@ void Activity()
 	if (Input->IsKeyDown('Z'))
 		brick->Position.z += 0.01f;
 
+	if (Input->IsKeyPressed(Key.Space))
+	{
+		printf("Game time: %f\n", Core->GetGameTime());
+	}
+
 	if (Input->MouseWheel != 0)
 		printf("%i ", Input->MouseWheel);
 }
@@ -70,11 +75,11 @@ int main(int argc,char** argv)
 	c2->Color = SColor(0, 0, 1, 0);
 	c3 = DrawManager->AddCircle(2, 3);
 	c3->Position = XMFLOAT3(10, 10, 0);
-	c3->Spin = XMFLOAT3(0, 0, -0.004f);
+	c3->Spin = XMFLOAT3(0, 0, -4);
 	c3->Color = SColor(1.0f, 0.6f, 0, 0);
 	r1 = DrawManager->AddRect(2, 4);
 	r1->Position = XMFLOAT3(-3, 2, 0);
-	r1->Spin = XMFLOAT3(0, 0, 0.003f);
+	r1->Spin = XMFLOAT3(0, 0, 3);
 	r1->Color = SColor(1, 0, 0.0f, 0);
 	brick = DrawManager->AddSprite(L"brick.jpg");
 	brick->Scale = XMFLOAT2(22, 17);
