@@ -8,12 +8,12 @@ namespace dx2d
 		ZeroMemory(&rd, sizeof(rd));
 		rd.FillMode = D3D11_FILL_WIREFRAME;
 		rd.CullMode = D3D11_CULL_NONE;
-		Device->CreateRasterizerState(&rd, &wireframe);
+		GetDevice()->CreateRasterizerState(&rd, &wireframe);
 		rd.FillMode = D3D11_FILL_SOLID;
 		rd.CullMode = D3D11_CULL_FRONT;
-		Device->CreateRasterizerState(&rd, &solid);
+		GetDevice()->CreateRasterizerState(&rd, &solid);
 
-		//sprite shared buffers
+		//sprite shared buffer
 		VERTEX v[] =
 		{
 			{ -1.0f, -1.0f, 0, 0, 0, 0, 0, 0 },
@@ -33,9 +33,9 @@ namespace dx2d
 
 		D3D11_SUBRESOURCE_DATA srd;
 		srd.pSysMem = indices;
-		Device->CreateBuffer(&indexBufferDesc, &srd, &indexBufferSprite);
+		GetDevice()->CreateBuffer(&indexBufferDesc, &srd, &indexBufferSprite);
 
-		Context->IASetIndexBuffer(indexBufferSprite, DXGI_FORMAT_R32_UINT, 0);
+		GetContext()->IASetIndexBuffer(indexBufferSprite, DXGI_FORMAT_R32_UINT, 0);
 
 		D3D11_BUFFER_DESC vertexBufferDesc;
 		ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
@@ -48,71 +48,115 @@ namespace dx2d
 		D3D11_SUBRESOURCE_DATA vertexBufferData;
 		ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
 		vertexBufferData.pSysMem = v;
-		Device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &vertexBufferSprite);
+		GetDevice()->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &vertexBufferSprite);
+
+		//default white texture used by non textured objects
+		BYTE fourOnes[4] = { 1, 1, 1, 1 };
+
+		ID3D11Texture2D *tex;
+		D3D11_TEXTURE2D_DESC tdesc;
+		D3D11_SUBRESOURCE_DATA tbsd;
+
+		tbsd.pSysMem = (void *)fourOnes;
+		tbsd.SysMemPitch = 4;
+		tbsd.SysMemSlicePitch = 4; // Not needed since this is a 2d texture
+
+		tdesc.Width = 1;
+		tdesc.Height = 1;
+		tdesc.MipLevels = 1;
+		tdesc.ArraySize = 1;
+
+		tdesc.SampleDesc.Count = 1;
+		tdesc.SampleDesc.Quality = 0;
+		tdesc.Usage = D3D11_USAGE_DEFAULT;
+		tdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		tdesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+		tdesc.CPUAccessFlags = 0;
+		tdesc.MiscFlags = 0;
+
+		GetDevice()->CreateTexture2D(&tdesc, &tbsd, &tex);
+
+		GetDevice()->CreateShaderResourceView(tex, 0, &whiteRes);
+		tex->Release();
+
+		D3D11_SAMPLER_DESC sampDesc;
+		ZeroMemory(&sampDesc, sizeof(sampDesc));
+		sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+		sampDesc.MinLOD = 0;
+		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+		GetDevice()->CreateSamplerState(&sampDesc, &whiteSam);
 	}
 
-	void CDrawManager::AddPoly(Polygon* p)
+	void CDrawManager::AddPoly(CPolygon* p)
 	{
 		Polygons.push_back(p);
 		p->index = (int)Polygons.size() - 1;
 	}
 
-	Polygon* CDrawManager::AddPoly(XMFLOAT2 points[], int n)
+	CPolygon* CDrawManager::AddPoly(XMFLOAT2 points[], int n)
 	{
-		Polygon* newPoly = new Polygon(points, n);
+		CPolygon* newPoly = new CPolygon(points, n);
 		Polygons.push_back(newPoly);
 		newPoly->index = (int)Polygons.size() - 1;
 		return newPoly;
 	}
 
-	Rectangle* CDrawManager::AddRect(float sizex, float sizey)
+	CRectangle* CDrawManager::AddRect(float sizex, float sizey)
 	{
-		Rectangle* newRect = new Rectangle(sizex,sizey);
+		CRectangle* newRect = new CRectangle(sizex,sizey);
 		Polygons.push_back(newRect);
 		newRect->index = (int)Polygons.size() - 1;
 		return newRect;
 	}
 
-	Circle* CDrawManager::AddCircle(float radius, unsigned char resolution)
+	CCircle* CDrawManager::AddCircle(float radius, unsigned char resolution)
 	{
-		Circle* newCircle = new Circle(radius, resolution);
+		CCircle* newCircle = new CCircle(radius, resolution);
 		Polygons.push_back(newCircle);
 		newCircle->index = (int)Polygons.size() - 1;
 		return newCircle;
 	}
 
-	Sprite* CDrawManager::AddSprite(const WCHAR* textureFile)
+	CSprite* CDrawManager::AddSprite(const WCHAR* textureFile)
 	{
-		Sprite* newSprite = new Sprite(textureFile);
+		CSprite* newSprite = new CSprite(textureFile);
 		Sprites.push_back(newSprite);
 		newSprite->index = (int)Sprites.size() - 1;
 		return newSprite;
 	}
 
-	void CDrawManager::AddSprite(Sprite* s)
+	void CDrawManager::AddSprite(CSprite* s)
 	{
 		Sprites.push_back(s);
 		s->index = (int)Sprites.size() - 1;
 	}
 
-	Text* CDrawManager::AddText(std::wstring text)
+	CText* CDrawManager::AddText(std::wstring text)
 	{
-		Text* newText = new Text(text);
+		CText* newText = new CText(text);
 		Sprites.push_back(newText);
 		newText->index = (int)Sprites.size() - 1;
 		return newText;
 	}
 
-	void CDrawManager::AddText(Text* t)
+	void CDrawManager::AddText(CText* t)
 	{
 		AddSprite(t);
 	}
 
 	void CDrawManager::DrawAll()
 	{
-		Context->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP);
-		Context->RSSetState(wireframe);
-		for (Polygon* p : Polygons)
+		//disable blending and render opaque objects
+		GetContext()->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP);
+		GetContext()->RSSetState(wireframe);
+		//Context->PSSetShaderResources(0, 1, &whiteRes);
+		//Context->PSSetSamplers(0, 1, &whiteSam);
+		for (CPolygon* p : Polygons)
 		{
 			p->Transform();
 			if (p->Visible)
@@ -121,14 +165,14 @@ namespace dx2d
 			}
 		}
 		
-		Context->RSSetState(solid);
-		Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		GetContext()->RSSetState(solid);
+		GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		UINT stride = sizeof(VERTEX);
 		UINT offset = 0;
-		Context->IASetVertexBuffers(0, 1, &vertexBufferSprite, &stride, &offset);
-		for (Sprite* s : Sprites)
+		GetContext()->IASetVertexBuffers(0, 1, &vertexBufferSprite, &stride, &offset);
+		for (CSprite* s : Sprites)
 		{
-			s->Transform();
+			s->Transform();			
 			if (s->Visible)
 			{				
 				s->Draw();
@@ -149,7 +193,7 @@ namespace dx2d
 		delete this;
 	}
 
-	void CDrawManager::RemovePoly(Polygon* p)
+	void CDrawManager::RemovePoly(CPolygon* p)
 	{
 		if (p->index == -1)
 			return;
@@ -172,7 +216,7 @@ namespace dx2d
 		p->index = -1;
 	}
 
-	void CDrawManager::RemoveSprite(Sprite* s)
+	void CDrawManager::RemoveSprite(CSprite* s)
 	{
 		if (s->index == -1)
 			return;
@@ -195,7 +239,7 @@ namespace dx2d
 		s->index = -1;
 	}
 
-	void CDrawManager::RemoveText(Text* t)
+	void CDrawManager::RemoveText(CText* t)
 	{
 		RemoveSprite(t);
 	}

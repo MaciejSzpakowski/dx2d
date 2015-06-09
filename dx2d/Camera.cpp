@@ -15,7 +15,7 @@ namespace dx2d
 
 		//Set the Projection matrix
 		RECT rect;
-		GetWindowRect(Global->GetWindowHandle(), &rect);
+		GetWindowRect(Core->GetWindowHandle(), &rect);
 		float aspectRatio = (float)(rect.right-rect.left)/(rect.bottom-rect.top);
 		proj = DirectX::XMMatrixPerspectiveFovLH(0.4f*3.14f, aspectRatio, 0.1f, 100.0f);
 	}
@@ -27,9 +27,9 @@ namespace dx2d
 
 	void CCamera::CamTransform()
 	{
-		AddFloat3(&Acceleration, &Velocity);
-		AddFloat3(&Velocity, &Position);
-		AddFloat3(&Spin, &Rotation);
+		Functions::AddFloat3(&Acceleration, &Velocity);
+		Functions::AddFloat3(&Velocity, &Position);
+		Functions::AddFloat3(&Spin, &Rotation);
 		XMVECTOR position = DirectX::XMLoadFloat3(&Position);
 		XMVECTOR target = XMVectorSet(Position.x, Position.y, Position.z + 20, 0);
 		XMMATRIX rotz = DirectX::XMMatrixRotationZ(Rotation.z);

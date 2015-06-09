@@ -2,7 +2,7 @@
 
 namespace dx2d
 {
-	Dynamic::Dynamic()
+	CDynamic::CDynamic()
 	{
 		Position = XMFLOAT3(0, 0, 0);
 		Rotation = XMFLOAT3(0, 0, 0);
@@ -19,25 +19,25 @@ namespace dx2d
 		cbbd.CPUAccessFlags = 0;
 		cbbd.MiscFlags = 0;
 
-		Device->CreateBuffer(&cbbd, NULL, &cbBufferVS);		
+		GetDevice()->CreateBuffer(&cbbd, NULL, &cbBufferVS);
 	}
 
-	void Dynamic::Transform()
+	void CDynamic::Transform()
 	{
-		AddFloat3(&Acceleration, &Velocity);
-		AddFloat3(&Velocity, &Position);
-		AddFloat3(&Spin, &Rotation);
+		Functions::AddFloat3(&Acceleration, &Velocity);
+		Functions::AddFloat3(&Velocity, &Position);
+		Functions::AddFloat3(&Spin, &Rotation);
 		XMMATRIX scale = GetScaleMatrix();
 		XMMATRIX rot = DirectX::XMMatrixRotationRollPitchYaw(Rotation.x,Rotation.y,Rotation.z);
 		XMMATRIX loc = DirectX::XMMatrixTranslation(Position.x, Position.y, Position.z);
 		XMMATRIX world = scale * rot * loc;
 		XMMATRIX worldViewProj = world * Camera->view * Camera->proj;
 		worldViewProj = DirectX::XMMatrixTranspose(worldViewProj);
-		Context->UpdateSubresource(cbBufferVS, 0, NULL, &worldViewProj, 0, 0);
-		Context->VSSetConstantBuffers(0, 1, &cbBufferVS);
+		GetContext()->UpdateSubresource(cbBufferVS, 0, NULL, &worldViewProj, 0, 0);
+		GetContext()->VSSetConstantBuffers(0, 1, &cbBufferVS);
 	}
 
-	Dynamic::~Dynamic()
+	CDynamic::~CDynamic()
 	{
 		cbBufferVS->Release();
 	}

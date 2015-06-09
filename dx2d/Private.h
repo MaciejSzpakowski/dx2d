@@ -26,31 +26,23 @@ namespace dx2d
 	using std::vector;
 	
 	//prototypes
-	class Core;
-	class Object;
-	class Drawable;
-	class Polygon;
-	class Rectangle;
-	class Circle;
+	class CCore;
+	class CDrawable;
+	class CPolygon;
+	class CRectangle;
+	class CCircle;
 	class CDrawManager;
 	class CCamera;
-	class CInputManager;
-	class Sprite;
-	class Text;
-	void Render(Core* d3d);
-	Core* NewCore(int sizex, int sizey, std::function<void()> worker);
-	void AddFloat3(XMFLOAT3* src, XMFLOAT3* dst);
+	class CInput;
+	class CSprite;
+	class CText;
 
 	//externals
-	extern Core* Global;
+	extern CCore* Core;
 	extern CKey Key;
-
-	//defines
-#define Device Global->GetDevice()
-#define Context Global->GetContext()
-#define DrawManager Global->GetDrawManager()
-#define Camera Global->GetCamera()
-#define InputManager Global->GetInputManager()
+	extern CDrawManager* DrawManager;
+	extern CCamera* Camera;
+	extern CInput* Input;
 	
 	struct VERTEX
 	{
@@ -80,14 +72,23 @@ namespace dx2d
 		HWND handle;
 		MSG Msg;
 		std::function<void()> Worker;
-		std::function<void(Core* d3d)> Render;
-		friend class Core;
+		std::function<void(CCore* d3d)> Render;
+		friend class CCore;
 	public:
 		Window(int sizex, int sizey);
 		int Run();
 	};
 
-	class Core
+	namespace Functions
+	{
+		CCore* NewCore(int sizex, int sizey, std::function<void()> worker);
+		void AddFloat3(XMFLOAT3* src, XMFLOAT3* dst);
+		ID3D11Texture2D* CreateTexture2D(BYTE* data, int width, int height);
+		ID3D11Texture2D* CreateTexture2D(const WCHAR* file);
+		ID3D11Texture2D* CreateTexture2DFromText(std::wstring text);
+	}
+
+	class CCore
 	{
 	private:
 		Window* window;
@@ -99,34 +100,30 @@ namespace dx2d
 		ID3D11PixelShader* defaultPS;
 		ID3D11InputLayout* layout; //vertex input layout pos:float[3] col:float[3] uv:float[2]
 		ID3D11DepthStencilView* depthStencilView;
-		ID3D11Texture2D* depthStencilBuffer;		
-		CDrawManager* drawManager;
-		CCamera* camera;
-		CInputManager* inputManager;
-		float backBufferColor[4];
-		friend void Render(Core* d3d);
+		ID3D11Texture2D* depthStencilBuffer;
+		float backBufferColor[4];		
 		double frequency;
 		long long startTime;
+
+		friend void Render(CCore* d3d);
+		friend ID3D11DeviceContext* GetContext();
+		friend ID3D11Device* GetDevice();
 	public:
 		ID3D11BlendState* blendState;
-		Core(int sizex, int sizey, std::function<void()> worker);
-		ID3D11Device* GetDevice();
-		ID3D11DeviceContext* GetContext();
+		CCore(int sizex, int sizey, std::function<void()> worker);
 		CDrawManager* GetDrawManager();
 		HWND GetWindowHandle();
 		CCamera* GetCamera();
-		CInputManager* GetInputManager();
+		CInput* GetInputManager();
 		void SetWindowTitle(const char* title);
 		void SetBackgroundColor(SColor color);
 		int Run();
-		ID3D11Texture2D* CreateTexture2D(const WCHAR* file);
-		ID3D11Texture2D* CreateTexture2DFromText(std::wstring text);
 		void OpenConsole();
 		void CloseConsole();
 		void Destroy();
 	};	
 
-	class Dynamic
+	class CDynamic
 	{
 	protected:
 		ID3D11Buffer* cbBufferVS;
@@ -139,100 +136,106 @@ namespace dx2d
 		XMFLOAT3 Velocity;
 		XMFLOAT3 Acceleration;
 		XMFLOAT3 Spin;
-		Dynamic();
-		~Dynamic();
+		CDynamic();
+		~CDynamic();
 	};
 
-	class Drawable
+	class CDrawable
 	{
 	protected:
 		int vertexCount;
 		int index;
 		ID3D11Buffer* vertexBuffer;
 		ID3D11Buffer* cbBufferPS;
+		ID3D11Buffer* cbBufferPS2;
+
 		friend class CDrawManager;
 	public:
-		Drawable();
+		CDrawable();
 		bool Visible;
 		SColor Color;
 		virtual void Draw() = 0;
-		~Drawable();
+		~CDrawable();
 	};
 
-	class Polygon : public Drawable,public Dynamic
+	class CPolygon : public CDrawable,public CDynamic
 	{
 	protected:		
 		XMMATRIX GetScaleMatrix() override;
 	public:
-		Polygon();
-		Polygon(XMFLOAT2 points[], int n);		
+		CPolygon();
+		CPolygon(XMFLOAT2 points[], int n);		
 		void Draw() override;
 		void Destroy();
 	};
 
-	class Rectangle : public Polygon
+	class CRectangle : public CPolygon
 	{
 	protected:
 		XMMATRIX GetScaleMatrix() override;
 	public:
 		XMFLOAT2 Scale;
-		Rectangle(float scalex, float scaley);		
+		CRectangle(float scalex, float scaley);		
 	};
 
-	class Circle : public Polygon
+	class CCircle : public CPolygon
 	{
 	protected:
 		XMMATRIX GetScaleMatrix() override;
 	public:
 		float Radius;
-		Circle(float radius, unsigned char resolution);		
+		CCircle(float radius, unsigned char resolution);		
 	};
 
 	class CDrawManager
 	{
 	private:
+		ID3D11ShaderResourceView* whiteRes;
+		ID3D11SamplerState* whiteSam;
 		ID3D11Buffer* indexBufferSprite;
 		ID3D11Buffer* vertexBufferSprite;
-		vector<Polygon*> Polygons;
-		vector<Sprite*> Sprites;
+		vector<CPolygon*> Polygons;
+		vector<CSprite*> Sprites;
 		ID3D11RasterizerState* wireframe;
 		ID3D11RasterizerState* solid;
-		friend void Render(Core* d3d);
+
+		friend void Render(CCore* d3d);
 	public:
 		CDrawManager();
-		Polygon* AddPoly(XMFLOAT2 points[], int n);
-		Rectangle* AddRect(float sizex, float sizey);
-		Circle* AddCircle(float radius, unsigned char resolution);
-		void AddPoly(Polygon* p);
+		CPolygon* AddPoly(XMFLOAT2 points[], int n);
+		CRectangle* AddRect(float sizex, float sizey);
+		CCircle* AddCircle(float radius, unsigned char resolution);
+		void AddPoly(CPolygon* p);
 		void DrawAll();
 		void Destroy();
-		void RemovePoly(Polygon* p);		
+		void RemovePoly(CPolygon* p);		
 		//add sprite from file
 		//supported file formats: BMP, GIF, JPEG, PNG, TIFF, Exif, WMF, EMF
-		Sprite* AddSprite(const WCHAR* texture);
-		void AddSprite(Sprite* s);
-		Text* AddText(std::wstring text);
-		void AddText(Text* t);
-		void RemoveSprite(Sprite* s);
-		void RemoveText(Text* t);
+		CSprite* AddSprite(const WCHAR* texture);
+		void AddSprite(CSprite* s);
+		CText* AddText(std::wstring text);
+		void AddText(CText* t);
+		void RemoveSprite(CSprite* s);
+		void RemoveText(CText* t);
 	};	
 
-	class CCamera : public Dynamic
+	class CCamera : public CDynamic
 	{
 	private:		
 		XMMATRIX view;
 		XMMATRIX proj;
 		XMVECTOR up;		
-		friend void Render(Core* d3d);
-		friend class Dynamic;
 		XMMATRIX GetScaleMatrix() override;
 		void CamTransform();
+
+		friend void Render(CCore* d3d);
+		friend class CDynamic;
 	public:
 		CCamera();
 		void Destroy();
 	};
 
-	class CInputManager
+	class CInput
 	{
 	private:
 		int keyCount;
@@ -241,12 +244,13 @@ namespace dx2d
 		POINT* curMouse;
 		POINT* prevMouse;
 	public:
-		CInputManager();
+		CInput();
+		int MouseWheel;
 		bool IsKeyDown(int vkey);
 		bool IsKeyPressed(int vkey);
 		bool IsKeyReleased(int vkey);
 		bool IsAnyKeyDown();
-		void GetCursorDelta(POINT* pos);
+		POINT GetCursorDelta();
 		char GetChar(bool enableShift=true, bool enableCapslock=true);
 		//offset, where to start looking
 		bool IsCapslockActive();
@@ -256,7 +260,7 @@ namespace dx2d
 		void Destroy();
 	};
 
-	class Sprite : public Drawable, public Dynamic
+	class CSprite : public CDrawable, public CDynamic
 	{
 	protected:		
 		ID3D11ShaderResourceView* shaderResource;
@@ -264,16 +268,16 @@ namespace dx2d
 		XMMATRIX GetScaleMatrix() override;
 	public:
 		XMFLOAT2 Scale;
-		Sprite(){}
-		Sprite(const WCHAR* texture);
+		CSprite(){}
+		CSprite(const WCHAR* texture);
 		void Draw() override;
 		void Destroy();
 	};
 
-	class Text : public Sprite
+	class CText : public CSprite
 	{
 	protected:
 	public:
-		Text(std::wstring text);
+		CText(std::wstring text);
 	};
 }

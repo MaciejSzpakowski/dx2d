@@ -14,6 +14,9 @@ namespace dx2d
 			break;
 		case WM_COMMAND:
 			break;
+		case WM_MOUSEWHEEL:
+			Input->MouseWheel = GET_WHEEL_DELTA_WPARAM(wParam);
+			break;
 		default:
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 		}
@@ -70,7 +73,7 @@ namespace dx2d
 			else
 			{
 				Worker();
-				Render(Global);
+				Render(Core);
 			}
 		}
 		return (int)Msg.wParam;

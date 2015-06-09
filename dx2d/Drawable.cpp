@@ -1,5 +1,8 @@
 #include "Private.h"
 
+ID3D11Device* GetDevice();
+ID3D11DeviceContext* GetContext();
+
 namespace dx2d
 {
 	SColor::SColor(float _r, float _g, float _b, float _a)
@@ -10,7 +13,7 @@ namespace dx2d
 		a = _a;
 	}
 
-	Drawable::Drawable()
+	CDrawable::CDrawable()
 	{
 		Visible = true;
 
@@ -21,18 +24,18 @@ namespace dx2d
 		cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		cbbd.CPUAccessFlags = 0;
 		cbbd.MiscFlags = 0;
-		HRESULT hr = Device->CreateBuffer(&cbbd, NULL, &cbBufferPS);
+		HRESULT hr = GetDevice()->CreateBuffer(&cbbd, NULL, &cbBufferPS);
 	}
 
-	Drawable::~Drawable()
+	CDrawable::~CDrawable()
 	{
 		cbBufferPS->Release();
 	}
 
-	Polygon::Polygon()
+	CPolygon::CPolygon()
 	{}
 
-	Polygon::Polygon(XMFLOAT2 points[], int n)
+	CPolygon::CPolygon(XMFLOAT2 points[], int n)
 	{
 		index = -1;
 		Color = SColor(0, 0, 0, 0);
@@ -67,22 +70,22 @@ namespace dx2d
 
 		VERTEX* vertices = new VERTEX[n];
 		for (int i = 0; i < n; i++)
-			vertices[i] = { points[i].x, points[i].y, 0, 1, 1, 0, 0 };
+			vertices[i] = { points[i].x, points[i].y, 0, 1, 1, 1, 0, 0 };
 
 		D3D11_SUBRESOURCE_DATA sd;
 		ZeroMemory(&sd, sizeof(sd));
 		sd.pSysMem = vertices;                   //Memory in CPU to copy in to GPU
 
-		Device->CreateBuffer(&bd, &sd, &vertexBuffer);
+		GetDevice()->CreateBuffer(&bd, &sd, &vertexBuffer);
 		delete[] vertices;//*/
 	}
 
-	XMMATRIX Polygon::GetScaleMatrix()
+	XMMATRIX CPolygon::GetScaleMatrix()
 	{
 		return DirectX::XMMatrixIdentity();
 	}
 
-	Rectangle::Rectangle(float scalex, float scaley)
+	CRectangle::CRectangle(float scalex, float scaley)
 	{
 		vertexCount = 5;
 		Scale.x = scalex;
@@ -97,26 +100,26 @@ namespace dx2d
 
 		VERTEX vertices[] = 
 		{
-			{ -0.5f, -0.5f, 0, 1, 1, 0, 0 },
-			{ 0.5f, -0.5f, 0, 1, 1, 0, 0 },
-			{ 0.5f, 0.5f, 0, 1, 1, 0, 0 },
-			{ -0.5f, 0.5f, 0, 1, 1, 0, 0 },
-			{ -0.5f, -0.5f, 0, 1, 1, 0, 0 }
+			{ -0.5f, -0.5f, 0, 1, 1, 1, 0, 0 },
+			{ 0.5f, -0.5f, 0, 1, 1,1, 0, 0 },
+			{ 0.5f, 0.5f, 0, 1, 1,1, 0, 0 },
+			{ -0.5f, 0.5f, 0, 1, 1,1, 0, 0 },
+			{ -0.5f, -0.5f, 0, 1, 1,1, 0, 0 }
 		};
 
 		D3D11_SUBRESOURCE_DATA sd;
 		ZeroMemory(&sd, sizeof(sd));
 		sd.pSysMem = &vertices;                   //Memory in CPU to copy in to GPU
 
-		Device->CreateBuffer(&bd, &sd, &vertexBuffer);
+		GetDevice()->CreateBuffer(&bd, &sd, &vertexBuffer);
 	}
 
-	XMMATRIX Rectangle::GetScaleMatrix()
+	XMMATRIX CRectangle::GetScaleMatrix()
 	{
 		return DirectX::XMMatrixScaling(Scale.x, Scale.y, 1);
 	}
 
-	Circle::Circle(float radius, unsigned char resolution)
+	CCircle::CCircle(float radius, unsigned char resolution)
 	{
 		vertexCount = resolution + 1;
 		Radius = radius;
@@ -133,7 +136,7 @@ namespace dx2d
 		float delta = XM_2PI / (vertexCount - 1);
 		for (int i = 0; i < vertexCount; i++)
 		{
-			vertices[i] = { cos(angle)*radius, sin(angle)*radius, 0, 1, 1, 0, 0 };
+			vertices[i] = { cos(angle)*radius, sin(angle)*radius, 0, 1, 1, 1, 0, 0 };
 			angle += delta;
 		}
 
@@ -141,26 +144,26 @@ namespace dx2d
 		ZeroMemory(&sd, sizeof(sd));
 		sd.pSysMem = vertices;                   //Memory in CPU to copy in to GPU
 
-		Device->CreateBuffer(&bd, &sd, &vertexBuffer);
+		GetDevice()->CreateBuffer(&bd, &sd, &vertexBuffer);
 		delete[] vertices;
 	}
 
-	XMMATRIX Circle::GetScaleMatrix()
+	XMMATRIX CCircle::GetScaleMatrix()
 	{
 		return DirectX::XMMatrixScaling(Radius, Radius, 1);
 	}
 
-	void Polygon::Draw()
-	{
-		Context->UpdateSubresource(cbBufferPS, 0, NULL, &Color, 0, 0);
-		Context->PSSetConstantBuffers(0, 1, &cbBufferPS);
+	void CPolygon::Draw()
+	{		
+		GetContext()->UpdateSubresource(cbBufferPS, 0, NULL, &Color, 0, 0);
+		GetContext()->PSSetConstantBuffers(0, 1, &cbBufferPS);
 		UINT stride = sizeof(VERTEX);
 		UINT offset = 0;
-		Context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-		Context->Draw(vertexCount, 0);
+		GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+		GetContext()->Draw(vertexCount, 0);
 	}
 
-	void Polygon::Destroy()
+	void CPolygon::Destroy()
 	{
 		DrawManager->RemovePoly(this);
 		vertexBuffer->Release();

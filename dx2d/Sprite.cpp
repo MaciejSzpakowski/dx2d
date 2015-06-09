@@ -1,15 +1,18 @@
 #include "Private.h"
 
+ID3D11Device* GetDevice();
+ID3D11DeviceContext* GetContext();
+
 namespace dx2d
 {
-	Sprite::Sprite(const WCHAR* textureFile)
+	CSprite::CSprite(const WCHAR* textureFile)
 	{
 		vertexBuffer = nullptr;
 		Scale = XMFLOAT2(1, 1);
 		Color = SColor(1, 1, 1, 1);
 
-		auto tex = Global->CreateTexture2D(textureFile);
-		Device->CreateShaderResourceView(tex, 0, &shaderResource);
+		auto tex = Functions::CreateTexture2D(textureFile);
+		GetDevice()->CreateShaderResourceView(tex, 0, &shaderResource);
 		tex->Release();
 
 		D3D11_SAMPLER_DESC sampDesc;
@@ -21,24 +24,24 @@ namespace dx2d
 		sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 		sampDesc.MinLOD = 0;
 		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-		Device->CreateSamplerState(&sampDesc, &samplerState);
+		GetDevice()->CreateSamplerState(&sampDesc, &samplerState);
 	}
 
-	void Sprite::Draw()
+	void CSprite::Draw()
 	{
-		Context->UpdateSubresource(cbBufferPS, 0, NULL, &Color, 0, 0);
-		Context->PSSetConstantBuffers(0, 1, &cbBufferPS);		
-		Context->PSSetShaderResources(0, 1, &shaderResource);
-		Context->PSSetSamplers(0, 1, &samplerState);
-		Context->DrawIndexed(6, 0, 0);
+		GetContext()->UpdateSubresource(cbBufferPS, 0, NULL, &Color, 0, 0);
+		GetContext()->PSSetConstantBuffers(0, 1, &cbBufferPS);
+		GetContext()->PSSetShaderResources(0, 1, &shaderResource);
+		GetContext()->PSSetSamplers(0, 1, &samplerState);
+		GetContext()->DrawIndexed(6, 0, 0);
 	}
 
-	XMMATRIX Sprite::GetScaleMatrix()
+	XMMATRIX CSprite::GetScaleMatrix()
 	{
 		return DirectX::XMMatrixScaling(Scale.x, Scale.y, 1);
 	}
 
-	void Sprite::Destroy()
+	void CSprite::Destroy()
 	{
 		DrawManager->RemoveSprite(this);
 		shaderResource->Release();
@@ -46,13 +49,13 @@ namespace dx2d
 		delete this;
 	}
 
-	Text::Text(std::wstring text)
+	CText::CText(std::wstring text)
 	{
 		Scale = XMFLOAT2(1, 1);
 		Color = SColor(1, 1, 1, 1);
 		
-		auto tex = Global->CreateTexture2DFromText(text);
-		Device->CreateShaderResourceView(tex, 0, &shaderResource);
+		auto tex = Functions::CreateTexture2DFromText(text);
+		GetDevice()->CreateShaderResourceView(tex, 0, &shaderResource);
 		tex->Release();
 
 		D3D11_SAMPLER_DESC sampDesc;
@@ -64,6 +67,6 @@ namespace dx2d
 		sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 		sampDesc.MinLOD = 0;
 		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-		Device->CreateSamplerState(&sampDesc, &samplerState);
+		GetDevice()->CreateSamplerState(&sampDesc, &samplerState);
 	}
 }

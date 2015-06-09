@@ -1,12 +1,11 @@
 #include "Private.h"
-#include <gdiplus.h>
 
 namespace dx2d
 {
-	Core::Core(int sizex, int sizey, std::function<void()> worker)
+	CCore::CCore(int sizex, int sizey, std::function<void()> worker)
 	{
 		//assign global variable
-		Global = this;
+		Core = this;
 		//create window
 		window = new Window(sizex, sizey);
 		window->Worker = worker;
@@ -111,25 +110,26 @@ namespace dx2d
 		ZeroMemory(&rtbd, sizeof(rtbd));
 		rtbd.BlendEnable = true;
 		rtbd.SrcBlend = D3D11_BLEND_SRC_ALPHA;
-		rtbd.DestBlend = D3D11_BLEND_INV_DEST_ALPHA;
+		rtbd.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
 		rtbd.BlendOp = D3D11_BLEND_OP_ADD;
-		rtbd.SrcBlendAlpha = D3D11_BLEND_ZERO;
+		rtbd.SrcBlendAlpha = D3D11_BLEND_ONE;
 		rtbd.DestBlendAlpha = D3D11_BLEND_ZERO;
 		rtbd.BlendOpAlpha = D3D11_BLEND_OP_ADD;
 		rtbd.RenderTargetWriteMask = D3D10_COLOR_WRITE_ENABLE_ALL;
 		blendDesc.AlphaToCoverageEnable = false;
 		blendDesc.RenderTarget[0] = rtbd;
 		device->CreateBlendState(&blendDesc, &blendState);
-		context->OMSetBlendState(blendState, 0, 0xffffffff);
 		if (blendState == nullptr)
 			exit(0);
+		context->OMSetBlendState(blendState, 0, 0xffffffff);		
 
 		//// *********** PIPELINE SETUP ENDS HERE *********** ////
 
-		//library objects
-		drawManager = new CDrawManager;
-		camera = new CCamera;
-		inputManager = new CInputManager;
+		//main objects
+		DrawManager = new CDrawManager;
+		Camera = new CCamera;
+		Input = new CInput;
+
 
 		//timer
 		LARGE_INTEGER li;
@@ -143,47 +143,22 @@ namespace dx2d
 		startTime = li.QuadPart;
 	}
 
-	ID3D11Device* Core::GetDevice()
-	{
-		return device;
-	}
-
-	ID3D11DeviceContext* Core::GetContext()
-	{
-		return context;
-	}
-
-	CDrawManager* Core::GetDrawManager()
-	{
-		return drawManager;
-	}
-
-	CCamera* Core::GetCamera()
-	{
-		return camera;
-	}
-
-	CInputManager* Core::GetInputManager()
-	{
-		return inputManager;
-	}
-
-	HWND Core::GetWindowHandle()
+	HWND CCore::GetWindowHandle()
 	{
 		return window->handle;
 	}
 
-	int Core::Run()
+	int CCore::Run()
 	{
 		return window->Run();
 	}
 
-	void Core::SetWindowTitle(const char* title)
+	void CCore::SetWindowTitle(const char* title)
 	{
 		SetWindowText(window->handle, title);
 	}
 
-	void Core::SetBackgroundColor(SColor color)
+	void CCore::SetBackgroundColor(SColor color)
 	{
 		backBufferColor[0] = color.r;
 		backBufferColor[1] = color.g;
@@ -191,142 +166,26 @@ namespace dx2d
 		backBufferColor[3] = color.a;
 	}
 
-	ID3D11Texture2D* Core::CreateTexture2D(const WCHAR* file)
-	{
-		ULONG_PTR m_gdiplusToken;
-		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-		Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
+	
 
-		Gdiplus::Bitmap* gdibitmap = new Gdiplus::Bitmap(file);
-		UINT h = gdibitmap->GetHeight();
-		UINT w = gdibitmap->GetWidth();
-
-		HBITMAP hbitmap;		
-		Gdiplus::Color c(0, 0, 0);
-		gdibitmap->GetHBITMAP(c, &hbitmap);
-		delete gdibitmap;
-		Gdiplus::GdiplusShutdown(m_gdiplusToken);
-
-		BITMAP bitmap;
-		GetObject(hbitmap, sizeof(bitmap), (LPVOID)&bitmap);		
-		BYTE* data = (BYTE*)bitmap.bmBits;
-		//ID3D11Texture2D and BITMAP have red and blue swapped
-		//swap it back
-		//this for loop is ~10% of the function
-		for (int i = 0; i < h*w * 4; i += 4)
-		{
-			BYTE temp = data[i];
-			data[i] = data[i + 2];
-			data[i + 2] = temp;
-		}
-
-		ID3D11Texture2D *tex;
-		D3D11_TEXTURE2D_DESC tdesc;
-		D3D11_SUBRESOURCE_DATA tbsd;
-
-		tbsd.pSysMem = (void *)data;
-		tbsd.SysMemPitch = w * 4;
-		tbsd.SysMemSlicePitch = w*h * 4; // Not needed since this is a 2d texture
-
-		tdesc.Width = w;
-		tdesc.Height = h;
-		tdesc.MipLevels = 1;
-		tdesc.ArraySize = 1;
-
-		tdesc.SampleDesc.Count = 1;
-		tdesc.SampleDesc.Quality = 0;
-		tdesc.Usage = D3D11_USAGE_DEFAULT;
-		tdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		tdesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-
-		tdesc.CPUAccessFlags = 0;
-		tdesc.MiscFlags = 0;
-
-		Device->CreateTexture2D(&tdesc, &tbsd, &tex);	
-
-		DeleteObject(hbitmap);
-
-		return tex;
-	}
-
-	ID3D11Texture2D* Core::CreateTexture2DFromText(std::wstring text)
-	{
-		ULONG_PTR m_gdiplusToken;
-		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-		Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
-
-		UINT h = 80;
-		UINT w = 80;
-		Gdiplus::Bitmap* gdibitmap = new Gdiplus::Bitmap(h, w, PixelFormat32bppARGB);
-		Gdiplus::Graphics* g = new Gdiplus::Graphics(gdibitmap);		
-		Gdiplus::PointF point(0, 0);
-		Gdiplus::Rect rect(0, 0, w, h);
-		Gdiplus::Font* font = new Gdiplus::Font(&Gdiplus::FontFamily(L"Arial"), 14);
-		Gdiplus::SolidBrush* brush = new Gdiplus::SolidBrush(Gdiplus::Color::White);
-		Gdiplus::SolidBrush* brush1 = new Gdiplus::SolidBrush(Gdiplus::Color::Black);
-		g->FillRectangle(brush1, rect);
-		g->DrawString(text.c_str(), (INT)text.length(), font, point, brush);
-		delete g;
-		delete brush;
-		delete brush1;
-		delete font;
-
-		HBITMAP hbitmap;
-		Gdiplus::Color c(0, 0, 0);
-		gdibitmap->GetHBITMAP(c, &hbitmap);
-		delete gdibitmap;
-		Gdiplus::GdiplusShutdown(m_gdiplusToken);
-
-		BITMAP bitmap;
-		GetObject(hbitmap, sizeof(bitmap), (LPVOID)&bitmap);
-		BYTE* data = (BYTE*)bitmap.bmBits;
-
-		ID3D11Texture2D *tex = nullptr;
-		D3D11_TEXTURE2D_DESC tdesc;
-		D3D11_SUBRESOURCE_DATA tbsd;
-
-		tbsd.pSysMem = (void *)data;
-		tbsd.SysMemPitch = w * 4;
-		tbsd.SysMemSlicePitch = w*h * 4; // Not needed since this is a 2d texture
-
-		tdesc.Width = w;
-		tdesc.Height = h;
-		tdesc.MipLevels = 1;
-		tdesc.ArraySize = 1;
-
-		tdesc.SampleDesc.Count = 1;
-		tdesc.SampleDesc.Quality = 0;
-		tdesc.Usage = D3D11_USAGE_DEFAULT;
-		tdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		tdesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-
-		tdesc.CPUAccessFlags = 0;
-		tdesc.MiscFlags = 0;
-
-		Device->CreateTexture2D(&tdesc, &tbsd, &tex);
-
-		DeleteObject(hbitmap);
-
-		return tex;
-	}
-
-	void Core::OpenConsole()
+	void CCore::OpenConsole()
 	{
 		AllocConsole();
+		SetConsoleTitle("Console");
 		freopen("CONOUT$", "w", stdout);
 	}
 
-	void Core::CloseConsole()
+	void CCore::CloseConsole()
 	{
 		FreeConsole();
 	}
 
-	void Core::Destroy()
+	void CCore::Destroy()
 	{
 		//engine objects
-		inputManager->Destroy();
-		camera->Destroy();
-		drawManager->Destroy();
+		Input->Destroy();
+		Camera->Destroy();
+		DrawManager->Destroy();
 		//com objects
 		layout->Release();
 		defaultPS->Release();

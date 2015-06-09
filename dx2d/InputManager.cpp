@@ -2,8 +2,9 @@
 
 namespace dx2d
 {
-	CInputManager::CInputManager()
+	CInput::CInput()
 	{
+		MouseWheel = 0;
 		keyCount = 256;
 		curState = new bool[keyCount];
 		prevState = new bool[keyCount];
@@ -15,7 +16,7 @@ namespace dx2d
 		GetCursorPos(prevMouse);
 	}
 
-	void CInputManager::Activity()
+	void CInput::Activity()
 	{
 		//swap current and previous states
 		bool* temp = prevState;
@@ -34,22 +35,22 @@ namespace dx2d
 		GetCursorPos(curMouse);
 	}
 
-	bool CInputManager::IsKeyDown(int vKey)
+	bool CInput::IsKeyDown(int vKey)
 	{
 		return curState[vKey];
 	}
 
-	bool CInputManager::IsKeyPressed(int vKey)
+	bool CInput::IsKeyPressed(int vKey)
 	{
 		return curState[vKey] && !prevState[vKey];
 	}
 
-	bool CInputManager::IsKeyReleased(int vKey)
+	bool CInput::IsKeyReleased(int vKey)
 	{
 		return !curState[vKey] && prevState[vKey];
 	}
 
-	bool CInputManager::IsAnyKeyDown()
+	bool CInput::IsAnyKeyDown()
 	{
 		for (int i = 0; i < keyCount; i++)
 			if (curState[i])
@@ -57,18 +58,20 @@ namespace dx2d
 		return false;
 	}
 
-	void CInputManager::GetCursorDelta(POINT* point)
+	POINT CInput::GetCursorDelta()
 	{
-		point->x = curMouse->x - prevMouse->x;
-		point->y = curMouse->y - prevMouse->y;
+		POINT point;
+		point.x = curMouse->x - prevMouse->x;
+		point.y = curMouse->y - prevMouse->y;
+		return point;
 	}
 
-	bool CInputManager::IsCapslockActive()
+	bool CInput::IsCapslockActive()
 	{
-		return false;
+		return GetKeyState(Key.CapsLock) & 1;
 	}
 
-	char CInputManager::GetChar(bool enableShift, bool enableCapslock)
+	char CInput::GetChar(bool enableShift, bool enableCapslock)
 	{
 		BYTE input[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Q', 'W', 'E', 'R', 'T',
 			'Y', 'U', 'I', 'O', 'P', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L',
@@ -88,7 +91,7 @@ namespace dx2d
 		{
 			if (IsKeyPressed(input[i]))
 			{
-				if (mod != 1)
+				if (mod == 1)
 					return output2[i];
 				else
 					return output[i];
@@ -97,7 +100,7 @@ namespace dx2d
 		return 0;
 	}
 
-	char CInputManager::GetKey(int offset)
+	char CInput::GetKey(int offset)
 	{
 		for (int i = offset; i < keyCount; i++)
 			if (curState[i])
@@ -105,7 +108,7 @@ namespace dx2d
 		return 0;
 	}
 
-	void CInputManager::ResetKey(int vKey)
+	void CInput::ResetKey(int vKey)
 	{
 		if (vKey < 0 || vKey > keyCount)
 			return;
@@ -113,7 +116,7 @@ namespace dx2d
 		prevState[vKey] = false;
 	}
 
-	void CInputManager::Destroy()
+	void CInput::Destroy()
 	{
 		delete[] curState;
 		delete[] prevState;

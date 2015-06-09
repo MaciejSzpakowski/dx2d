@@ -1,31 +1,147 @@
 #include "Private.h"
+#include <gdiplus.h>
 
 namespace dx2d
 {
-	Core* Global;
+	CCore* Core;
 	CKey Key;
+	CDrawManager* DrawManager;
+	CCamera* Camera;
+	CInput* Input;
 
-	//friend of the core
-	void Render(Core* d3d)
+	void Render(CCore* d3d)
 	{
-		d3d->camera->CamTransform();
+		Camera->CamTransform();
 		d3d->context->ClearRenderTargetView(d3d->backBuffer, d3d->backBufferColor);
 		d3d->context->ClearDepthStencilView(d3d->depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-		d3d->drawManager->DrawAll();
+		DrawManager->DrawAll();
 		d3d->swapChain->Present(0, 0);
-		d3d->inputManager->Activity();
+		Input->Activity();
 	}
 
-	Core* NewCore(int sizex, int sizey, std::function<void()> worker)
+	ID3D11Device* GetDevice()
 	{
-		Core* core = new Core(sizex, sizey, worker);
-		return core;
+		return Core->device;
 	}
 
-	void AddFloat3(XMFLOAT3* src, XMFLOAT3* dst)
+	ID3D11DeviceContext* GetContext()
 	{
-		dst->x += src->x;
-		dst->y += src->y;
-		dst->z += src->z;
-	}	
+		return Core->context;
+	}
+
+	namespace Functions
+	{
+		CCore* NewCore(int sizex, int sizey, std::function<void()> worker)
+		{
+			CCore* core = new CCore(sizex, sizey, worker);
+			return core;
+		}
+
+		void AddFloat3(XMFLOAT3* src, XMFLOAT3* dst)
+		{
+			dst->x += src->x;
+			dst->y += src->y;
+			dst->z += src->z;
+		}
+
+		ID3D11Texture2D* CreateTexture2D(BYTE* data, int width, int height)
+		{
+			ID3D11Texture2D *tex;
+			D3D11_TEXTURE2D_DESC tdesc;
+			D3D11_SUBRESOURCE_DATA tbsd;
+
+			tbsd.pSysMem = (void *)data;
+			tbsd.SysMemPitch = width * 4;
+			tbsd.SysMemSlicePitch = height*width * 4;
+
+			tdesc.Width = width;
+			tdesc.Height = height;
+			tdesc.MipLevels = 1;
+			tdesc.ArraySize = 1;
+
+			tdesc.SampleDesc.Count = 1;
+			tdesc.SampleDesc.Quality = 0;
+			tdesc.Usage = D3D11_USAGE_DEFAULT;
+			tdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			tdesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+			tdesc.CPUAccessFlags = 0;
+			tdesc.MiscFlags = 0;
+
+			GetDevice()->CreateTexture2D(&tdesc, &tbsd, &tex);
+
+			return tex;
+		}
+
+		ID3D11Texture2D* CreateTexture2D(const WCHAR* file)
+		{
+			ULONG_PTR m_gdiplusToken;
+			Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+			Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
+
+			Gdiplus::Bitmap* gdibitmap = new Gdiplus::Bitmap(file);
+			UINT h = gdibitmap->GetHeight();
+			UINT w = gdibitmap->GetWidth();
+
+			HBITMAP hbitmap;
+			Gdiplus::Color c(0, 0, 0);
+			gdibitmap->GetHBITMAP(c, &hbitmap);
+			delete gdibitmap;
+			Gdiplus::GdiplusShutdown(m_gdiplusToken);
+
+			BITMAP bitmap;
+			GetObject(hbitmap, sizeof(bitmap), (LPVOID)&bitmap);
+			BYTE* data = (BYTE*)bitmap.bmBits;
+			//ID3D11Texture2D and BITMAP have red and blue swapped
+			//swap it back
+			//this for loop is ~10% of the function
+			for (int i = 0; i < (int)(h*w * 4); i += 4)
+			{
+				BYTE temp = data[i];
+				data[i] = data[i + 2];
+				data[i + 2] = temp;
+			}
+
+			ID3D11Texture2D* tex = CreateTexture2D(data, w, h);
+			DeleteObject(hbitmap);
+			return tex;
+		}
+
+		ID3D11Texture2D* CreateTexture2DFromText(std::wstring text)
+		{
+			ULONG_PTR m_gdiplusToken;
+			Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+			Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
+
+			UINT h = 80;
+			UINT w = 80;
+			Gdiplus::Bitmap* gdibitmap = new Gdiplus::Bitmap(h, w, PixelFormat32bppARGB);
+			Gdiplus::Graphics* g = new Gdiplus::Graphics(gdibitmap);
+			Gdiplus::PointF point(0, 0);
+			Gdiplus::Rect rect(0, 0, w, h);
+			Gdiplus::Font* font = new Gdiplus::Font(&Gdiplus::FontFamily(L"Arial"), 14);
+			Gdiplus::SolidBrush* brush = new Gdiplus::SolidBrush(Gdiplus::Color::White);
+			Gdiplus::SolidBrush* brush1 = new Gdiplus::SolidBrush(Gdiplus::Color::Black);
+			g->FillRectangle(brush1, rect);
+			g->DrawString(text.c_str(), (INT)text.length(), font, point, brush);
+			delete g;
+			delete brush;
+			delete brush1;
+			delete font;
+
+			HBITMAP hbitmap;
+			Gdiplus::Color c(0, 0, 0);
+			gdibitmap->GetHBITMAP(c, &hbitmap);
+			delete gdibitmap;
+			Gdiplus::GdiplusShutdown(m_gdiplusToken);
+
+			BITMAP bitmap;
+			GetObject(hbitmap, sizeof(bitmap), (LPVOID)&bitmap);
+			BYTE* data = (BYTE*)bitmap.bmBits;
+
+			ID3D11Texture2D *tex = CreateTexture2D(data, w, h);
+			DeleteObject(hbitmap);
+			return tex;
+		}
+	}
 }
