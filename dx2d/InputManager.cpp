@@ -19,6 +19,7 @@ namespace dx2d
 	void CInput::Activity()
 	{
 		//swap current and previous states
+		MouseWheel = 0;
 		bool* temp = prevState;
 		prevState = curState;
 		curState = temp;

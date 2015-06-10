@@ -36,6 +36,8 @@ namespace dx2d
 	class CInput;
 	class CSprite;
 	class CText;
+	struct CEvent;
+	class CEventManager;
 
 	//externals
 	extern CCore* Core;
@@ -43,6 +45,7 @@ namespace dx2d
 	extern CDrawManager* DrawManager;
 	extern CCamera* Camera;
 	extern CInput* Input;
+	extern CEventManager* EventManager;
 	
 	struct VERTEX
 	{
@@ -125,7 +128,9 @@ namespace dx2d
 		void OpenConsole();
 		void CloseConsole();
 		double GetGameTime();
+		//or Spf, FPS reciprocal
 		double GetFrameTime();
+		double GetFps();
 		void Destroy();
 	};	
 
@@ -285,5 +290,22 @@ namespace dx2d
 	protected:
 	public:
 		CText(std::wstring text);
+	};
+
+	struct CEvent
+	{
+		std::string Name;
+		std::function<int()> Activity;
+	};
+
+	class CEventManager
+	{
+	private:
+		vector < CEvent* > events;
+	public:
+		void AddEvent(std::function<int()> func,std::string name);
+		void RemoveEvent(std::string name);
+		void Activity();
+		void Destroy();
 	};
 }

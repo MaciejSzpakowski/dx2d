@@ -129,7 +129,7 @@ namespace dx2d
 		DrawManager = new CDrawManager;
 		Camera = new CCamera;
 		Input = new CInput;
-
+		EventManager = new CEventManager;
 
 		//timer
 		LARGE_INTEGER li;
@@ -185,6 +185,7 @@ namespace dx2d
 		AllocConsole();
 		SetConsoleTitle("Console");
 		freopen("CONOUT$", "w", stdout);
+		freopen("CONIN$", "r", stdin);
 	}
 
 	void CCore::CloseConsole()
@@ -202,12 +203,18 @@ namespace dx2d
 		return gameTime;
 	}
 
+	double CCore::GetFps()
+	{
+		return 1 / frameTime;
+	}
+
 	void CCore::Destroy()
 	{
 		//engine objects
 		Input->Destroy();
 		Camera->Destroy();
 		DrawManager->Destroy();
+		EventManager->Destroy();
 		//com objects
 		layout->Release();
 		defaultPS->Release();

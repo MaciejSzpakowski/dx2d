@@ -8,29 +8,25 @@ using namespace dx2d;
 CCircle* c2;
 CCircle* c3;
 CSprite* brick;
-CSprite* s1;
+CSprite* s1, *s2;
 CRectangle* r1;
 std::vector<CSprite*> sprites;
 int t1;
-int t2;
-int fps;
 
 void Activity()
 {
 	Sleep(1);
-	fps++;
-	if ((t2 = (int)time(0)) != t1)
+	if ((int)time(0) != t1)
 	{
-		t1 = t2;
-		char sfps[10];
-		sprintf_s(sfps, "%i", fps);
-		fps = 0;
+		t1 = (int)time(0);
+		char sfps[20];
+		sprintf_s(sfps, "%i", (int)Core->GetFps());
 		Core->SetWindowTitle(sfps);
 	}
 
 	Camera->Velocity = XMFLOAT3(0, 0, 0);
 	Camera->Spin.z = 0;
-	float move = 0.01f;
+	float move = 10;
 	if (Input->IsKeyDown(Key.Up))
 		Camera->Velocity.y = move;
 	if (Input->IsKeyDown(Key.Down))
@@ -40,24 +36,25 @@ void Activity()
 	if (Input->IsKeyDown(Key.Right))
 		Camera->Velocity.x = move;
 	if (Input->IsKeyDown('Q'))
-		Camera->Spin.z = move;
+		Camera->Spin.z = move/4;
 	if (Input->IsKeyDown('E'))
-		Camera->Spin.z = -move;
-	s1->Position.x += Input->GetCursorDelta().x / 20.0f;
-	s1->Position.y -= Input->GetCursorDelta().y / 20.0f;
+		Camera->Spin.z = -move/4;
 
-	if (Input->IsKeyDown('A'))
-		brick->Position.z -= 0.01f;
-	if (Input->IsKeyDown('Z'))
-		brick->Position.z += 0.01f;
-
-	if (Input->IsKeyPressed(Key.Space))
+	if (Input->IsKeyPressed(' '))
 	{
-		printf("Game time: %f\n", Core->GetGameTime());
+		CCircle* c5 = DrawManager->AddCircle(1, 10);
+		c5->Velocity.x = 1;
+		double t1 = Core->GetGameTime();
+		EventManager->AddEvent([c5,t1]()
+		{ 
+			if (Core->GetGameTime() - t1 > 3)
+			{
+				DrawManager->RemovePoly(c5);
+				return 0;
+			}
+			return 1;
+		}, "");
 	}
-
-	if (Input->MouseWheel != 0)
-		printf("%i ", Input->MouseWheel);
 }
 
 int main(int argc,char** argv)
@@ -68,7 +65,6 @@ int main(int argc,char** argv)
 	Core->SetBackgroundColor(SColor(0, 0, 0, 1));
 	srand((int)time(0));
 	t1 = (int)time(0);
-	fps = 0;
 	Core->SetWindowTitle("Hello");
 	c2 = DrawManager->AddCircle(2, 20);
 	c2->Position = XMFLOAT3(0, 5, -2);
@@ -89,10 +85,6 @@ int main(int argc,char** argv)
 	s1->Scale = XMFLOAT2(10, 10);
 	s1->Position.z = -0.5f;
 	s1->Color.a = 0.5f;
-	CSprite* s2 = DrawManager->AddSprite(L"leaf.png");
-	s2->Scale = XMFLOAT2(10, 10);
-	s2->Position = XMFLOAT3(6, 0, -1);
-	s2->Color.a = 0.5f;
 
 	Core->Run();
 	Core->Destroy();

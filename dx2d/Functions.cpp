@@ -8,6 +8,7 @@ namespace dx2d
 	CDrawManager* DrawManager;
 	CCamera* Camera;
 	CInput* Input;
+	CEventManager* EventManager;
 
 	void Render(CCore* d3d)
 	{
@@ -17,6 +18,7 @@ namespace dx2d
 		DrawManager->DrawAll();
 		d3d->swapChain->Present(0, 0);
 		Input->Activity();
+		EventManager->Activity();
 		d3d->UpdateGameTime();
 	}
 
@@ -33,9 +35,9 @@ namespace dx2d
 	//applies time factor
 	void AddFloat3(XMFLOAT3* src, XMFLOAT3* dst)
 	{
-		dst->x += (src->x * Core->frameTime);
-		dst->y += (src->y * Core->frameTime);
-		dst->z += (src->z * Core->frameTime);
+		dst->x += (src->x * float(Core->frameTime));
+		dst->y += (src->y * float(Core->frameTime));
+		dst->z += (src->z * float(Core->frameTime));
 	}
 
 	namespace Functions
