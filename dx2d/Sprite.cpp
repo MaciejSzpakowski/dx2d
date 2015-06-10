@@ -11,7 +11,7 @@ namespace dx2d
 		Scale = XMFLOAT2(1, 1);
 		Color = SColor(1, 1, 1, 1);
 
-		auto tex = Functions::CreateTexture2D(textureFile);
+		auto tex = Functions::CreateTexture2DFromFile(textureFile);
 		GetDevice()->CreateShaderResourceView(tex, 0, &shaderResource);
 		tex->Release();
 

@@ -52,31 +52,7 @@ namespace dx2d
 
 		//default white texture used by non textured objects
 		BYTE fourOnes[4] = { 1, 1, 1, 1 };
-
-		ID3D11Texture2D *tex;
-		D3D11_TEXTURE2D_DESC tdesc;
-		D3D11_SUBRESOURCE_DATA tbsd;
-
-		tbsd.pSysMem = (void *)fourOnes;
-		tbsd.SysMemPitch = 4;
-		tbsd.SysMemSlicePitch = 4; // Not needed since this is a 2d texture
-
-		tdesc.Width = 1;
-		tdesc.Height = 1;
-		tdesc.MipLevels = 1;
-		tdesc.ArraySize = 1;
-
-		tdesc.SampleDesc.Count = 1;
-		tdesc.SampleDesc.Quality = 0;
-		tdesc.Usage = D3D11_USAGE_DEFAULT;
-		tdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		tdesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-
-		tdesc.CPUAccessFlags = 0;
-		tdesc.MiscFlags = 0;
-
-		GetDevice()->CreateTexture2D(&tdesc, &tbsd, &tex);
-
+		ID3D11Texture2D* tex = Functions::CreateTexture2D(fourOnes, 1, 1);
 		GetDevice()->CreateShaderResourceView(tex, 0, &whiteRes);
 		tex->Release();
 
@@ -151,11 +127,10 @@ namespace dx2d
 
 	void CDrawManager::DrawAll()
 	{
-		//disable blending and render opaque objects
+		GetContext()->ClearDepthStencilView(Core->depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		//GetContext()->OMSetBlendState(Core->blendState, 0, 0xffffffff);
 		GetContext()->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP);
 		GetContext()->RSSetState(wireframe);
-		//Context->PSSetShaderResources(0, 1, &whiteRes);
-		//Context->PSSetSamplers(0, 1, &whiteSam);
 		for (CPolygon* p : Polygons)
 		{
 			p->Transform();
@@ -220,12 +195,12 @@ namespace dx2d
 	{
 		if (s->index == -1)
 			return;
-		if (Sprites.size() == 0 || Sprites[s->index] != s)
+		if (s->index >= Sprites.size() || Sprites[s->index] != s)
 		{
 			MessageBox(0, "This sprite is not in CDrawManager.Sprites", "Error", MB_ICONERROR);
 			return;
 		}
-		else if (s->index == Polygons.size() - 1)
+		else if (s->index == Sprites.size() - 1)
 		{
 			Sprites.pop_back();
 		}

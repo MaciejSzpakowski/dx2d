@@ -2,9 +2,11 @@
 
 namespace dx2d
 {
-	void CEventManager::AddEvent(std::function<int()> func, std::string name)
+	void CEventManager::AddEvent(std::function<int()> func, std::string name, double delay)
 	{
 		CEvent* newEvent = new CEvent;
+		newEvent->delay = delay;
+		newEvent->startTime = Core->GetGameTime();
 		newEvent->Activity = func;
 		newEvent->Name = name;
 		events.push_back(newEvent);
@@ -33,9 +35,13 @@ namespace dx2d
 			{
 				events[i] = events.back();
 				events.pop_back();
-			}
+			}			
+			int ret = 1;
+			//if delay time has passed then run
+			if (Core->GetGameTime() - events[i]->startTime > events[i]->delay)
+				ret = events[i]->Activity();
 			//if returned 0 then remove
-			else if (!events[i]->Activity())
+			if (ret == 0)
 			{
 				delete events[i];
 				events[i] = events.back();

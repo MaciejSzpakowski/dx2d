@@ -42,18 +42,13 @@ void Activity()
 
 	if (Input->IsKeyPressed(' '))
 	{
-		CCircle* c5 = DrawManager->AddCircle(1, 10);
+		CSprite* c5 = DrawManager->AddSprite(L"leaf.png");
 		c5->Velocity.x = 1;
-		double t1 = Core->GetGameTime();
-		EventManager->AddEvent([c5,t1]()
-		{ 
-			if (Core->GetGameTime() - t1 > 3)
-			{
-				DrawManager->RemovePoly(c5);
-				return 0;
-			}
-			return 1;
-		}, "");
+		EventManager->AddEvent([c5]()
+		{
+			c5->Destroy();
+			return 0;
+		}, "",3);
 	}
 }
 
@@ -67,7 +62,7 @@ int main(int argc,char** argv)
 	t1 = (int)time(0);
 	Core->SetWindowTitle("Hello");
 	c2 = DrawManager->AddCircle(2, 20);
-	c2->Position = XMFLOAT3(0, 5, -2);
+	c2->Position = XMFLOAT3(0, 0, 0);
 	c2->Color = SColor(0, 0, 1, 0);
 	c3 = DrawManager->AddCircle(2, 3);
 	c3->Position = XMFLOAT3(10, 10, 0);
@@ -81,10 +76,10 @@ int main(int argc,char** argv)
 	brick->Scale = XMFLOAT2(22, 17);
 	brick->Position.z = 0.03f;
 	brick->Color.a = 1;
-	s1 = DrawManager->AddSprite(L"leaf.png");
+	/*s1 = DrawManager->AddSprite(L"leaf.png");
 	s1->Scale = XMFLOAT2(10, 10);
 	s1->Position.z = -0.5f;
-	s1->Color.a = 0.5f;
+	s1->Color.a = 0.5f;*/
 
 	Core->Run();
 	Core->Destroy();

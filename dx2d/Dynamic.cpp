@@ -26,6 +26,7 @@ namespace dx2d
 
 	void CDynamic::Transform()
 	{
+		CSprite* s = (CSprite*)this;
 		AddFloat3(&Acceleration, &Velocity);
 		AddFloat3(&Velocity, &Position);
 		AddFloat3(&Spin, &Rotation);

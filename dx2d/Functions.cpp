@@ -13,8 +13,7 @@ namespace dx2d
 	void Render(CCore* d3d)
 	{
 		Camera->CamTransform();
-		d3d->context->ClearRenderTargetView(d3d->backBuffer, d3d->backBufferColor);
-		d3d->context->ClearDepthStencilView(d3d->depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		d3d->context->ClearRenderTargetView(d3d->backBuffer, d3d->backBufferColor);		
 		DrawManager->DrawAll();
 		d3d->swapChain->Present(0, 0);
 		Input->Activity();
@@ -77,7 +76,7 @@ namespace dx2d
 			return tex;
 		}
 
-		ID3D11Texture2D* CreateTexture2D(const WCHAR* file)
+		ID3D11Texture2D* CreateTexture2DFromFile(const WCHAR* file)
 		{
 			ULONG_PTR m_gdiplusToken;
 			Gdiplus::GdiplusStartupInput gdiplusStartupInput;

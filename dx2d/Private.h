@@ -38,6 +38,7 @@ namespace dx2d
 	class CText;
 	struct CEvent;
 	class CEventManager;
+	class CAnimation;
 
 	//externals
 	extern CCore* Core;
@@ -86,7 +87,7 @@ namespace dx2d
 	{
 		CCore* NewCore(int sizex, int sizey, std::function<void()> worker);
 		ID3D11Texture2D* CreateTexture2D(BYTE* data, int width, int height);
-		ID3D11Texture2D* CreateTexture2D(const WCHAR* file);
+		ID3D11Texture2D* CreateTexture2DFromFile(const WCHAR* file);
 		ID3D11Texture2D* CreateTexture2DFromText(std::wstring text);
 	}
 
@@ -115,10 +116,10 @@ namespace dx2d
 		friend ID3D11DeviceContext* GetContext();
 		friend ID3D11Device* GetDevice();
 		friend void AddFloat3(XMFLOAT3* src, XMFLOAT3* dst);
+		friend class CDrawManager;
 	public:
 		ID3D11BlendState* blendState;
 		CCore(int sizex, int sizey, std::function<void()> worker);
-		CDrawManager* GetDrawManager();
 		HWND GetWindowHandle();
 		CCamera* GetCamera();
 		CInput* GetInputManager();
@@ -128,7 +129,7 @@ namespace dx2d
 		void OpenConsole();
 		void CloseConsole();
 		double GetGameTime();
-		//or Spf, FPS reciprocal
+		//time per frame, to get FPS -> 1 / GetFrameTime()
 		double GetFrameTime();
 		double GetFps();
 		void Destroy();
@@ -294,6 +295,8 @@ namespace dx2d
 
 	struct CEvent
 	{
+		double startTime;
+		double delay;
 		std::string Name;
 		std::function<int()> Activity;
 	};
@@ -303,9 +306,26 @@ namespace dx2d
 	private:
 		vector < CEvent* > events;
 	public:
-		void AddEvent(std::function<int()> func,std::string name);
+		void AddEvent(std::function<int()> func,std::string name, double delay);
 		void RemoveEvent(std::string name);
 		void Activity();
+		void Destroy();
+	};
+
+	class CAnimation : public CSprite
+	{
+	private:
+		double lastFrameChangeTime;
+		int frameCount;
+		POINTF* uvTable;
+		//plays animation
+		void Activity();
+	public:
+		int Start; //first frame of currently played animation
+		int Finish; //last frame of currently played animation
+		int Frame; //current frame displayed
+		double Speed; //in frames per second
+		bool FrameChanged; //true if frame changed in this game frame
 		void Destroy();
 	};
 }

@@ -120,8 +120,7 @@ namespace dx2d
 		blendDesc.RenderTarget[0] = rtbd;
 		device->CreateBlendState(&blendDesc, &blendState);
 		if (blendState == nullptr)
-			exit(0);
-		context->OMSetBlendState(blendState, 0, 0xffffffff);		
+			exit(0);			
 
 		//// *********** PIPELINE SETUP ENDS HERE *********** ////
 
@@ -211,10 +210,11 @@ namespace dx2d
 	void CCore::Destroy()
 	{
 		//engine objects
+		//keep this first
+		EventManager->Destroy();
 		Input->Destroy();
 		Camera->Destroy();
-		DrawManager->Destroy();
-		EventManager->Destroy();
+		DrawManager->Destroy();		
 		//com objects
 		layout->Release();
 		defaultPS->Release();
