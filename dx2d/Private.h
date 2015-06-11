@@ -7,6 +7,7 @@
 #include <cmath>
 #include <vector>
 #include <string>
+#include <map>
 #include "Keys.h"
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "D3DCompiler.lib")
@@ -54,6 +55,8 @@ namespace dx2d
 		FLOAT R, G, B;
 		FLOAT U, V;
 	};
+
+	enum class TEX_FILTER { POINT, LINEAR };
 
 	struct SColor
 	{
@@ -133,7 +136,27 @@ namespace dx2d
 		double GetFrameTime();
 		double GetFps();
 		void Destroy();
-	};	
+	};
+
+	//used to cache texture loaded from file
+	struct CTexture
+	{
+		int Height;
+		int Width;
+		std::wstring fileName;
+		ID3D11ShaderResourceView* shaderResource;
+	};
+
+	class CResourceManager
+	{
+	private:
+		std::map<std::wstring, CTexture*> textures;
+	public:
+		void AddTexture(CTexture* tex);
+		CTexture* GetTexture(std::wstring file);
+		void Clear();
+		void Destroy();
+	};
 
 	class CDynamic
 	{
@@ -152,6 +175,14 @@ namespace dx2d
 		~CDynamic();
 	};
 
+	struct UV
+	{
+		float left;
+		float top;
+		float right;
+		float bottom;
+	};
+
 	class CDrawable
 	{
 	protected:
@@ -159,13 +190,14 @@ namespace dx2d
 		int index;
 		ID3D11Buffer* vertexBuffer;
 		ID3D11Buffer* cbBufferPS;
-		ID3D11Buffer* cbBufferPS2;
+		ID3D11Buffer* cbBufferUV;		
 
 		friend class CDrawManager;
 	public:
 		CDrawable();
 		bool Visible;
 		SColor Color;
+		UV* uv;
 		virtual void Draw() = 0;
 		~CDrawable();
 	};
@@ -203,15 +235,19 @@ namespace dx2d
 	{
 	private:
 		ID3D11ShaderResourceView* whiteRes;
-		ID3D11SamplerState* whiteSam;
+		ID3D11SamplerState* pointSampler;
+		ID3D11SamplerState* lineSampler;
 		ID3D11Buffer* indexBufferSprite;
 		ID3D11Buffer* vertexBufferSprite;
 		vector<CPolygon*> Polygons;
 		vector<CSprite*> Sprites;
 		ID3D11RasterizerState* wireframe;
 		ID3D11RasterizerState* solid;
+		CResourceManager* resourceManager;
 
 		friend void Render(CCore* d3d);
+		friend class CSprite;
+		friend class CAnimation;
 	public:
 		CDrawManager();
 		CPolygon* AddPoly(XMFLOAT2 points[], int n);
@@ -229,6 +265,10 @@ namespace dx2d
 		void AddText(CText* t);
 		void RemoveSprite(CSprite* s);
 		void RemoveText(CText* t);
+		CAnimation* AddAnimation(const WCHAR* texture, int x, int y);
+		void AddAnimation(CAnimation* a);
+		void RemoveAnimation(CAnimation* a);
+		TEX_FILTER TexFilterCreationMode;
 	};	
 
 	class CCamera : public CDynamic
@@ -270,20 +310,24 @@ namespace dx2d
 		void ResetKey(int vkey);
 		void Activity();
 		void Destroy();
-	};
+	};	
 
 	class CSprite : public CDrawable, public CDynamic
 	{
 	protected:		
 		ID3D11ShaderResourceView* shaderResource;
-		ID3D11SamplerState* samplerState;
-		XMMATRIX GetScaleMatrix() override;
+		bool uncachedTex; //if true sprite will destroy it's own shaderResource
+		XMMATRIX GetScaleMatrix() override;	
+		virtual void Play(){}
+
+		friend class CDrawManager;
 	public:
+		TEX_FILTER TexFilter; //point or linear
 		XMFLOAT2 Scale;
-		CSprite(){}
+		CSprite();
 		CSprite(const WCHAR* texture);
 		void Draw() override;
-		void Destroy();
+		void Destroy();		
 	};
 
 	class CText : public CSprite
@@ -317,15 +361,24 @@ namespace dx2d
 	private:
 		double lastFrameChangeTime;
 		int frameCount;
-		POINTF* uvTable;
+		UV* uvTable;
+		double indicator;
 		//plays animation
-		void Activity();
+		void Play() override;
 	public:
+		CAnimation(const WCHAR* file,int x,int y);
 		int Start; //first frame of currently played animation
 		int Finish; //last frame of currently played animation
 		int Frame; //current frame displayed
 		double Speed; //in frames per second
-		bool FrameChanged; //true if frame changed in this game frame
-		void Destroy();
+		bool FrameChanged; //true if frame changed in prev game frame
+		//set frames order, size of int should be the same as frame count
+		void SetOrder(int* order);
+		int GetFrameCount();
+		//next frame and loop
+		void NextFrame();
+		//prev frame and loop
+		void PreviousFrame();
+		~CAnimation();
 	};
 }

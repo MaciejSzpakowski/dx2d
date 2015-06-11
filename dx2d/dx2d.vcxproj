@@ -148,6 +148,7 @@
     <ClCompile Include="Functions.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="Program.cpp" />
+    <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
@@ -172,6 +173,7 @@
   <ItemGroup>
     <Image Include="..\..\..\..\..\..\..\bajery\blender.png" />
     <Image Include="..\..\..\..\..\..\..\bajery\bLeNdEr\tekstury\bricks.jpeg" />
+    <Image Include="ani.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

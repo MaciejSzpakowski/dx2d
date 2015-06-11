@@ -16,6 +16,8 @@ namespace dx2d
 	CDrawable::CDrawable()
 	{
 		Visible = true;
+		uv = new UV;
+		*uv = { 0, 0, 1, 1 };
 
 		D3D11_BUFFER_DESC cbbd;
 		ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
@@ -24,12 +26,15 @@ namespace dx2d
 		cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		cbbd.CPUAccessFlags = 0;
 		cbbd.MiscFlags = 0;
-		HRESULT hr = GetDevice()->CreateBuffer(&cbbd, NULL, &cbBufferPS);
+		GetDevice()->CreateBuffer(&cbbd, NULL, &cbBufferPS);
+		GetDevice()->CreateBuffer(&cbbd, NULL, &cbBufferUV); //has the same size
 	}
 
 	CDrawable::~CDrawable()
 	{
+		delete uv;
 		cbBufferPS->Release();
+		cbBufferUV->Release();
 	}
 
 	CPolygon::CPolygon()

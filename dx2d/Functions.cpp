@@ -39,6 +39,21 @@ namespace dx2d
 		dst->z += (src->z * float(Core->frameTime));
 	}
 
+	void CreateSampler(TEX_FILTER mode, ID3D11SamplerState** sampler)
+	{
+		D3D11_SAMPLER_DESC sampDesc;
+		ZeroMemory(&sampDesc, sizeof(sampDesc));
+		sampDesc.Filter = mode == TEX_FILTER::POINT ? 
+			D3D11_FILTER_MIN_MAG_MIP_POINT : D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+		sampDesc.MinLOD = 0;
+		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+		GetDevice()->CreateSamplerState(&sampDesc, sampler);
+	}
+
 	namespace Functions
 	{
 		CCore* NewCore(int sizex, int sizey, std::function<void()> worker)

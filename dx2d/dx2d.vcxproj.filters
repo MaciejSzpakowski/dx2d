@@ -59,6 +59,9 @@
     <ClCompile Include="Events.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Resources.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
@@ -73,6 +76,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="..\..\..\..\..\..\..\bajery\bLeNdEr\tekstury\bricks.jpeg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="ani.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

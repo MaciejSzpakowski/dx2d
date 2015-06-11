@@ -10,6 +10,7 @@ CCircle* c3;
 CSprite* brick;
 CSprite* s1, *s2;
 CRectangle* r1;
+CAnimation* a1;
 std::vector<CSprite*> sprites;
 int t1;
 
@@ -39,20 +40,9 @@ void Activity()
 		Camera->Spin.z = move/4;
 	if (Input->IsKeyDown('E'))
 		Camera->Spin.z = -move/4;
-
-	if (Input->IsKeyPressed(' '))
-	{
-		CSprite* c5 = DrawManager->AddSprite(L"leaf.png");
-		c5->Velocity.x = 1;
-		EventManager->AddEvent([c5]()
-		{
-			c5->Destroy();
-			return 0;
-		}, "",3);
-	}
 }
 
-int main(int argc,char** argv)
+int main(int argc, char** argv)
 {
 	Functions::NewCore(800, 600, Activity);
 
@@ -76,6 +66,12 @@ int main(int argc,char** argv)
 	brick->Scale = XMFLOAT2(22, 17);
 	brick->Position.z = 0.03f;
 	brick->Color.a = 1;
+	a1 = DrawManager->AddAnimation(L"ani.png", 2, 4);
+	a1->TexFilter = TEX_FILTER::LINEAR;
+	a1->Speed = 10;
+	a1->Scale = XMFLOAT2(6, 3);
+	int order[] = { 6, 7, 4, 5, 2, 3, 0, 1 };
+	a1->SetOrder(order);
 	/*s1 = DrawManager->AddSprite(L"leaf.png");
 	s1->Scale = XMFLOAT2(10, 10);
 	s1->Position.z = -0.5f;

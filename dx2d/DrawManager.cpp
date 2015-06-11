@@ -2,6 +2,8 @@
 
 namespace dx2d
 {
+	void CreateSampler(TEX_FILTER mode, ID3D11SamplerState** sampler);
+
 	CDrawManager::CDrawManager()
 	{
 		D3D11_RASTERIZER_DESC rd;
@@ -35,6 +37,7 @@ namespace dx2d
 		srd.pSysMem = indices;
 		GetDevice()->CreateBuffer(&indexBufferDesc, &srd, &indexBufferSprite);
 
+		//so far the only indexed buffer in the engine
 		GetContext()->IASetIndexBuffer(indexBufferSprite, DXGI_FORMAT_R32_UINT, 0);
 
 		D3D11_BUFFER_DESC vertexBufferDesc;
@@ -54,18 +57,13 @@ namespace dx2d
 		BYTE fourOnes[4] = { 1, 1, 1, 1 };
 		ID3D11Texture2D* tex = Functions::CreateTexture2D(fourOnes, 1, 1);
 		GetDevice()->CreateShaderResourceView(tex, 0, &whiteRes);
-		tex->Release();
+		tex->Release();		
+		
+		CreateSampler(TEX_FILTER::POINT,&pointSampler);
+		CreateSampler(TEX_FILTER::LINEAR, &lineSampler);
+		TexFilterCreationMode = TEX_FILTER::POINT;
 
-		D3D11_SAMPLER_DESC sampDesc;
-		ZeroMemory(&sampDesc, sizeof(sampDesc));
-		sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-		sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-		sampDesc.MinLOD = 0;
-		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-		GetDevice()->CreateSamplerState(&sampDesc, &whiteSam);
+		resourceManager = new CResourceManager;
 	}
 
 	void CDrawManager::AddPoly(CPolygon* p)
@@ -125,6 +123,19 @@ namespace dx2d
 		AddSprite(t);
 	}
 
+	CAnimation* CDrawManager::AddAnimation(const WCHAR* texture, int x, int y)
+	{
+		CAnimation* newAnimation = new CAnimation(texture, x , y);
+		Sprites.push_back(newAnimation);
+		newAnimation->index = (int)Sprites.size() - 1;
+		return newAnimation;
+	}
+
+	void CDrawManager::AddAnimation(CAnimation* a)
+	{
+		AddSprite(a);
+	}
+
 	void CDrawManager::DrawAll()
 	{
 		GetContext()->ClearDepthStencilView(Core->depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
@@ -147,9 +158,14 @@ namespace dx2d
 		GetContext()->IASetVertexBuffers(0, 1, &vertexBufferSprite, &stride, &offset);
 		for (CSprite* s : Sprites)
 		{
-			s->Transform();			
+			s->Transform();
+			s->Play();
 			if (s->Visible)
-			{				
+			{
+				if(s->TexFilter == TEX_FILTER::LINEAR)
+					GetContext()->PSSetSamplers(0, 1, &lineSampler);
+				else
+					GetContext()->PSSetSamplers(0, 1, &pointSampler);
 				s->Draw();
 			}
 		}
@@ -157,6 +173,9 @@ namespace dx2d
 
 	void CDrawManager::Destroy()
 	{
+		lineSampler->Release();
+		pointSampler->Release();
+		resourceManager->Destroy();
 		for (int i = (int)Polygons.size() - 1; i >= 0; i--)
 			Polygons[i]->Destroy();
 		for (int i = (int)Sprites.size() - 1; i >= 0; i--)
@@ -217,5 +236,10 @@ namespace dx2d
 	void CDrawManager::RemoveText(CText* t)
 	{
 		RemoveSprite(t);
+	}
+
+	void CDrawManager::RemoveAnimation(CAnimation* a)
+	{
+		RemoveSprite(a);
 	}
 }
