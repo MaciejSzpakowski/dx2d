@@ -7,6 +7,7 @@
 #include <cmath>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <map>
 #include "Keys.h"
 #pragma comment (lib, "d3d11.lib")
@@ -15,6 +16,7 @@
 
 namespace dx2d
 {
+#define CHECKHR() Functions::Checkhr(__FILE__,__LINE__)
 	//using	
 	using DirectX::XMFLOAT4;
 	using DirectX::XMFLOAT3;
@@ -37,7 +39,6 @@ namespace dx2d
 	class CInput;
 	class CSprite;
 	class CText;
-	struct CEvent;
 	class CEventManager;
 	class CAnimation;
 
@@ -48,12 +49,16 @@ namespace dx2d
 	extern CCamera* Camera;
 	extern CInput* Input;
 	extern CEventManager* EventManager;
+	extern HRESULT hr;
 	
-	struct VERTEX
+	struct Vertex
 	{
 		FLOAT X, Y, Z;
 		FLOAT R, G, B;
 		FLOAT U, V;
+		Vertex(){}
+		Vertex(FLOAT x, FLOAT y, FLOAT z, FLOAT r, FLOAT g, FLOAT b, FLOAT u, FLOAT v)
+			: X(x), Y(y), Z(z), R(r), G(g), B(b), U(u), V(v){}
 	};
 
 	enum class TEX_FILTER { POINT, LINEAR };
@@ -62,7 +67,7 @@ namespace dx2d
 	{
 		float r, g, b, a;
 		SColor(){}
-		SColor(float _r,float _g,float _b,float _a);
+		SColor(float _r, float _g, float _b, float _a) : r(_r), g(_g), b(_b), a(_a){}
 		SColor& operator = (const XMFLOAT4& other)
 		{
 			r = other.x;
@@ -71,6 +76,25 @@ namespace dx2d
 			a = other.w;
 			return *this;
 		}
+	};
+
+	struct UV
+	{
+		float left;
+		float top;
+		float right;
+		float bottom;
+		UV(){}
+		UV(float _left, float _top, float _right, float _bottom) :
+			left(_left), top(_top), right(_right), bottom(_bottom){}
+	};
+
+	struct Event
+	{
+		double startTime;
+		double delay;
+		std::string Name;
+		std::function<int()> Activity;
 	};
 
 	class Window
@@ -92,6 +116,7 @@ namespace dx2d
 		ID3D11Texture2D* CreateTexture2D(BYTE* data, int width, int height);
 		ID3D11Texture2D* CreateTexture2DFromFile(const WCHAR* file);
 		ID3D11Texture2D* CreateTexture2DFromText(std::wstring text);
+		void Checkhr(const char* file, int line);
 	}
 
 	class CCore
@@ -173,15 +198,7 @@ namespace dx2d
 		XMFLOAT3 Spin;
 		CDynamic();
 		~CDynamic();
-	};
-
-	struct UV
-	{
-		float left;
-		float top;
-		float right;
-		float bottom;
-	};
+	};	
 
 	class CDrawable
 	{
@@ -197,7 +214,7 @@ namespace dx2d
 		CDrawable();
 		bool Visible;
 		SColor Color;
-		UV* uv;
+		UV uv;
 		virtual void Draw() = 0;
 		~CDrawable();
 	};
@@ -324,6 +341,8 @@ namespace dx2d
 	public:
 		TEX_FILTER TexFilter; //point or linear
 		XMFLOAT2 Scale;
+		bool FlipHorizontally;
+		bool FlipVertically;
 		CSprite();
 		CSprite(const WCHAR* texture);
 		void Draw() override;
@@ -335,20 +354,12 @@ namespace dx2d
 	protected:
 	public:
 		CText(std::wstring text);
-	};
-
-	struct CEvent
-	{
-		double startTime;
-		double delay;
-		std::string Name;
-		std::function<int()> Activity;
-	};
+	};	
 
 	class CEventManager
 	{
 	private:
-		vector < CEvent* > events;
+		vector < Event* > events;
 	public:
 		void AddEvent(std::function<int()> func,std::string name, double delay);
 		void RemoveEvent(std::string name);

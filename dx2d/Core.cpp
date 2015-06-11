@@ -4,6 +4,7 @@ namespace dx2d
 {
 	CCore::CCore(int sizex, int sizey, std::function<void()> worker)
 	{
+		hr = 0;
 		//assign global variable
 		Core = this;
 		//create window
@@ -30,20 +31,21 @@ namespace dx2d
 		//scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;     // alternative fullscreen mode
 
 		////    DEVICE, DEVICE CONTEXT AND SWAP CHAIN    ////
-		D3D11CreateDeviceAndSwapChain(NULL,
+		hr = D3D11CreateDeviceAndSwapChain(NULL,
 			D3D_DRIVER_TYPE_HARDWARE,NULL,NULL,NULL,NULL,
 			D3D11_SDK_VERSION,
 			&scd,
 			&swapChain,
 			&device,NULL,
 			&context);
+		CHECKHR();
 
 		////    BACK BUFFER AS RENDER TARGET, DEPTH STENCIL   ////
 		// get the address of the back buffer
 		ID3D11Texture2D* buf;
 		swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&buf);
 		// use the back buffer address to create the render target
-		device->CreateRenderTargetView(buf, NULL, &backBuffer);
+		hr = device->CreateRenderTargetView(buf, NULL, &backBuffer); CHECKHR();
 		buf->Release();
 
 		//Describe our Depth/Stencil Buffer
@@ -60,8 +62,8 @@ namespace dx2d
 		depthStencilDesc.CPUAccessFlags = 0;
 		depthStencilDesc.MiscFlags = 0;
 		//Create the Depth/Stencil View
-		device->CreateTexture2D(&depthStencilDesc, NULL, &depthStencilBuffer);
-		device->CreateDepthStencilView(depthStencilBuffer, NULL, &depthStencilView);
+		hr = device->CreateTexture2D(&depthStencilDesc, NULL, &depthStencilBuffer); CHECKHR();
+		hr = device->CreateDepthStencilView(depthStencilBuffer, NULL, &depthStencilView); CHECKHR();
 
 		// set the render target as the back buffer
 		context->OMSetRenderTargets(1, &backBuffer, depthStencilView);
@@ -81,10 +83,10 @@ namespace dx2d
 		////    VS and PS    ////
 		//default shaders
 		ID3D10Blob *VS, *PS; //release this after CreateInputLayout()
-		D3DCompileFromFile(L"VertexShader.hlsl", 0, 0, "main", "vs_5_0", 0, 0, &VS, 0);
-		D3DCompileFromFile(L"PixelShader.hlsl", 0, 0, "main", "ps_5_0", 0, 0, &PS, 0);
-		device->CreateVertexShader(VS->GetBufferPointer(), VS->GetBufferSize(), NULL, &defaultVS);
-		device->CreatePixelShader(PS->GetBufferPointer(), PS->GetBufferSize(), NULL, &defaultPS);
+		hr = D3DCompileFromFile(L"VertexShader.hlsl", 0, 0, "main", "vs_5_0", 0, 0, &VS, 0); CHECKHR();
+		hr = D3DCompileFromFile(L"PixelShader.hlsl", 0, 0, "main", "ps_5_0", 0, 0, &PS, 0); CHECKHR();
+		hr = device->CreateVertexShader(VS->GetBufferPointer(), VS->GetBufferSize(), NULL, &defaultVS); CHECKHR();
+		hr = device->CreatePixelShader(PS->GetBufferPointer(), PS->GetBufferSize(), NULL, &defaultPS); CHECKHR();
 		context->VSSetShader(defaultVS, 0, 0);
 		context->PSSetShader(defaultPS, 0, 0);
 		
@@ -95,10 +97,10 @@ namespace dx2d
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }, 
 			{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			//if you need to pass something on your own to PS or VS
+			//if you need to pass something on your own to PS or VS per vertex
 			//{ "SOME_MORE_DATA", 0, DXGI_FORMAT_R32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 		};
-		device->CreateInputLayout(ied, 3, VS->GetBufferPointer(), VS->GetBufferSize(), &layout);
+		hr = device->CreateInputLayout(ied, 3, VS->GetBufferPointer(), VS->GetBufferSize(), &layout); CHECKHR();
 		VS->Release();
 		PS->Release();
 		context->IASetInputLayout(layout);
@@ -118,7 +120,7 @@ namespace dx2d
 		rtbd.RenderTargetWriteMask = D3D10_COLOR_WRITE_ENABLE_ALL;
 		blendDesc.AlphaToCoverageEnable = false;
 		blendDesc.RenderTarget[0] = rtbd;
-		device->CreateBlendState(&blendDesc, &blendState);
+		hr = device->CreateBlendState(&blendDesc, &blendState); CHECKHR();
 		if (blendState == nullptr)
 			exit(0);			
 

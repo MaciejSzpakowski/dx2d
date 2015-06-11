@@ -10,18 +10,18 @@ namespace dx2d
 		ZeroMemory(&rd, sizeof(rd));
 		rd.FillMode = D3D11_FILL_WIREFRAME;
 		rd.CullMode = D3D11_CULL_NONE;
-		GetDevice()->CreateRasterizerState(&rd, &wireframe);
+		hr = GetDevice()->CreateRasterizerState(&rd, &wireframe); CHECKHR();
 		rd.FillMode = D3D11_FILL_SOLID;
 		rd.CullMode = D3D11_CULL_FRONT;
-		GetDevice()->CreateRasterizerState(&rd, &solid);
+		hr = GetDevice()->CreateRasterizerState(&rd, &solid); CHECKHR();
 
 		//sprite shared buffer
-		VERTEX v[] =
+		Vertex v[] =
 		{
-			{ -1.0f, -1.0f, 0, 0, 0, 0, 0, 0 },
-			{ 1.0f, -1.0f, 0, 0, 0, 0, 1, 0 },
-			{ 1.0f, 1.0f, 0, 0, 0, 0, 1, 1 },
-			{ -1.0f, 1.0f, 0, 0, 0, 0, 0, 1 },
+			{ -1.0f, -1.0f, 0, 0, 0, 0, 0, 1 },
+			{ 1.0f, -1.0f, 0, 0, 0, 0, 1, 1 },
+			{ 1.0f, 1.0f, 0, 0, 0, 0, 1, 0 },
+			{ -1.0f, 1.0f, 0, 0, 0, 0, 0, 0 }
 		};
 		int indices[] = { 0, 1, 2, 0, 2, 3, };
 
@@ -43,7 +43,7 @@ namespace dx2d
 		D3D11_BUFFER_DESC vertexBufferDesc;
 		ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
 		vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		vertexBufferDesc.ByteWidth = sizeof(VERTEX) * 4;
+		vertexBufferDesc.ByteWidth = sizeof(Vertex) * 4;
 		vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		vertexBufferDesc.CPUAccessFlags = 0;
 		vertexBufferDesc.MiscFlags = 0;
@@ -98,7 +98,15 @@ namespace dx2d
 
 	CSprite* CDrawManager::AddSprite(const WCHAR* textureFile)
 	{
-		CSprite* newSprite = new CSprite(textureFile);
+		CSprite* newSprite;
+		try
+		{
+			newSprite = new CSprite(textureFile);
+		}
+		catch (int)
+		{
+			return nullptr;
+		}
 		Sprites.push_back(newSprite);
 		newSprite->index = (int)Sprites.size() - 1;
 		return newSprite;
@@ -125,7 +133,15 @@ namespace dx2d
 
 	CAnimation* CDrawManager::AddAnimation(const WCHAR* texture, int x, int y)
 	{
-		CAnimation* newAnimation = new CAnimation(texture, x , y);
+		CAnimation* newAnimation;
+		try
+		{
+			newAnimation = new CAnimation(texture, x, y);
+		}
+		catch (int)
+		{
+			return nullptr;
+		}
 		Sprites.push_back(newAnimation);
 		newAnimation->index = (int)Sprites.size() - 1;
 		return newAnimation;
@@ -153,7 +169,7 @@ namespace dx2d
 		
 		GetContext()->RSSetState(solid);
 		GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		UINT stride = sizeof(VERTEX);
+		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 		GetContext()->IASetVertexBuffers(0, 1, &vertexBufferSprite, &stride, &offset);
 		for (CSprite* s : Sprites)

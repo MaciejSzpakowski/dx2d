@@ -4,7 +4,7 @@ namespace dx2d
 {
 	void CEventManager::AddEvent(std::function<int()> func, std::string name, double delay)
 	{
-		CEvent* newEvent = new CEvent;
+		Event* newEvent = new Event;
 		newEvent->delay = delay;
 		newEvent->startTime = Core->GetGameTime();
 		newEvent->Activity = func;

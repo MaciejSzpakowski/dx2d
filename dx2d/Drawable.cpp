@@ -5,19 +5,10 @@ ID3D11DeviceContext* GetContext();
 
 namespace dx2d
 {
-	SColor::SColor(float _r, float _g, float _b, float _a)
-	{
-		r = _r;
-		g = _g;
-		b = _b;
-		a = _a;
-	}
-
 	CDrawable::CDrawable()
 	{
 		Visible = true;
-		uv = new UV;
-		*uv = { 0, 0, 1, 1 };
+		uv = UV(0, 0, 1, 1);
 
 		D3D11_BUFFER_DESC cbbd;
 		ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
@@ -32,7 +23,6 @@ namespace dx2d
 
 	CDrawable::~CDrawable()
 	{
-		delete uv;
 		cbBufferPS->Release();
 		cbBufferUV->Release();
 	}
@@ -69,11 +59,11 @@ namespace dx2d
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
 		bd.Usage = D3D11_USAGE_DEFAULT;				   // GPU writes and reads
-		bd.ByteWidth = sizeof(VERTEX) * n;	           // size is the VERTEX struct * 3
+		bd.ByteWidth = sizeof(Vertex) * n;	           // size is the VERTEX struct * 3
 		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;       // use as a vertex buffer
 		bd.CPUAccessFlags = 0;		                   // CPU does nothing
 
-		VERTEX* vertices = new VERTEX[n];
+		Vertex* vertices = new Vertex[n];
 		for (int i = 0; i < n; i++)
 			vertices[i] = { points[i].x, points[i].y, 0, 1, 1, 1, 0, 0 };
 
@@ -99,11 +89,11 @@ namespace dx2d
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
 		bd.Usage = D3D11_USAGE_DEFAULT;				   // GPU writes and reads
-		bd.ByteWidth = sizeof(VERTEX) * vertexCount;	           // size is the VERTEX struct * 3
+		bd.ByteWidth = sizeof(Vertex) * vertexCount;	           // size is the VERTEX struct * 3
 		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;       // use as a vertex buffer
 		bd.CPUAccessFlags = 0;		                   // CPU does nothing
 
-		VERTEX vertices[] = 
+		Vertex vertices[] =
 		{
 			{ -0.5f, -0.5f, 0, 1, 1, 1, 0, 0 },
 			{ 0.5f, -0.5f, 0, 1, 1,1, 0, 0 },
@@ -132,11 +122,11 @@ namespace dx2d
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
 		bd.Usage = D3D11_USAGE_DEFAULT;				   // GPU writes and reads
-		bd.ByteWidth = sizeof(VERTEX) * vertexCount;	           // size is the VERTEX struct * 3
+		bd.ByteWidth = sizeof(Vertex) * vertexCount;	           // size is the VERTEX struct * 3
 		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;       // use as a vertex buffer
 		bd.CPUAccessFlags = 0;		                   // CPU does nothing
 
-		VERTEX* vertices = new VERTEX[vertexCount];
+		Vertex* vertices = new Vertex[vertexCount];
 		float angle = 0;
 		float delta = XM_2PI / (vertexCount - 1);
 		for (int i = 0; i < vertexCount; i++)
@@ -162,7 +152,7 @@ namespace dx2d
 	{		
 		GetContext()->UpdateSubresource(cbBufferPS, 0, NULL, &Color, 0, 0);
 		GetContext()->PSSetConstantBuffers(0, 1, &cbBufferPS);
-		UINT stride = sizeof(VERTEX);
+		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 		GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 		GetContext()->Draw(vertexCount, 0);

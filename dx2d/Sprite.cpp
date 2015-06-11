@@ -17,6 +17,8 @@ namespace dx2d
 
 	CSprite::CSprite()
 	{
+		FlipHorizontally = false;
+		FlipVertically = false;
 		uncachedTex = false;
 		Scale = XMFLOAT2(1, 1);
 		Color = SColor(1, 1, 1, 1);
@@ -25,6 +27,8 @@ namespace dx2d
 
 	CSprite::CSprite(const WCHAR* textureFile)
 	{
+		FlipHorizontally = false;
+		FlipVertically = false;
 		uncachedTex = false;
 		vertexBuffer = nullptr;
 		Scale = XMFLOAT2(1, 1);
@@ -41,6 +45,8 @@ namespace dx2d
 		{
 			D3D11_TEXTURE2D_DESC desc;
 			auto tex = Functions::CreateTexture2DFromFile(textureFile);
+			if (tex == nullptr)
+				throw 0;
 			tex->GetDesc(&desc);
 			GetDevice()->CreateShaderResourceView(tex, 0, &shaderResource);
 			tex->Release();
@@ -60,7 +66,12 @@ namespace dx2d
 		GetContext()->UpdateSubresource(cbBufferPS, 0, NULL, &Color, 0, 0);
 		GetContext()->PSSetConstantBuffers(0, 1, &cbBufferPS);
 		//uv
-		GetContext()->UpdateSubresource(cbBufferUV, 0, NULL, uv, 0, 0);
+		UV _uv;
+		_uv.left = FlipHorizontally ? uv.right : uv.left;
+		_uv.right = FlipHorizontally ? uv.left : uv.right;
+		_uv.top = FlipVertically ? uv.bottom : uv.top;
+		_uv.bottom = FlipVertically ? uv.top : uv.bottom;
+		GetContext()->UpdateSubresource(cbBufferUV, 0, NULL, &_uv, 0, 0);
 		GetContext()->VSSetConstantBuffers(1, 1, &cbBufferUV);
 		//tex
 		GetContext()->PSSetShaderResources(0, 1, &shaderResource);
@@ -82,7 +93,8 @@ namespace dx2d
 	}
 
 	CText::CText(std::wstring text)
-	{		
+	{
+		uncachedTex = true;
 		auto tex = Functions::CreateTexture2DFromText(text);
 		GetDevice()->CreateShaderResourceView(tex, 0, &shaderResource);
 		tex->Release();
@@ -101,8 +113,7 @@ namespace dx2d
 		for (int i = 0; i < y; i++)
 			for (int j = 0; j < x; j++)
 				uvTable[i*x + j] = { 1.0f / x*j, 1.0f / y*i, 1.0f / x*(j + 1), 1.0f / y*(i + 1) };
-		delete uv;
-		uv = uvTable + Frame;
+		uv = uvTable[Frame];
 	}
 
 	void CAnimation::Play()
@@ -124,7 +135,7 @@ namespace dx2d
 				PreviousFrame();
 			}
 		}
-		uv = uvTable + Frame;
+		uv = uvTable[Frame];
 	}
 
 	void CAnimation::SetOrder(int* order)
@@ -157,7 +168,6 @@ namespace dx2d
 
 	CAnimation::~CAnimation()
 	{
-		uv = nullptr;
 		delete[] uvTable;
 	}
 }

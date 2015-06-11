@@ -44,7 +44,7 @@ void Activity()
 
 int main(int argc, char** argv)
 {
-	Functions::NewCore(800, 600, Activity);
+	Functions::NewCore(800, 600, Activity);	
 
 	Core->OpenConsole();
 	Core->SetBackgroundColor(SColor(0, 0, 0, 1));
@@ -68,14 +68,16 @@ int main(int argc, char** argv)
 	brick->Color.a = 1;
 	a1 = DrawManager->AddAnimation(L"ani.png", 2, 4);
 	a1->TexFilter = TEX_FILTER::LINEAR;
-	a1->Speed = 10;
+	a1->Speed = 15;
 	a1->Scale = XMFLOAT2(6, 3);
-	int order[] = { 6, 7, 4, 5, 2, 3, 0, 1 };
-	a1->SetOrder(order);
 	/*s1 = DrawManager->AddSprite(L"leaf.png");
 	s1->Scale = XMFLOAT2(10, 10);
 	s1->Position.z = -0.5f;
 	s1->Color.a = 0.5f;*/
+	CText* t1 = DrawManager->AddText(L"Hello World");
+	t1->TexFilter = TEX_FILTER::LINEAR;
+	t1->Position = XMFLOAT3(-10, 10, 0);
+	t1->Scale = XMFLOAT2(3, 3);
 
 	Core->Run();
 	Core->Destroy();

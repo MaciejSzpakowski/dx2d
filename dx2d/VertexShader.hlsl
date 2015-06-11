@@ -25,19 +25,19 @@ VS_OUTPUT main(float4 inPos : POSITION, float3 inCol : COLOR, float2 inTexCoord 
 	//
 	if (inTexCoord[0] == 0 && inTexCoord[1] == 0)
 	{
-		output.TexCoord = float2(uv[0], uv[1]);
+		output.TexCoord = float2(uv[0], 1-uv[1]);
 	}
 	if (inTexCoord[0] == 1 && inTexCoord[1] == 0)
 	{
-		output.TexCoord = float2(uv[2], uv[1]);
+		output.TexCoord = float2(uv[2], 1-uv[1]);
 	}
 	if (inTexCoord[0] == 0 && inTexCoord[1] == 1)
 	{
-		output.TexCoord = float2(uv[0], uv[3]);
+		output.TexCoord = float2(uv[0], 1-uv[3]);
 	}
 	if (inTexCoord[0] == 1 && inTexCoord[1] == 1)
 	{
-		output.TexCoord = float2(uv[2], uv[3]);
+		output.TexCoord = float2(uv[2], 1-uv[3]);
 	}
 
 	return output;

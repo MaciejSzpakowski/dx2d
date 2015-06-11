@@ -9,6 +9,7 @@ namespace dx2d
 	CCamera* Camera;
 	CInput* Input;
 	CEventManager* EventManager;
+	HRESULT hr;
 
 	void Render(CCore* d3d)
 	{
@@ -98,6 +99,15 @@ namespace dx2d
 			Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
 
 			Gdiplus::Bitmap* gdibitmap = new Gdiplus::Bitmap(file);
+			if (gdibitmap->GetLastStatus() != 0)
+			{
+				std::wstringstream msg;
+				msg << L"Could not open " << file;
+				MessageBoxW(0, msg.str().c_str(), L"File error", MB_ICONEXCLAMATION);
+				delete gdibitmap;
+				Gdiplus::GdiplusShutdown(m_gdiplusToken);
+				return nullptr;
+			}
 			UINT h = gdibitmap->GetHeight();
 			UINT w = gdibitmap->GetWidth();
 
@@ -130,18 +140,18 @@ namespace dx2d
 			ULONG_PTR m_gdiplusToken;
 			Gdiplus::GdiplusStartupInput gdiplusStartupInput;
 			Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
-
-			UINT h = 80;
-			UINT w = 80;
+			int len = text.length();
+			UINT h = 20 * len;
+			UINT w = 20 * len;
 			Gdiplus::Bitmap* gdibitmap = new Gdiplus::Bitmap(h, w, PixelFormat32bppARGB);
 			Gdiplus::Graphics* g = new Gdiplus::Graphics(gdibitmap);
 			Gdiplus::PointF point(0, 0);
 			Gdiplus::Rect rect(0, 0, w, h);
 			Gdiplus::Font* font = new Gdiplus::Font(&Gdiplus::FontFamily(L"Arial"), 14);
 			Gdiplus::SolidBrush* brush = new Gdiplus::SolidBrush(Gdiplus::Color::White);
-			Gdiplus::SolidBrush* brush1 = new Gdiplus::SolidBrush(Gdiplus::Color::Black);
+			Gdiplus::SolidBrush* brush1 = new Gdiplus::SolidBrush(Gdiplus::Color::Transparent);
 			g->FillRectangle(brush1, rect);
-			g->DrawString(text.c_str(), (INT)text.length(), font, point, brush);
+			g->DrawString(text.c_str(), len, font, point, brush);
 			delete g;
 			delete brush;
 			delete brush1;
@@ -160,6 +170,21 @@ namespace dx2d
 			ID3D11Texture2D *tex = CreateTexture2D(data, w, h);
 			DeleteObject(hbitmap);
 			return tex;
+		}
+
+		void Checkhr(const char* file, int line)
+		{
+			if (hr == 0)
+				return;
+			char str[128];
+			FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0,
+				hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL),
+				str, 128, 0);
+			std::stringstream message;
+			message << file << " line: " << line << "\n" << str;
+			
+			MessageBox(0, message.str().c_str(), "HRESULT error", MB_ICONERROR);
+			exit(1);
 		}
 	}
 }
