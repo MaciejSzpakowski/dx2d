@@ -97,6 +97,20 @@ namespace dx2d
 		std::function<int()> Activity;
 	};
 
+	namespace Functions
+	{
+		CCore* NewCore(int sizex, int sizey, std::function<void()> worker);
+		ID3D11Texture2D* CreateTexture2D(BYTE* data, int width, int height);
+		ID3D11Texture2D* CreateTexture2DFromFile(const WCHAR* file);
+		ID3D11Texture2D* CreateTexture2DFromText(std::wstring text);
+		void Checkhr(const char* file, int line);
+		//return double between 0 and 1
+		double RndDouble();
+		//return integer
+		//between inclusive min and exclusive max
+		int RndInt(int min, int max);
+	}
+
 	class Window
 	{
 	private:
@@ -108,16 +122,7 @@ namespace dx2d
 	public:
 		Window(int sizex, int sizey);
 		int Run();
-	};
-
-	namespace Functions
-	{
-		CCore* NewCore(int sizex, int sizey, std::function<void()> worker);
-		ID3D11Texture2D* CreateTexture2D(BYTE* data, int width, int height);
-		ID3D11Texture2D* CreateTexture2DFromFile(const WCHAR* file);
-		ID3D11Texture2D* CreateTexture2DFromText(std::wstring text);
-		void Checkhr(const char* file, int line);
-	}
+	};	
 
 	class CCore
 	{

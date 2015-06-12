@@ -40,6 +40,9 @@ void Activity()
 		Camera->Spin.z = move/4;
 	if (Input->IsKeyDown('E'))
 		Camera->Spin.z = -move/4;
+
+	if (Input->IsKeyPressed(' '))
+		printf("%.10f %d\n", Functions::RndDouble(), Functions::RndInt(-500, 500));
 }
 
 int main(int argc, char** argv)
@@ -78,6 +81,7 @@ int main(int argc, char** argv)
 	t1->TexFilter = TEX_FILTER::LINEAR;
 	t1->Position = XMFLOAT3(-10, 10, 0);
 	t1->Scale = XMFLOAT2(3, 3);
+
 
 	Core->Run();
 	Core->Destroy();

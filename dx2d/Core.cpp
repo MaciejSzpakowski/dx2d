@@ -1,9 +1,11 @@
 #include "Private.h"
+#include <ctime>
 
 namespace dx2d
 {
 	CCore::CCore(int sizex, int sizey, std::function<void()> worker)
 	{
+		srand((int)time(0));
 		hr = 0;
 		//assign global variable
 		Core = this;

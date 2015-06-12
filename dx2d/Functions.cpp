@@ -1,5 +1,6 @@
 #include "Private.h"
 #include <gdiplus.h>
+#include <ctime>
 
 namespace dx2d
 {
@@ -140,7 +141,7 @@ namespace dx2d
 			ULONG_PTR m_gdiplusToken;
 			Gdiplus::GdiplusStartupInput gdiplusStartupInput;
 			Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
-			int len = text.length();
+			int len = (int)text.length();
 			UINT h = 20 * len;
 			UINT w = 20 * len;
 			Gdiplus::Bitmap* gdibitmap = new Gdiplus::Bitmap(h, w, PixelFormat32bppARGB);
@@ -185,6 +186,24 @@ namespace dx2d
 			
 			MessageBox(0, message.str().c_str(), "HRESULT error", MB_ICONERROR);
 			exit(1);
+		}
+
+		double RndDouble()
+		{
+			unsigned int p1 = rand();
+			unsigned int p2 = rand() << 15;
+			unsigned int p3 = rand() << 30;
+			unsigned int t = p1 | p2 | p3;
+			return (double)t / 0xffffffff;
+		}
+
+		int RndInt(int min, int max)
+		{
+			int p1 = rand();
+			int p2 = rand() << 15;
+			int p3 = rand() << 30;
+			int t = p1 | p2 | p3;
+			return t % (max - min) + min;
 		}
 	}
 }
