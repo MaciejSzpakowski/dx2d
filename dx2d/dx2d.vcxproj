@@ -150,6 +150,7 @@
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Sprite.cpp" />
+    <ClCompile Include="Text.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -11,6 +11,7 @@ namespace dx2d
 		Velocity = XMFLOAT3(0, 0, 0);
 		Acceleration = XMFLOAT3(0, 0, 0);
 		Spin = XMFLOAT3(0, 0, 0);
+		Parent = nullptr;
 
 		//Create the buffer to send to the cbuffer in effect file
 		D3D11_BUFFER_DESC cbbd;
@@ -26,18 +27,27 @@ namespace dx2d
 
 	void CDynamic::Transform()
 	{
-		CSprite* s = (CSprite*)this;
-		AddFloat3(&Acceleration, &Velocity);
-		AddFloat3(&Velocity, &Position);
-		AddFloat3(&Spin, &Rotation);
 		XMMATRIX scale = GetScaleMatrix();
 		XMMATRIX rot = DirectX::XMMatrixRotationRollPitchYaw(Rotation.x,Rotation.y,Rotation.z);
 		XMMATRIX loc = DirectX::XMMatrixTranslation(Position.x, Position.y, Position.z);
 		XMMATRIX world = scale * rot * loc;
 		XMMATRIX worldViewProj = world * Camera->view * Camera->proj;
+		if (Parent != nullptr)
+		{
+			XMMATRIX parentLoc = DirectX::XMMatrixRotationRollPitchYaw(0, 0, Parent->Rotation.z);
+			XMMATRIX parentRot = DirectX::XMMatrixTranslation(Parent->Position.x, Parent->Position.y, Parent->Position.z);
+			worldViewProj = world * parentLoc * parentRot * Camera->view * Camera->proj;
+		}
 		worldViewProj = DirectX::XMMatrixTranspose(worldViewProj);
 		GetContext()->UpdateSubresource(cbBufferVS, 0, NULL, &worldViewProj, 0, 0);
 		GetContext()->VSSetConstantBuffers(0, 1, &cbBufferVS);
+	}
+
+	void CDynamic::Update()
+	{
+		AddFloat3(&Acceleration, &Velocity);
+		AddFloat3(&Velocity, &Position);
+		AddFloat3(&Spin, &Rotation);
 	}
 
 	CDynamic::~CDynamic()

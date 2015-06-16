@@ -35,29 +35,8 @@ namespace dx2d
 		Color = SColor(1, 1, 1, 1);
 		TexFilter = DrawManager->TexFilterCreationMode;
 
-		//check resources first
-		CTexture* res = DrawManager->resourceManager->GetTexture(textureFile);
-		if (res != nullptr)
-		{
-			shaderResource = res->shaderResource;
-		}
-		else
-		{
-			D3D11_TEXTURE2D_DESC desc;
-			auto tex = Functions::CreateTexture2DFromFile(textureFile);
-			if (tex == nullptr)
-				throw 0;
-			tex->GetDesc(&desc);
-			GetDevice()->CreateShaderResourceView(tex, 0, &shaderResource);
-			tex->Release();
-			//add to resources
-			CTexture* newRes = new CTexture;
-			newRes->fileName = textureFile;
-			newRes->Height = desc.Height;
-			newRes->Width = desc.Width;
-			newRes->shaderResource = shaderResource;
-			DrawManager->resourceManager->AddTexture(newRes);
-		}
+		Functions::LoadCachedTexture(textureFile, shaderResource);
+		
 	}
 
 	void CSprite::Draw()
@@ -109,10 +88,10 @@ namespace dx2d
 		Speed = 1;
 		FrameChanged = true;
 		indicator = 0;
-		uvTable = new UV[frameCount];
+		uvTable.reserve(frameCount);
 		for (int i = 0; i < y; i++)
 			for (int j = 0; j < x; j++)
-				uvTable[i*x + j] = { 1.0f / x*j, 1.0f / y*i, 1.0f / x*(j + 1), 1.0f / y*(i + 1) };
+				uvTable.push_back(UV(1.0f / x*j, 1.0f / y*i, 1.0f / x*(j + 1), 1.0f / y*(i + 1)));
 		uv = uvTable[Frame];
 	}
 
@@ -140,11 +119,11 @@ namespace dx2d
 
 	void CAnimation::SetOrder(int* order)
 	{
-		UV* newOrder = new UV[frameCount];
+		vector<UV> newUvtable;
+		newUvtable.reserve(frameCount);
 		for (int i = 0; i < frameCount; i++)
-			newOrder[i] = uvTable[order[i]];
-		delete[] uvTable;
-		uvTable = newOrder;
+			newUvtable[i] = uvTable[order[i]];
+		uvTable = newUvtable;
 	}
 
 	int CAnimation::GetFrameCount()
@@ -164,10 +143,5 @@ namespace dx2d
 		Frame--;
 		if (Frame < Start)
 			Frame = Finish;
-	}
-
-	CAnimation::~CAnimation()
-	{
-		delete[] uvTable;
 	}
 }

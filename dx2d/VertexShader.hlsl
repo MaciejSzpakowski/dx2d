@@ -1,6 +1,6 @@
 cbuffer cbBufferVS
 {
-	float4x4 worldViewProj;
+	float4x4 transformation;
 };
 
 cbuffer cbBufferUV
@@ -19,7 +19,7 @@ struct VS_OUTPUT
 VS_OUTPUT main(float4 inPos : POSITION, float3 inCol : COLOR, float2 inTexCoord : TEXCOORD)
 {
 	VS_OUTPUT output;
-	output.Pos = mul(inPos, worldViewProj);
+	output.Pos = mul(inPos, transformation);
 	output.Col = inCol;
 	output.TexCoord = inTexCoord;
 	//

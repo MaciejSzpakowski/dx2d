@@ -10,6 +10,7 @@ namespace dx2d
 	CCamera* Camera;
 	CInput* Input;
 	CEventManager* EventManager;
+	CResourceManager* ResourceManager;
 	HRESULT hr;
 
 	void Render(CCore* d3d)
@@ -171,6 +172,34 @@ namespace dx2d
 			ID3D11Texture2D *tex = CreateTexture2D(data, w, h);
 			DeleteObject(hbitmap);
 			return tex;
+		}
+
+		//loads texture to shader resource, checks cache first
+		//if it's not in cache then load and store
+		void LoadCachedTexture(const WCHAR* textureFile, ID3D11ShaderResourceView*& shader)
+		{
+			CTexture* res = ResourceManager->GetTexture(textureFile);
+			if (res != nullptr)
+			{
+				shader = res->shaderResource;
+			}
+			else
+			{
+				D3D11_TEXTURE2D_DESC desc;
+				auto tex = Functions::CreateTexture2DFromFile(textureFile);
+				if (tex == nullptr)
+					throw 0;
+				tex->GetDesc(&desc);
+				GetDevice()->CreateShaderResourceView(tex, 0, &shader);
+				tex->Release();
+				//add to resources
+				CTexture* newRes = new CTexture;
+				newRes->fileName = textureFile;
+				newRes->Height = desc.Height;
+				newRes->Width = desc.Width;
+				newRes->shaderResource = shader;
+				ResourceManager->AddTexture(newRes);
+			}
 		}
 
 		void Checkhr(const char* file, int line)

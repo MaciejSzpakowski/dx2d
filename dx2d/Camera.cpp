@@ -19,7 +19,7 @@ namespace dx2d
 		RECT rect;
 		GetWindowRect(Core->GetWindowHandle(), &rect);
 		float aspectRatio = (float)(rect.right-rect.left)/(rect.bottom-rect.top);
-		proj = DirectX::XMMatrixPerspectiveFovLH(0.4f*3.14f, aspectRatio, 0.1f, 100.0f);
+		proj = DirectX::XMMatrixPerspectiveFovLH(0.4f*3.14f, aspectRatio, 0.1f, 1000.0f);
 	}
 
 	XMMATRIX CCamera::GetScaleMatrix()

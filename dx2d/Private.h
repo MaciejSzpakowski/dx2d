@@ -40,7 +40,10 @@ namespace dx2d
 	class CSprite;
 	class CText;
 	class CEventManager;
+	class CResourceManager;
 	class CAnimation;
+	class CBitmapFont;
+	class CBitmapText;
 
 	//externals
 	extern CCore* Core;
@@ -49,6 +52,7 @@ namespace dx2d
 	extern CCamera* Camera;
 	extern CInput* Input;
 	extern CEventManager* EventManager;
+	extern CResourceManager* ResourceManager;
 	extern HRESULT hr;
 	
 	struct Vertex
@@ -97,12 +101,28 @@ namespace dx2d
 		std::function<int()> Activity;
 	};
 
+	//used to cache texture loaded from file
+	class CTexture
+	{
+	public:
+		int Height;
+		int Width;
+		std::wstring fileName;
+		ID3D11ShaderResourceView* shaderResource;
+		//destructor exclusive for resource manager
+		~CTexture()
+		{
+			shaderResource->Release();
+		}
+	};
+
 	namespace Functions
 	{
 		CCore* NewCore(int sizex, int sizey, std::function<void()> worker);
 		ID3D11Texture2D* CreateTexture2D(BYTE* data, int width, int height);
 		ID3D11Texture2D* CreateTexture2DFromFile(const WCHAR* file);
 		ID3D11Texture2D* CreateTexture2DFromText(std::wstring text);
+		void LoadCachedTexture(const WCHAR* textureFile, ID3D11ShaderResourceView*& shader);
 		void Checkhr(const char* file, int line);
 		//return double between 0 and 1
 		double RndDouble();
@@ -166,24 +186,18 @@ namespace dx2d
 		double GetFrameTime();
 		double GetFps();
 		void Destroy();
-	};
-
-	//used to cache texture loaded from file
-	struct CTexture
-	{
-		int Height;
-		int Width;
-		std::wstring fileName;
-		ID3D11ShaderResourceView* shaderResource;
-	};
+	};	
 
 	class CResourceManager
 	{
 	private:
 		std::map<std::wstring, CTexture*> textures;
+		std::map<std::wstring, CBitmapFont*> fonts;
 	public:
 		void AddTexture(CTexture* tex);
 		CTexture* GetTexture(std::wstring file);
+		void AddBitmapFont(CBitmapFont* font);
+		CBitmapFont* GetBitmapFont(std::wstring file);
 		void Clear();
 		void Destroy();
 	};
@@ -192,10 +206,15 @@ namespace dx2d
 	{
 	protected:
 		ID3D11Buffer* cbBufferVS;
+		//matrix algebra for
+		//produces worldViewProj used by VS
 		void Transform();
+		//updates PVAJ etc.
+		void Update();
 		virtual XMMATRIX GetScaleMatrix() = 0;
 		friend class CDrawManager;
 	public:
+		CDynamic* Parent;
 		XMFLOAT3 Position;
 		XMFLOAT3 Rotation;
 		XMFLOAT3 Velocity;
@@ -263,9 +282,9 @@ namespace dx2d
 		ID3D11Buffer* vertexBufferSprite;
 		vector<CPolygon*> Polygons;
 		vector<CSprite*> Sprites;
+		vector<CBitmapText*> Texts;
 		ID3D11RasterizerState* wireframe;
 		ID3D11RasterizerState* solid;
-		CResourceManager* resourceManager;
 
 		friend void Render(CCore* d3d);
 		friend class CSprite;
@@ -291,6 +310,11 @@ namespace dx2d
 		void AddAnimation(CAnimation* a);
 		void RemoveAnimation(CAnimation* a);
 		TEX_FILTER TexFilterCreationMode;
+		CBitmapFont* AddBitmapFont(const WCHAR* file, vector<UV> chars);
+		CBitmapText* AddBitmapText(CBitmapFont* font);
+		void AddBitmapText(CBitmapText* text);
+		void RemoveBitmapFont(CBitmapFont* font);
+		void RemoveBitmapText(CBitmapText* text);
 	};	
 
 	class CCamera : public CDynamic
@@ -304,6 +328,7 @@ namespace dx2d
 
 		friend void Render(CCore* d3d);
 		friend class CDynamic;
+		friend class CBitmapText;
 	public:
 		CCamera();
 		void Destroy();
@@ -377,7 +402,7 @@ namespace dx2d
 	private:
 		double lastFrameChangeTime;
 		int frameCount;
-		UV* uvTable;
+		vector<UV> uvTable;
 		double indicator;
 		//plays animation
 		void Play() override;
@@ -395,6 +420,37 @@ namespace dx2d
 		void NextFrame();
 		//prev frame and loop
 		void PreviousFrame();
-		~CAnimation();
+	};
+
+	class CBitmapFont
+	{
+	private:
+		vector<UV> chars;
+		std::wstring fileName;
+		ID3D11ShaderResourceView* shaderResource;
+		friend class CBitmapText;
+	public:
+		CBitmapFont(const WCHAR* file, vector<UV> _chars);
+		std::wstring GetFileName();
+		void Destroy();
+	};
+
+	enum class TextHorAlign { Left, Center, Right };
+	enum class TextVerAlign { Top, Center, Bottom };
+
+	class CBitmapText : public CDrawable, public CDynamic
+	{
+	private:
+		CBitmapFont* font;
+	public:
+		TextHorAlign HorizontalAlign;
+		TextVerAlign VerticalAlign;
+		CBitmapText(CBitmapFont* _font);
+		TEX_FILTER TexFilter; //point or linear
+		std::wstring Text;
+		void Draw() override;
+		XMMATRIX GetScaleMatrix() override;
+		void Destroy();
+		void TextTransform(int col, int row, int len);
 	};
 }

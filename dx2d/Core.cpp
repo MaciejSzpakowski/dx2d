@@ -133,6 +133,7 @@ namespace dx2d
 		Camera = new CCamera;
 		Input = new CInput;
 		EventManager = new CEventManager;
+		ResourceManager = new CResourceManager;
 
 		//timer
 		LARGE_INTEGER li;
@@ -215,6 +216,7 @@ namespace dx2d
 	{
 		//engine objects
 		//keep this first
+		ResourceManager->Destroy();
 		EventManager->Destroy();
 		Input->Destroy();
 		Camera->Destroy();

@@ -62,8 +62,6 @@ namespace dx2d
 		CreateSampler(TEX_FILTER::POINT,&pointSampler);
 		CreateSampler(TEX_FILTER::LINEAR, &lineSampler);
 		TexFilterCreationMode = TEX_FILTER::POINT;
-
-		resourceManager = new CResourceManager;
 	}
 
 	void CDrawManager::AddPoly(CPolygon* p)
@@ -156,17 +154,21 @@ namespace dx2d
 	{
 		GetContext()->ClearDepthStencilView(Core->depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 		//GetContext()->OMSetBlendState(Core->blendState, 0, 0xffffffff);
+
+		//polys
 		GetContext()->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP);
 		GetContext()->RSSetState(wireframe);
 		for (CPolygon* p : Polygons)
-		{
-			p->Transform();
+		{			
+			p->Update();
 			if (p->Visible)
 			{				
+				p->Transform();
 				p->Draw();
 			}
 		}
 		
+		//sprites, animations
 		GetContext()->RSSetState(solid);
 		GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		UINT stride = sizeof(Vertex);
@@ -174,7 +176,7 @@ namespace dx2d
 		GetContext()->IASetVertexBuffers(0, 1, &vertexBufferSprite, &stride, &offset);
 		for (CSprite* s : Sprites)
 		{
-			s->Transform();
+			s->Update();
 			s->Play();
 			if (s->Visible)
 			{
@@ -182,7 +184,22 @@ namespace dx2d
 					GetContext()->PSSetSamplers(0, 1, &lineSampler);
 				else
 					GetContext()->PSSetSamplers(0, 1, &pointSampler);
+				s->Transform();
 				s->Draw();
+			}
+		}
+
+		//bitmap text
+		for (CBitmapText* t : Texts)
+		{
+			t->Update();
+			if (t->Visible)
+			{
+				if (t->TexFilter == TEX_FILTER::LINEAR)
+					GetContext()->PSSetSamplers(0, 1, &lineSampler);
+				else
+					GetContext()->PSSetSamplers(0, 1, &pointSampler);
+				t->Draw();
 			}
 		}
 	}
@@ -191,7 +208,6 @@ namespace dx2d
 	{
 		lineSampler->Release();
 		pointSampler->Release();
-		resourceManager->Destroy();
 		for (int i = (int)Polygons.size() - 1; i >= 0; i--)
 			Polygons[i]->Destroy();
 		for (int i = (int)Sprites.size() - 1; i >= 0; i--)
@@ -257,5 +273,66 @@ namespace dx2d
 	void CDrawManager::RemoveAnimation(CAnimation* a)
 	{
 		RemoveSprite(a);
+	}
+
+	CBitmapFont* CDrawManager::AddBitmapFont(const WCHAR* file, vector<UV> chars)
+	{
+		CBitmapFont* newFont = ResourceManager->GetBitmapFont(file);
+		if (newFont != nullptr)
+			return newFont;
+		try
+		{
+			newFont = new CBitmapFont(file, chars);
+		}
+		catch(int)
+		{
+			return nullptr;
+		}
+		ResourceManager->AddBitmapFont(newFont);
+		return newFont;
+	}
+
+	CBitmapText* CDrawManager::AddBitmapText(CBitmapFont* font)
+	{
+		if (font == nullptr)
+			return nullptr;
+		CBitmapText* newText = new CBitmapText(font);
+		Texts.push_back(newText);
+		newText->index = (int)Texts.size() - 1;
+		return newText;
+	}
+
+	void CDrawManager::AddBitmapText(CBitmapText* text)
+	{
+		Texts.push_back(text);
+		text->index = (int)Texts.size() - 1;
+	}
+
+	void CDrawManager::RemoveBitmapFont(CBitmapFont* font)
+	{
+		throw 1;
+	}
+
+	void CDrawManager::RemoveBitmapText(CBitmapText* text)
+	{
+		if (text->index == -1)
+			return;
+		if (text->index >= Texts.size() || Texts[text->index] != text)
+		{
+			MessageBox(0, "This text is not in CDrawManager.Texts", "Error", MB_ICONERROR);
+			return;
+		}
+		else if (text->index == Texts.size() - 1)
+		{
+			Texts.pop_back();
+		}
+		else
+		{
+			//move end to where p is and update index
+			Texts[text->index] = Texts.back();
+			Texts[text->index]->index = text->index;
+			Texts.pop_back();
+		}
+		text->index = -1;
 	}
 }
