@@ -7,6 +7,7 @@ namespace dx2d
 	{
 		srand((int)time(0));
 		hr = 0;
+		fullscreen = false;
 		//assign global variable
 		Core = this;
 		//create window
@@ -210,6 +211,17 @@ namespace dx2d
 	double CCore::GetFps()
 	{
 		return 1 / frameTime;
+	}
+
+	void CCore::SetFullscreen(bool state)
+	{
+		fullscreen = state;
+		swapChain->SetFullscreenState(state, NULL);
+	}
+
+	bool CCore::GetFullscreen()
+	{
+		return fullscreen;
 	}
 
 	void CCore::Destroy()

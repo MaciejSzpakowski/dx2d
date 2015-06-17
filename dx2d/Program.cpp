@@ -68,10 +68,6 @@ void Activity()
 	if (Input->IsKeyDown('Y'))
 		bmtext->Spin.z = -3;
 
-	char c = Input->GetChar();
-	if (c != 0)
-		cin += c;
-	bmtext->Text = cin;
 }
 
 int main(int argc, char** argv)

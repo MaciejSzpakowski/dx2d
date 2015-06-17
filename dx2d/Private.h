@@ -164,6 +164,7 @@ namespace dx2d
 		double gameTime;
 		double frameTime;
 		void UpdateGameTime();
+		bool fullscreen;
 
 		friend void Render(CCore* d3d);
 		friend ID3D11DeviceContext* GetContext();
@@ -185,6 +186,8 @@ namespace dx2d
 		//time per frame, to get FPS -> 1 / GetFrameTime()
 		double GetFrameTime();
 		double GetFps();
+		void SetFullscreen(bool state);
+		bool GetFullscreen();
 		void Destroy();
 	};	
 

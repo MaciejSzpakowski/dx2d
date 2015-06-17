@@ -15,6 +15,7 @@ namespace dx2d
 
 	void Render(CCore* d3d)
 	{
+
 		Camera->CamTransform();
 		d3d->context->ClearRenderTargetView(d3d->backBuffer, d3d->backBufferColor);		
 		DrawManager->DrawAll();
