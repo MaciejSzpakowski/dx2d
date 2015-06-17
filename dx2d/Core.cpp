@@ -3,15 +3,17 @@
 
 namespace dx2d
 {
-	CCore::CCore(int sizex, int sizey, std::function<void()> worker)
+	CCore::CCore(int sizex, int sizey, std::function<void()> worker, int style)
 	{
 		srand((int)time(0));
 		hr = 0;
 		fullscreen = false;
+		clientSize.x = sizex;
+		clientSize.y = sizey;
 		//assign global variable
 		Core = this;
 		//create window
-		window = new Window(sizex, sizey);
+		window = new Window(sizex, sizey, style);
 		window->Worker = worker;
 		window->Render = Render;
 
@@ -81,7 +83,7 @@ namespace dx2d
 		viewport.Height = (float)sizey;
 		viewport.MinDepth = 0.0f;
 		viewport.MaxDepth = 1.0f;
-		context->RSSetViewports(1, &viewport);		
+		context->RSSetViewports(1, &viewport);
 		
 		////    VS and PS    ////
 		//default shaders
@@ -222,6 +224,26 @@ namespace dx2d
 	bool CCore::GetFullscreen()
 	{
 		return fullscreen;
+	}
+
+	POINT CCore::GetCursorPos()
+	{
+		POINT p;
+		::GetCursorPos(&p);
+		ScreenToClient(window->handle, &p);
+		return p;
+	}
+
+	POINTF CCore::GetCursorWorldPos(float z)
+	{
+		POINT p = GetCursorPos();
+		POINTF viewPortCoord;
+		viewPortCoord.x = float(2 * p.x) / clientSize.x - 1;
+		viewPortCoord.y = float(2 * p.y) / clientSize.y - 1;
+		POINTF viewPortWorldSizeAtZ;
+		viewPortWorldSizeAtZ.x = (20.0f-z) * tan(Camera->fovAngle)/2 * viewPortCoord.x + Camera->Position.x;
+		viewPortWorldSizeAtZ.y = (20.0f-z) * tan(Camera->fovAngle)/2 * -viewPortCoord.y + Camera->Position.y;
+		return viewPortWorldSizeAtZ;
 	}
 
 	void CCore::Destroy()

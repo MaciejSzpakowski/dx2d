@@ -6,6 +6,9 @@ namespace dx2d
 
 	CCamera::CCamera()
 	{
+		nearPlane = 0.1f;
+		farPlane = 1000.0f;
+		fovAngle = 0.4f*3.14f; //72 deg
 		//Camera information
 		Position = XMFLOAT3(0, 0, -20);
 		XMVECTOR position = DirectX::XMLoadFloat3(&Position);
@@ -19,7 +22,7 @@ namespace dx2d
 		RECT rect;
 		GetWindowRect(Core->GetWindowHandle(), &rect);
 		float aspectRatio = (float)(rect.right-rect.left)/(rect.bottom-rect.top);
-		proj = DirectX::XMMatrixPerspectiveFovLH(0.4f*3.14f, aspectRatio, 0.1f, 1000.0f);
+		proj = DirectX::XMMatrixPerspectiveFovLH(fovAngle, aspectRatio, nearPlane, farPlane);
 	}
 
 	XMMATRIX CCamera::GetScaleMatrix()

@@ -5,11 +5,9 @@
 
 using namespace dx2d;
 
-CCircle* c2;
-CCircle* c3;
+CCircle* c1,*c2,*c3;
 CSprite* brick;
 CSprite* s1, *s2;
-CCircle* r1;
 CAnimation* a1;
 CBitmapText* bmtext;
 std::vector<CSprite*> sprites;
@@ -38,56 +36,36 @@ void Activity()
 		Camera->Velocity.x = -move;
 	if (Input->IsKeyDown(Key.Right))
 		Camera->Velocity.x = move;
-
-	c2->Velocity = XMFLOAT3(0, 0, 0);
-	c2->Spin.z = 0;
+	c1->Velocity = XMFLOAT3(0, 0, 0);
 	if (Input->IsKeyDown('W'))
-		c2->Velocity.y = 10;
+		c1->Velocity.y = move;
 	if (Input->IsKeyDown('S'))
-		c2->Velocity.y = -10;
+		c1->Velocity.y = -move;
 	if (Input->IsKeyDown('A'))
-		c2->Velocity.x = -10;
+		c1->Velocity.x = -move;
 	if (Input->IsKeyDown('D'))
-		c2->Velocity.x = 10;
-	if (Input->IsKeyDown('Q'))
-		c2->Spin.z = 3;
-	if (Input->IsKeyDown('E'))
-		c2->Spin.z = -3;
-	bmtext->Velocity = XMFLOAT3(0, 0, 0);
-	bmtext->Spin.z = 0;
-	if (Input->IsKeyDown('T'))
-		bmtext->Velocity.y = 10;
-	if (Input->IsKeyDown('G'))
-		bmtext->Velocity.y = -10;
-	if (Input->IsKeyDown('F'))
-		bmtext->Velocity.x = -10;
-	if (Input->IsKeyDown('H'))
-		bmtext->Velocity.x = 10;
-	if (Input->IsKeyDown('R'))
-		bmtext->Spin.z = 3;
-	if (Input->IsKeyDown('Y'))
-		bmtext->Spin.z = -3;
+		c1->Velocity.x = move;
 
+	if (Input->IsKeyPressed('C'))
+	{
+		POINTF p = Core->GetCursorWorldPos(0);
+		printf("cursor %.10f %.10f\n", p.x, p.y);
+		printf("object %.10f %.10f\n",c1->Position.x, c1->Position.y);
+		printf("ratio %.10f %.10f\n", p.x/c1->Position.x, p.y/c1->Position.y);
+	}
 }
 
 int main(int argc, char** argv)
 {
-	Functions::NewCore(800, 600, Activity);	
+	Functions::NewCore(800, 600, Activity);
+	t1 = (int)time(0);
 
 	Core->OpenConsole();
-	Core->SetBackgroundColor(SColor(0, 0, 0, 1));
-	srand((int)time(0));
-	t1 = (int)time(0);
+	Core->SetBackgroundColor(SColor(0, 0, 0, 1));	
 	Core->SetWindowTitle("Hello");
-	c2 = DrawManager->AddCircle(2, 5);
-	c2->Position = XMFLOAT3(0, 0, 0);
-	c2->Color = SColor(0, 0, 1, 0);	
-	c3 = DrawManager->AddCircle(2, 3);
-	c3->Position = XMFLOAT3(10, 10, 0);
-	c3->Spin = XMFLOAT3(0, 0, -4);
-	c3->Color = SColor(1.0f, 0.6f, 0, 0);
-	r1 = DrawManager->AddCircle(1, 5);
-	r1->Color = SColor(1, 0, 0.0f, 0);
+	c1 = DrawManager->AddCircle(0.4f, 5);
+	c1->Position = XMFLOAT3(0, 0, 0);
+	c1->Color = SColor(1, 1, 1, 0);	
 	brick = DrawManager->AddSprite(L"brick.jpg");
 	brick->Scale = XMFLOAT2(22, 17);
 	brick->Position.z = 0.03f;
@@ -96,10 +74,6 @@ int main(int argc, char** argv)
 	a1->TexFilter = TEX_FILTER::LINEAR;
 	a1->Speed = 15;
 	a1->Scale = XMFLOAT2(6, 3);
-	/*s1 = DrawManager->AddSprite(L"leaf.png");
-	s1->Scale = XMFLOAT2(10, 10);
-	s1->Position.z = -0.5f;
-	s1->Color.a = 0.5f;*/
 	CText* t1 = DrawManager->AddText(L"Hello World");
 	t1->TexFilter = TEX_FILTER::LINEAR;
 	t1->Position = XMFLOAT3(-10, 10, 0);
@@ -116,9 +90,9 @@ int main(int argc, char** argv)
 		}
 	CBitmapFont* bmfont = DrawManager->AddBitmapFont(L"font.png", chars);
 	bmtext = DrawManager->AddBitmapText(bmfont);
-	bmtext->Text = L"";
+	bmtext->Text = L"Bmtext test\n yes";
 	bmtext->Position = XMFLOAT3(-15, 8, 0);
-	bmtext->HorizontalAlign = TextHorAlign::Right;
+	bmtext->HorizontalAlign = TextHorAlign::Left;
 	//bmtext->Parent = c2;
 
 	Core->Run();

@@ -23,7 +23,7 @@ namespace dx2d
 		return 0;
 	}
 
-	Window::Window(int sizex, int sizey)
+	Window::Window(int sizex, int sizey,int style)
 	{
 		const char className[] = "myWindowClass";
 		WNDCLASSEX wc;		
@@ -44,11 +44,13 @@ namespace dx2d
 			exit(0);
 		}
 
-		handle = CreateWindowEx(WS_EX_CONTROLPARENT | WS_EX_CLIENTEDGE,
-			className,
-			"",
-			WS_OVERLAPPEDWINDOW,
-			CW_USEDEFAULT, CW_USEDEFAULT, sizex, sizey,
+		RECT rect = { 0, 0, sizex, sizey };
+		AdjustWindowRectEx(&rect, style | WS_CLIPSIBLINGS,
+			FALSE, 0);
+
+		handle = CreateWindowEx(0,
+			className,	"",	style,
+			CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top,
 			NULL, NULL, GetModuleHandle(0), NULL);
 
 		if (handle == NULL)

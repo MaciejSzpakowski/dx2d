@@ -4,6 +4,7 @@
 
 namespace dx2d
 {
+	//globals
 	CCore* Core;
 	CKey Key;
 	CDrawManager* DrawManager;
@@ -15,7 +16,7 @@ namespace dx2d
 
 	void Render(CCore* d3d)
 	{
-
+		
 		Camera->CamTransform();
 		d3d->context->ClearRenderTargetView(d3d->backBuffer, d3d->backBufferColor);		
 		DrawManager->DrawAll();
@@ -60,9 +61,9 @@ namespace dx2d
 
 	namespace Functions
 	{
-		CCore* NewCore(int sizex, int sizey, std::function<void()> worker)
+		CCore* NewCore(int sizex, int sizey, std::function<void()> worker, int style)
 		{
-			CCore* core = new CCore(sizex, sizey, worker);
+			CCore* core = new CCore(sizex, sizey, worker, style);
 			return core;
 		}	
 
@@ -234,6 +235,6 @@ namespace dx2d
 			int p3 = rand() << 30;
 			int t = p1 | p2 | p3;
 			return t % (max - min) + min;
-		}
+		}		
 	}
 }

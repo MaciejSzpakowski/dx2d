@@ -118,7 +118,7 @@ namespace dx2d
 
 	namespace Functions
 	{
-		CCore* NewCore(int sizex, int sizey, std::function<void()> worker);
+		CCore* NewCore(int sizex, int sizey, std::function<void()> worker, int style = WS_OVERLAPPEDWINDOW);
 		ID3D11Texture2D* CreateTexture2D(BYTE* data, int width, int height);
 		ID3D11Texture2D* CreateTexture2DFromFile(const WCHAR* file);
 		ID3D11Texture2D* CreateTexture2DFromText(std::wstring text);
@@ -140,7 +140,7 @@ namespace dx2d
 		std::function<void(CCore* d3d)> Render;
 		friend class CCore;
 	public:
-		Window(int sizex, int sizey);
+		Window(int sizex, int sizey, int style);
 		int Run();
 	};	
 
@@ -165,6 +165,7 @@ namespace dx2d
 		double frameTime;
 		void UpdateGameTime();
 		bool fullscreen;
+		POINT clientSize;
 
 		friend void Render(CCore* d3d);
 		friend ID3D11DeviceContext* GetContext();
@@ -173,7 +174,7 @@ namespace dx2d
 		friend class CDrawManager;
 	public:
 		ID3D11BlendState* blendState;
-		CCore(int sizex, int sizey, std::function<void()> worker);
+		CCore(int sizex, int sizey, std::function<void()> worker, int style);
 		HWND GetWindowHandle();
 		CCamera* GetCamera();
 		CInput* GetInputManager();
@@ -188,6 +189,8 @@ namespace dx2d
 		double GetFps();
 		void SetFullscreen(bool state);
 		bool GetFullscreen();
+		POINT GetCursorPos();
+		POINTF GetCursorWorldPos(float z);
 		void Destroy();
 	};	
 
@@ -322,16 +325,20 @@ namespace dx2d
 
 	class CCamera : public CDynamic
 	{
-	private:		
+	private:
 		XMMATRIX view;
 		XMMATRIX proj;
 		XMVECTOR up;		
 		XMMATRIX GetScaleMatrix() override;
 		void CamTransform();
+		float nearPlane;
+		float farPlane;
+		float fovAngle;
 
 		friend void Render(CCore* d3d);
 		friend class CDynamic;
 		friend class CBitmapText;
+		friend class CCore;
 	public:
 		CCamera();
 		void Destroy();
