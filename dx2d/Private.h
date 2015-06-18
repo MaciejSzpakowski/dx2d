@@ -2,12 +2,9 @@
 #include <Windows.h>
 #include <functional>
 #include <d3d11.h>
-#include <d3dcompiler.h>
 #include <DirectXMath.h>
-#include <cmath>
 #include <vector>
 #include <string>
-#include <sstream>
 #include <map>
 #include "Keys.h"
 #pragma comment (lib, "d3d11.lib")
@@ -27,7 +24,7 @@ namespace dx2d
 	using DirectX::XM_PI;
 	using DirectX::XM_2PI;
 	using std::vector;
-	
+
 	//prototypes
 	class CCore;
 	class CDrawable;
@@ -38,7 +35,6 @@ namespace dx2d
 	class CCamera;
 	class CInput;
 	class CSprite;
-	class CText;
 	class CEventManager;
 	class CResourceManager;
 	class CAnimation;
@@ -54,7 +50,7 @@ namespace dx2d
 	extern CEventManager* EventManager;
 	extern CResourceManager* ResourceManager;
 	extern HRESULT hr;
-	
+
 	struct Vertex
 	{
 		FLOAT X, Y, Z;
@@ -121,7 +117,6 @@ namespace dx2d
 		CCore* NewCore(int sizex, int sizey, std::function<void()> worker, int style = WS_OVERLAPPEDWINDOW);
 		ID3D11Texture2D* CreateTexture2D(BYTE* data, int width, int height);
 		ID3D11Texture2D* CreateTexture2DFromFile(const WCHAR* file);
-		ID3D11Texture2D* CreateTexture2DFromText(std::wstring text);
 		void LoadCachedTexture(const WCHAR* textureFile, ID3D11ShaderResourceView*& shader);
 		void Checkhr(const char* file, int line);
 		//return double between 0 and 1
@@ -131,7 +126,7 @@ namespace dx2d
 		int RndInt(int min, int max);
 	}
 
-	class Window
+	class CWindow
 	{
 	private:
 		HWND handle;
@@ -140,14 +135,15 @@ namespace dx2d
 		std::function<void(CCore* d3d)> Render;
 		friend class CCore;
 	public:
-		Window(int sizex, int sizey, int style);
+		CWindow(int sizex, int sizey, int style);
 		int Run();
-	};	
+	};
 
 	class CCore
 	{
 	private:
-		Window* window;
+		CWindow* window;
+		ID3D11BlendState* blendState;
 		IDXGISwapChain* swapChain;
 		ID3D11RenderTargetView* backBuffer;
 		ID3D11Device* device;
@@ -157,7 +153,7 @@ namespace dx2d
 		ID3D11InputLayout* layout; //vertex input layout pos:float[3] col:float[3] uv:float[2]
 		ID3D11DepthStencilView* depthStencilView;
 		ID3D11Texture2D* depthStencilBuffer;
-		float backBufferColor[4];		
+		float backBufferColor[4];
 		double frequency;
 		long long startTime;
 		long long prevFrameTime;
@@ -170,14 +166,11 @@ namespace dx2d
 		friend void Render(CCore* d3d);
 		friend ID3D11DeviceContext* GetContext();
 		friend ID3D11Device* GetDevice();
-		friend void AddFloat3(XMFLOAT3* src, XMFLOAT3* dst);
 		friend class CDrawManager;
-	public:
-		ID3D11BlendState* blendState;
+		friend void AddFloat3(XMFLOAT3* src, XMFLOAT3* dst);
+	public:		
 		CCore(int sizex, int sizey, std::function<void()> worker, int style);
 		HWND GetWindowHandle();
-		CCamera* GetCamera();
-		CInput* GetInputManager();
 		void SetWindowTitle(const char* title);
 		void SetBackgroundColor(SColor color);
 		int Run();
@@ -192,7 +185,7 @@ namespace dx2d
 		POINT GetCursorPos();
 		POINTF GetCursorWorldPos(float z);
 		void Destroy();
-	};	
+	};
 
 	class CResourceManager
 	{
@@ -225,10 +218,11 @@ namespace dx2d
 		XMFLOAT3 Rotation;
 		XMFLOAT3 Velocity;
 		XMFLOAT3 Acceleration;
-		XMFLOAT3 Spin;
+		XMFLOAT3 AngularVel;
+		XMFLOAT3 AngularAcc;
 		CDynamic();
 		~CDynamic();
-	};	
+	};
 
 	class CDrawable
 	{
@@ -237,26 +231,28 @@ namespace dx2d
 		int index;
 		ID3D11Buffer* vertexBuffer;
 		ID3D11Buffer* cbBufferPS;
-		ID3D11Buffer* cbBufferUV;		
+		ID3D11Buffer* cbBufferUV;
+		virtual void Draw() = 0;
 
 		friend class CDrawManager;
 	public:
 		CDrawable();
 		bool Visible;
 		SColor Color;
-		UV uv;
-		virtual void Draw() = 0;
+		UV uv;		
 		~CDrawable();
 	};
 
-	class CPolygon : public CDrawable,public CDynamic
+	class CPolygon : public CDrawable, public CDynamic
 	{
-	protected:		
+	protected:
 		XMMATRIX GetScaleMatrix() override;
+		void Draw() override;
+
+		friend class CDrawManager;
 	public:
 		CPolygon();
 		CPolygon(XMFLOAT2 points[], int n);		
-		void Draw() override;
 		void Destroy();
 	};
 
@@ -266,7 +262,7 @@ namespace dx2d
 		XMMATRIX GetScaleMatrix() override;
 	public:
 		XMFLOAT2 Scale;
-		CRectangle(float scalex, float scaley);		
+		CRectangle(float scalex, float scaley);
 	};
 
 	class CCircle : public CPolygon
@@ -275,7 +271,7 @@ namespace dx2d
 		XMMATRIX GetScaleMatrix() override;
 	public:
 		float Radius;
-		CCircle(float radius, unsigned char resolution);		
+		CCircle(float radius, unsigned char resolution);
 	};
 
 	class CDrawManager
@@ -291,6 +287,7 @@ namespace dx2d
 		vector<CBitmapText*> Texts;
 		ID3D11RasterizerState* wireframe;
 		ID3D11RasterizerState* solid;
+		void DrawAll();
 
 		friend void Render(CCore* d3d);
 		friend class CSprite;
@@ -300,18 +297,14 @@ namespace dx2d
 		CPolygon* AddPoly(XMFLOAT2 points[], int n);
 		CRectangle* AddRect(float sizex, float sizey);
 		CCircle* AddCircle(float radius, unsigned char resolution);
-		void AddPoly(CPolygon* p);
-		void DrawAll();
+		void AddPoly(CPolygon* p);		
 		void Destroy();
-		void RemovePoly(CPolygon* p);		
+		void RemovePoly(CPolygon* p);
 		//add sprite from file
 		//supported file formats: BMP, GIF, JPEG, PNG, TIFF, Exif, WMF, EMF
 		CSprite* AddSprite(const WCHAR* texture);
 		void AddSprite(CSprite* s);
-		CText* AddText(std::wstring text);
-		void AddText(CText* t);
 		void RemoveSprite(CSprite* s);
-		void RemoveText(CText* t);
 		CAnimation* AddAnimation(const WCHAR* texture, int x, int y);
 		void AddAnimation(CAnimation* a);
 		void RemoveAnimation(CAnimation* a);
@@ -321,14 +314,14 @@ namespace dx2d
 		void AddBitmapText(CBitmapText* text);
 		void RemoveBitmapFont(CBitmapFont* font);
 		void RemoveBitmapText(CBitmapText* text);
-	};	
+	};
 
 	class CCamera : public CDynamic
 	{
 	private:
 		XMMATRIX view;
 		XMMATRIX proj;
-		XMVECTOR up;		
+		XMVECTOR up;
 		XMMATRIX GetScaleMatrix() override;
 		void CamTransform();
 		float nearPlane;
@@ -352,30 +345,35 @@ namespace dx2d
 		bool* prevState;
 		POINT* curMouse;
 		POINT* prevMouse;
+		int mouseWheel;
+		void Activity();
+
+		friend void Render(CCore* d3d);
+		friend LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 	public:
 		CInput();
-		int MouseWheel;
+		int GetMouseWheel();
 		bool IsKeyDown(int vkey);
 		bool IsKeyPressed(int vkey);
 		bool IsKeyReleased(int vkey);
 		bool IsAnyKeyDown();
 		POINT GetCursorDelta();
-		char GetChar(bool enableShift=true, bool enableCapslock=true);
+		char GetChar(bool enableShift = true, bool enableCapslock = true);
 		//offset, where to start looking
 		bool IsCapslockActive();
 		char GetKey(int offset);
-		void ResetKey(int vkey);
-		void Activity();
+		void ResetKey(int vkey);		
 		void Destroy();
-	};	
+	};
 
 	class CSprite : public CDrawable, public CDynamic
 	{
-	protected:		
+	protected:
 		ID3D11ShaderResourceView* shaderResource;
 		bool uncachedTex; //if true sprite will destroy it's own shaderResource
-		XMMATRIX GetScaleMatrix() override;	
+		XMMATRIX GetScaleMatrix() override;
 		virtual void Play(){}
+		void Draw() override;
 
 		friend class CDrawManager;
 	public:
@@ -384,26 +382,20 @@ namespace dx2d
 		bool FlipHorizontally;
 		bool FlipVertically;
 		CSprite();
-		CSprite(const WCHAR* texture);
-		void Draw() override;
-		void Destroy();		
+		CSprite(const WCHAR* texture);		
+		void Destroy();
 	};
-
-	class CText : public CSprite
-	{
-	protected:
-	public:
-		CText(std::wstring text);
-	};	
 
 	class CEventManager
 	{
 	private:
 		vector < Event* > events;
-	public:
-		void AddEvent(std::function<int()> func,std::string name, double delay);
-		void RemoveEvent(std::string name);
 		void Activity();
+
+		friend void Render(CCore* d3d);
+	public:
+		void AddEvent(std::function<int()> func, std::string name, double delay);
+		void RemoveEvent(std::string name);		
 		void Destroy();
 	};
 
@@ -414,15 +406,16 @@ namespace dx2d
 		int frameCount;
 		vector<UV> uvTable;
 		double indicator;
+		bool frameChanged;
 		//plays animation
 		void Play() override;
 	public:
-		CAnimation(const WCHAR* file,int x,int y);
+		CAnimation(const WCHAR* file, int x, int y);
 		int Start; //first frame of currently played animation
 		int Finish; //last frame of currently played animation
 		int Frame; //current frame displayed
 		double Speed; //in frames per second
-		bool FrameChanged; //true if frame changed in prev game frame
+		bool FrameChanged(); //true if frame changed in prev game frame
 		//set frames order, size of int should be the same as frame count
 		void SetOrder(int* order);
 		int GetFrameCount();
@@ -452,15 +445,17 @@ namespace dx2d
 	{
 	private:
 		CBitmapFont* font;
+		void Draw() override;
+		XMMATRIX GetScaleMatrix() override;
+		void TextTransform(int col, int row, int len);
+
+		friend class CDrawManager;
 	public:
 		TextHorAlign HorizontalAlign;
 		TextVerAlign VerticalAlign;
 		CBitmapText(CBitmapFont* _font);
 		TEX_FILTER TexFilter; //point or linear
 		std::wstring Text;
-		void Draw() override;
-		XMMATRIX GetScaleMatrix() override;
-		void Destroy();
-		void TextTransform(int col, int row, int len);
+		void Destroy();		
 	};
 }

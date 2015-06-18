@@ -15,7 +15,7 @@ namespace dx2d
 		case WM_COMMAND:
 			break;
 		case WM_MOUSEWHEEL:
-			Input->MouseWheel = GET_WHEEL_DELTA_WPARAM(wParam);
+			Input->mouseWheel = GET_WHEEL_DELTA_WPARAM(wParam);
 			break;
 		default:
 			return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -23,7 +23,7 @@ namespace dx2d
 		return 0;
 	}
 
-	Window::Window(int sizex, int sizey,int style)
+	CWindow::CWindow(int sizex, int sizey,int style)
 	{
 		const char className[] = "myWindowClass";
 		WNDCLASSEX wc;		
@@ -61,7 +61,7 @@ namespace dx2d
 		}
 	}
 
-	int Window::Run()
+	int CWindow::Run()
 	{
 		ShowWindow(handle, SW_SHOW);
 		UpdateWindow(handle);

@@ -1,7 +1,6 @@
 #include "Private.h"
-#include <gdiplus.h>
 #include <ctime>
-#pragma comment(lib,"Gdiplus.lib")
+#include <Windows.h>
 
 using namespace dx2d;
 
@@ -26,7 +25,7 @@ void Activity()
 	}
 
 	Camera->Velocity = XMFLOAT3(0, 0, 0);
-	Camera->Spin.z = 0;
+	Camera->AngularVel.z = 0;
 	float move = 10;
 	if (Input->IsKeyDown(Key.Up))
 		Camera->Velocity.y = move;
@@ -74,10 +73,6 @@ int main(int argc, char** argv)
 	a1->TexFilter = TEX_FILTER::LINEAR;
 	a1->Speed = 15;
 	a1->Scale = XMFLOAT2(6, 3);
-	CText* t1 = DrawManager->AddText(L"Hello World");
-	t1->TexFilter = TEX_FILTER::LINEAR;
-	t1->Position = XMFLOAT3(-10, 10, 0);
-	t1->Scale = XMFLOAT2(3, 3);
 
 	//gothic font
 	//36x40 one char
@@ -90,10 +85,29 @@ int main(int argc, char** argv)
 		}
 	CBitmapFont* bmfont = DrawManager->AddBitmapFont(L"font.png", chars);
 	bmtext = DrawManager->AddBitmapText(bmfont);
-	bmtext->Text = L"Bmtext test\n yes";
+	bmtext->Text = L"Bmtext test\nyes";
 	bmtext->Position = XMFLOAT3(-15, 8, 0);
 	bmtext->HorizontalAlign = TextHorAlign::Left;
 	//bmtext->Parent = c2;
+
+	CRectangle* r1 = DrawManager->AddRect(1, 1);
+	r1->Color = XMFLOAT4(1, 1, 1, 0);
+	EventManager->AddEvent([r1]()
+	{
+		if (Input->IsKeyDown('O'))
+			r1->Scale.x += 0.01f;
+		if (Input->IsKeyDown('P'))
+			r1->Scale.x -= 0.01f;
+		if (Input->IsKeyDown('K'))
+			r1->Scale.y += 0.01f;
+		if (Input->IsKeyDown('L'))
+			r1->Scale.y -= 0.01f;
+		wchar_t str[30];
+		swprintf(str, L"%f %f", r1->Scale.x, r1->Scale.y);
+		bmtext->Text = str;
+		
+		return 1;
+	}, "", 0);
 
 	Core->Run();
 	Core->Destroy();

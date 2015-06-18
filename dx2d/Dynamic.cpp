@@ -10,7 +10,8 @@ namespace dx2d
 		Rotation = XMFLOAT3(0, 0, 0);
 		Velocity = XMFLOAT3(0, 0, 0);
 		Acceleration = XMFLOAT3(0, 0, 0);
-		Spin = XMFLOAT3(0, 0, 0);
+		AngularVel = XMFLOAT3(0, 0, 0);
+		AngularAcc = XMFLOAT3(0, 0, 0);
 		Parent = nullptr;
 
 		//Create the buffer to send to the cbuffer in effect file
@@ -47,7 +48,8 @@ namespace dx2d
 	{
 		AddFloat3(&Acceleration, &Velocity);
 		AddFloat3(&Velocity, &Position);
-		AddFloat3(&Spin, &Rotation);
+		AddFloat3(&AngularAcc, &AngularVel);
+		AddFloat3(&AngularVel, &Rotation);
 	}
 
 	CDynamic::~CDynamic()

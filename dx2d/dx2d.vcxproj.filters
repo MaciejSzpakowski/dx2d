@@ -84,5 +84,8 @@
     <Image Include="ani.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="font.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

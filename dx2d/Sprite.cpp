@@ -71,14 +71,6 @@ namespace dx2d
 		delete this;
 	}
 
-	CText::CText(std::wstring text)
-	{
-		uncachedTex = true;
-		auto tex = Functions::CreateTexture2DFromText(text);
-		GetDevice()->CreateShaderResourceView(tex, 0, &shaderResource);
-		tex->Release();
-	}
-
 	CAnimation::CAnimation(const WCHAR* file, int x, int y) : CSprite(file)
 	{
 		frameCount = x*y;
@@ -86,7 +78,7 @@ namespace dx2d
 		Finish = frameCount - 1;
 		Frame = 0;
 		Speed = 1;
-		FrameChanged = true;
+		frameChanged = true;
 		indicator = 0;
 		uvTable.reserve(frameCount);
 		for (int i = 0; i < y; i++)
@@ -100,17 +92,17 @@ namespace dx2d
 		if (Speed != 0)
 		{
 			indicator += Speed * Core->GetFrameTime();
-			FrameChanged = false;
+			frameChanged = false;
 			if (indicator > 1)
 			{
 				indicator = 0;
-				FrameChanged = true;
+				frameChanged = true;
 				NextFrame();
 			}
 			else if (indicator < 0)
 			{
 				indicator = 1;
-				FrameChanged = true;
+				frameChanged = true;
 				PreviousFrame();
 			}
 		}
@@ -143,5 +135,10 @@ namespace dx2d
 		Frame--;
 		if (Frame < Start)
 			Frame = Finish;
+	}
+
+	bool CAnimation::FrameChanged()
+	{
+		return frameChanged;
 	}
 }

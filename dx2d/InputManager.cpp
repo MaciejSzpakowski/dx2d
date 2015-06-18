@@ -4,7 +4,7 @@ namespace dx2d
 {
 	CInput::CInput()
 	{
-		MouseWheel = 0;
+		mouseWheel = 0;
 		keyCount = 256;
 		curState = new bool[keyCount];
 		prevState = new bool[keyCount];
@@ -19,7 +19,7 @@ namespace dx2d
 	void CInput::Activity()
 	{
 		//swap current and previous states
-		MouseWheel = 0;
+		mouseWheel = 0;
 		bool* temp = prevState;
 		prevState = curState;
 		curState = temp;
@@ -115,6 +115,11 @@ namespace dx2d
 			return;
 		curState[vKey] = false;
 		prevState[vKey] = false;
+	}
+
+	int CInput::GetMouseWheel()
+	{
+		return mouseWheel;
 	}
 
 	void CInput::Destroy()

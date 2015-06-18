@@ -1,6 +1,8 @@
 #include "Private.h"
 #include <gdiplus.h>
+#pragma comment(lib,"Gdiplus.lib")
 #include <ctime>
+#include <sstream>
 
 namespace dx2d
 {
@@ -12,11 +14,11 @@ namespace dx2d
 	CInput* Input;
 	CEventManager* EventManager;
 	CResourceManager* ResourceManager;
+
 	HRESULT hr;
 
 	void Render(CCore* d3d)
-	{
-		
+	{		
 		Camera->CamTransform();
 		d3d->context->ClearRenderTargetView(d3d->backBuffer, d3d->backBufferColor);		
 		DrawManager->DrawAll();
@@ -135,43 +137,6 @@ namespace dx2d
 			}
 
 			ID3D11Texture2D* tex = CreateTexture2D(data, w, h);
-			DeleteObject(hbitmap);
-			return tex;
-		}
-
-		ID3D11Texture2D* CreateTexture2DFromText(std::wstring text)
-		{
-			ULONG_PTR m_gdiplusToken;
-			Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-			Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
-			int len = (int)text.length();
-			UINT h = 20 * len;
-			UINT w = 20 * len;
-			Gdiplus::Bitmap* gdibitmap = new Gdiplus::Bitmap(h, w, PixelFormat32bppARGB);
-			Gdiplus::Graphics* g = new Gdiplus::Graphics(gdibitmap);
-			Gdiplus::PointF point(0, 0);
-			Gdiplus::Rect rect(0, 0, w, h);
-			Gdiplus::Font* font = new Gdiplus::Font(&Gdiplus::FontFamily(L"Arial"), 14);
-			Gdiplus::SolidBrush* brush = new Gdiplus::SolidBrush(Gdiplus::Color::White);
-			Gdiplus::SolidBrush* brush1 = new Gdiplus::SolidBrush(Gdiplus::Color::Transparent);
-			g->FillRectangle(brush1, rect);
-			g->DrawString(text.c_str(), len, font, point, brush);
-			delete g;
-			delete brush;
-			delete brush1;
-			delete font;
-
-			HBITMAP hbitmap;
-			Gdiplus::Color c(0, 0, 0);
-			gdibitmap->GetHBITMAP(c, &hbitmap);
-			delete gdibitmap;
-			Gdiplus::GdiplusShutdown(m_gdiplusToken);
-
-			BITMAP bitmap;
-			GetObject(hbitmap, sizeof(bitmap), (LPVOID)&bitmap);
-			BYTE* data = (BYTE*)bitmap.bmBits;
-
-			ID3D11Texture2D *tex = CreateTexture2D(data, w, h);
 			DeleteObject(hbitmap);
 			return tex;
 		}

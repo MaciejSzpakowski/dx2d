@@ -116,19 +116,6 @@ namespace dx2d
 		s->index = (int)Sprites.size() - 1;
 	}
 
-	CText* CDrawManager::AddText(std::wstring text)
-	{
-		CText* newText = new CText(text);
-		Sprites.push_back(newText);
-		newText->index = (int)Sprites.size() - 1;
-		return newText;
-	}
-
-	void CDrawManager::AddText(CText* t)
-	{
-		AddSprite(t);
-	}
-
 	CAnimation* CDrawManager::AddAnimation(const WCHAR* texture, int x, int y)
 	{
 		CAnimation* newAnimation;
@@ -263,11 +250,6 @@ namespace dx2d
 			Sprites.pop_back();
 		}
 		s->index = -1;
-	}
-
-	void CDrawManager::RemoveText(CText* t)
-	{
-		RemoveSprite(t);
 	}
 
 	void CDrawManager::RemoveAnimation(CAnimation* a)

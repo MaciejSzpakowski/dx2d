@@ -1,5 +1,6 @@
 #include "Private.h"
 #include <ctime>
+#include <d3dcompiler.h>
 
 namespace dx2d
 {
@@ -13,7 +14,7 @@ namespace dx2d
 		//assign global variable
 		Core = this;
 		//create window
-		window = new Window(sizex, sizey, style);
+		window = new CWindow(sizex, sizey, style);
 		window->Worker = worker;
 		window->Render = Render;
 
@@ -37,11 +38,11 @@ namespace dx2d
 
 		////    DEVICE, DEVICE CONTEXT AND SWAP CHAIN    ////
 		hr = D3D11CreateDeviceAndSwapChain(NULL,
-			D3D_DRIVER_TYPE_HARDWARE,NULL,NULL,NULL,NULL,
+			D3D_DRIVER_TYPE_HARDWARE, NULL, NULL, NULL, NULL,
 			D3D11_SDK_VERSION,
 			&scd,
 			&swapChain,
-			&device,NULL,
+			&device, NULL,
 			&context);
 		CHECKHR();
 
@@ -84,7 +85,7 @@ namespace dx2d
 		viewport.MinDepth = 0.0f;
 		viewport.MaxDepth = 1.0f;
 		context->RSSetViewports(1, &viewport);
-		
+
 		////    VS and PS    ////
 		//default shaders
 		ID3D10Blob *VS, *PS; //release this after CreateInputLayout()
@@ -94,12 +95,12 @@ namespace dx2d
 		hr = device->CreatePixelShader(PS->GetBufferPointer(), PS->GetBufferSize(), NULL, &defaultPS); CHECKHR();
 		context->VSSetShader(defaultVS, 0, 0);
 		context->PSSetShader(defaultPS, 0, 0);
-		
+
 		////    INPUT LAYOUT    ////
 		//defaul input layout
 		D3D11_INPUT_ELEMENT_DESC ied[] =
 		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }, 
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			//if you need to pass something on your own to PS or VS per vertex
@@ -111,7 +112,7 @@ namespace dx2d
 		context->IASetInputLayout(layout);
 
 		///    BLEND STATE    ////
-		D3D11_BLEND_DESC blendDesc;		
+		D3D11_BLEND_DESC blendDesc;
 		ZeroMemory(&blendDesc, sizeof(blendDesc));
 		D3D11_RENDER_TARGET_BLEND_DESC rtbd;
 		ZeroMemory(&rtbd, sizeof(rtbd));
@@ -127,7 +128,7 @@ namespace dx2d
 		blendDesc.RenderTarget[0] = rtbd;
 		hr = device->CreateBlendState(&blendDesc, &blendState); CHECKHR();
 		if (blendState == nullptr)
-			exit(0);			
+			exit(0);
 
 		//// *********** PIPELINE SETUP ENDS HERE *********** ////
 
@@ -241,8 +242,8 @@ namespace dx2d
 		viewPortCoord.x = float(2 * p.x) / clientSize.x - 1;
 		viewPortCoord.y = float(2 * p.y) / clientSize.y - 1;
 		POINTF viewPortWorldSizeAtZ;
-		viewPortWorldSizeAtZ.x = (20.0f-z) * tan(Camera->fovAngle)/2 * viewPortCoord.x + Camera->Position.x;
-		viewPortWorldSizeAtZ.y = (20.0f-z) * tan(Camera->fovAngle)/2 * -viewPortCoord.y + Camera->Position.y;
+		viewPortWorldSizeAtZ.x = (20.0f - z) * tan(Camera->fovAngle) / 2 * viewPortCoord.x + Camera->Position.x;
+		viewPortWorldSizeAtZ.y = (20.0f - z) * tan(Camera->fovAngle) / 2 * -viewPortCoord.y + Camera->Position.y;
 		return viewPortWorldSizeAtZ;
 	}
 
@@ -254,7 +255,7 @@ namespace dx2d
 		EventManager->Destroy();
 		Input->Destroy();
 		Camera->Destroy();
-		DrawManager->Destroy();		
+		DrawManager->Destroy();
 		//com objects
 		layout->Release();
 		defaultPS->Release();
@@ -265,7 +266,7 @@ namespace dx2d
 		blendState->Release();
 		backBuffer->Release();
 		device->Release();
-		context->Release();		
+		context->Release();
 		delete window;
 		delete this;
 	}

@@ -175,6 +175,7 @@
     <Image Include="..\..\..\..\..\..\..\bajery\blender.png" />
     <Image Include="..\..\..\..\..\..\..\bajery\bLeNdEr\tekstury\bricks.jpeg" />
     <Image Include="ani.png" />
+    <Image Include="font.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

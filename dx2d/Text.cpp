@@ -2,6 +2,11 @@
 
 namespace dx2d
 {
+	struct SBitmapText
+	{
+
+	};
+
 	CBitmapText::CBitmapText(CBitmapFont* _font)
 	{
 		Color = SColor(1, 1, 1, 1);
@@ -48,12 +53,12 @@ namespace dx2d
 		if (HorizontalAlign == TextHorAlign::Center)
 			horAlignOffset = -len / 2.0f;
 		else if (HorizontalAlign == TextHorAlign::Right)
-			horAlignOffset = -len;
+			horAlignOffset = (float)-len;
 		XMMATRIX scale = GetScaleMatrix();
 		XMMATRIX rot = DirectX::XMMatrixRotationRollPitchYaw(Rotation.x, Rotation.y, Rotation.z);
 		XMMATRIX origin = DirectX::XMMatrixTranslation(col*1.1f + horAlignOffset, -row*1.1f + verAlignOffset, 0);
 		XMMATRIX loc = DirectX::XMMatrixTranslation(Position.x, Position.y, Position.z);
-		XMMATRIX worldViewProj = origin * rot * loc * Camera->view * Camera->proj;
+		XMMATRIX worldViewProj = scale * origin * rot * loc * Camera->view * Camera->proj;
 		if (Parent != nullptr)
 		{
 			XMMATRIX parentLoc = DirectX::XMMatrixRotationRollPitchYaw(0, 0, Parent->Rotation.z);
@@ -67,7 +72,7 @@ namespace dx2d
 
 	XMMATRIX CBitmapText::GetScaleMatrix()
 	{
-		return DirectX::XMMatrixIdentity();
+		return DirectX::XMMatrixScaling(0.9f, 1, 1);
 	}
 
 	void CBitmapText::Destroy()
