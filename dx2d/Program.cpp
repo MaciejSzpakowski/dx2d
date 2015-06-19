@@ -45,12 +45,10 @@ void Activity()
 	if (Input->IsKeyDown('D'))
 		c1->Velocity.x = move;
 
-	if (Input->IsKeyPressed('C'))
+	if (Input->IsKeyDown(Key.MouseLeft))
 	{
-		POINTF p = Core->GetCursorWorldPos(0);
-		printf("cursor %.10f %.10f\n", p.x, p.y);
-		printf("object %.10f %.10f\n",c1->Position.x, c1->Position.y);
-		printf("ratio %.10f %.10f\n", p.x/c1->Position.x, p.y/c1->Position.y);
+		POINTF pf = Core->GetCursorWorldPos(0);
+		c1->Position = XMFLOAT3(pf.x, pf.y, 0);
 	}
 }
 
@@ -62,7 +60,7 @@ int main(int argc, char** argv)
 	Core->OpenConsole();
 	Core->SetBackgroundColor(SColor(0, 0, 0, 1));	
 	Core->SetWindowTitle("Hello");
-	c1 = DrawManager->AddCircle(0.4f, 5);
+	c1 = DrawManager->AddCircle(2, 5);
 	c1->Position = XMFLOAT3(0, 0, 0);
 	c1->Color = SColor(1, 1, 1, 0);	
 	brick = DrawManager->AddSprite(L"brick.jpg");

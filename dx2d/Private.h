@@ -334,6 +334,8 @@ namespace dx2d
 		friend class CCore;
 	public:
 		CCamera();
+		XMMATRIX GetViewMatrix();
+		XMMATRIX GetProjMatrix();
 		void Destroy();
 	};
 

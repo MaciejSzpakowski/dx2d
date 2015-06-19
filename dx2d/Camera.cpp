@@ -39,6 +39,16 @@ namespace dx2d
 		view = DirectX::XMMatrixLookAtLH(position, target, up) * rotz;
 	}
 
+	XMMATRIX CCamera::GetViewMatrix()
+	{
+		return view;
+	}
+
+	XMMATRIX CCamera::GetProjMatrix()
+	{
+		return proj;
+	}
+
 	void CCamera::Destroy()
 	{
 		delete this;

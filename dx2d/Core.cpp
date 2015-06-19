@@ -238,13 +238,19 @@ namespace dx2d
 	POINTF CCore::GetCursorWorldPos(float z)
 	{
 		POINT p = GetCursorPos();
-		POINTF viewPortCoord;
-		viewPortCoord.x = float(2 * p.x) / clientSize.x - 1;
-		viewPortCoord.y = float(2 * p.y) / clientSize.y - 1;
-		POINTF viewPortWorldSizeAtZ;
-		viewPortWorldSizeAtZ.x = (20.0f - z) * tan(Camera->fovAngle) / 2 * viewPortCoord.x + Camera->Position.x;
-		viewPortWorldSizeAtZ.y = (20.0f - z) * tan(Camera->fovAngle) / 2 * -viewPortCoord.y + Camera->Position.y;
-		return viewPortWorldSizeAtZ;
+		//formula to convert z distance from camera to z in z-buffer
+		//(20.0f + z) because by default camera is 20 from point (0,0,0)
+		float zbuffer = ((1000.0f + 0.1f) / (1000.0f - 0.1f) + ((-2.0f * 1000.0f * 0.1f) / (1000.0f - 0.1f)) / (20.0f + z) + 1.0f) / 2.0f;
+		XMFLOAT3 f3 = XMFLOAT3((float)p.x, (float)p.y, zbuffer);
+		XMVECTOR pos3 = DirectX::XMLoadFloat3(&f3);
+		XMVECTOR trans = DirectX::XMVector3Unproject(pos3, 0, 0, 800, 600, 0, 1,
+			Camera->GetProjMatrix(), Camera->GetViewMatrix(), DirectX::XMMatrixIdentity());
+		XMFLOAT3 f3t;
+		DirectX::XMStoreFloat3(&f3t, trans);
+
+		POINTF res = { f3t.x, f3t.y };
+
+		return res;
 	}
 
 	void CCore::Destroy()
