@@ -6,7 +6,10 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <sstream>
+#include <gdiplus.h>
 #include "Keys.h"
+#pragma comment(lib,"Gdiplus.lib")
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "D3DCompiler.lib")
 #pragma comment(linker, "/subsystem:windows /ENTRY:mainCRTStartup")
@@ -24,6 +27,7 @@ namespace dx2d
 	using DirectX::XM_PI;
 	using DirectX::XM_2PI;
 	using std::vector;
+	using std::wstring;
 
 	//prototypes
 	class CCore;
@@ -40,6 +44,7 @@ namespace dx2d
 	class CAnimation;
 	class CBitmapFont;
 	class CBitmapText;
+	class CDebugManager;
 
 	//externals
 	extern CCore* Core;
@@ -49,6 +54,7 @@ namespace dx2d
 	extern CInput* Input;
 	extern CEventManager* EventManager;
 	extern CResourceManager* ResourceManager;
+	extern CDebugManager* DebugManager;
 	extern HRESULT hr;
 
 	struct Vertex
@@ -63,12 +69,12 @@ namespace dx2d
 
 	enum class TEX_FILTER { POINT, LINEAR };
 
-	struct SColor
+	struct Color
 	{
 		float r, g, b, a;
-		SColor(){}
-		SColor(float _r, float _g, float _b, float _a) : r(_r), g(_g), b(_b), a(_a){}
-		SColor& operator = (const XMFLOAT4& other)
+		Color(){}
+		Color(float _r, float _g, float _b, float _a) : r(_r), g(_g), b(_b), a(_a){}
+		Color& operator = (const XMFLOAT4& other)
 		{
 			r = other.x;
 			g = other.y;
@@ -93,7 +99,7 @@ namespace dx2d
 	{
 		double startTime;
 		double delay;
-		std::string Name;
+		wstring Name;
 		std::function<int()> Activity;
 	};
 
@@ -103,7 +109,7 @@ namespace dx2d
 	public:
 		int Height;
 		int Width;
-		std::wstring fileName;
+		wstring name;
 		ID3D11ShaderResourceView* shaderResource;
 		//destructor exclusive for resource manager
 		~CTexture()
@@ -115,9 +121,12 @@ namespace dx2d
 	namespace Functions
 	{
 		CCore* NewCore(int sizex, int sizey, std::function<void()> worker, int style = WS_OVERLAPPEDWINDOW);
-		ID3D11Texture2D* CreateTexture2D(BYTE* data, int width, int height);
+		ID3D11Texture2D* CreateTexture2DFromBytes(BYTE* data, int width, int height);
+		ID3D11Texture2D* CreateTexture2DFromGdibitmap(Gdiplus::Bitmap* _gdibitmap);
 		ID3D11Texture2D* CreateTexture2DFromFile(const WCHAR* file);
-		void LoadCachedTexture(const WCHAR* textureFile, ID3D11ShaderResourceView*& shader);
+		ID3D11Texture2D* CreateTexture2DFromResource(int resource);
+		CTexture* LoadCachedTextureFromFile(const WCHAR* file, ID3D11ShaderResourceView*& shader);
+		CTexture* LoadCachedTextureFromResource(int resource, ID3D11ShaderResourceView*& shader);
 		void Checkhr(const char* file, int line);
 		//return double between 0 and 1
 		double RndDouble();
@@ -171,8 +180,8 @@ namespace dx2d
 	public:		
 		CCore(int sizex, int sizey, std::function<void()> worker, int style);
 		HWND GetWindowHandle();
-		void SetWindowTitle(const char* title);
-		void SetBackgroundColor(SColor color);
+		void SetWindowTitle(const wchar_t* title);
+		void SetBackgroundColor(Color color);
 		int Run();
 		void OpenConsole();
 		void CloseConsole();
@@ -183,20 +192,20 @@ namespace dx2d
 		void SetFullscreen(bool state);
 		bool GetFullscreen();
 		POINT GetCursorPos();
-		POINTF GetCursorWorldPos(float z);
 		void Destroy();
 	};
 
 	class CResourceManager
 	{
 	private:
-		std::map<std::wstring, CTexture*> textures;
-		std::map<std::wstring, CBitmapFont*> fonts;
+		std::map<wstring, CTexture*> textures;
+		std::map<wstring, CBitmapFont*> fonts;
 	public:
+		CResourceManager::CResourceManager();
 		void AddTexture(CTexture* tex);
-		CTexture* GetTexture(std::wstring file);
+		CTexture* GetTexture(wstring name);
 		void AddBitmapFont(CBitmapFont* font);
-		CBitmapFont* GetBitmapFont(std::wstring file);
+		CBitmapFont* GetBitmapFont(wstring name);
 		void Clear();
 		void Destroy();
 	};
@@ -238,7 +247,7 @@ namespace dx2d
 	public:
 		CDrawable();
 		bool Visible;
-		SColor Color;
+		Color Color;
 		UV uv;		
 		~CDrawable();
 	};
@@ -277,6 +286,7 @@ namespace dx2d
 	class CDrawManager
 	{
 	private:
+		CBitmapFont* defaultFont;
 		ID3D11ShaderResourceView* whiteRes;
 		ID3D11SamplerState* pointSampler;
 		ID3D11SamplerState* lineSampler;
@@ -292,6 +302,7 @@ namespace dx2d
 		friend void Render(CCore* d3d);
 		friend class CSprite;
 		friend class CAnimation;
+		friend class CCore;
 	public:
 		CDrawManager();
 		CPolygon* AddPoly(XMFLOAT2 points[], int n);
@@ -310,10 +321,12 @@ namespace dx2d
 		void RemoveAnimation(CAnimation* a);
 		TEX_FILTER TexFilterCreationMode;
 		CBitmapFont* AddBitmapFont(const WCHAR* file, vector<UV> chars);
+		void AddBitmapFont(CBitmapFont* font);
 		CBitmapText* AddBitmapText(CBitmapFont* font);
 		void AddBitmapText(CBitmapText* text);
 		void RemoveBitmapFont(CBitmapFont* font);
 		void RemoveBitmapText(CBitmapText* text);
+		CBitmapFont* DefaultFont();
 	};
 
 	class CCamera : public CDynamic
@@ -327,6 +340,7 @@ namespace dx2d
 		float nearPlane;
 		float farPlane;
 		float fovAngle;
+		float aspectRatio;
 
 		friend void Render(CCore* d3d);
 		friend class CDynamic;
@@ -334,6 +348,8 @@ namespace dx2d
 		friend class CCore;
 	public:
 		CCamera();
+		POINTF GetCursorWorldPos(float z);
+		POINTF GetFrustumSize(float z);
 		XMMATRIX GetViewMatrix();
 		XMMATRIX GetProjMatrix();
 		void Destroy();
@@ -371,6 +387,7 @@ namespace dx2d
 	class CSprite : public CDrawable, public CDynamic
 	{
 	protected:
+		wstring resource;
 		ID3D11ShaderResourceView* shaderResource;
 		bool uncachedTex; //if true sprite will destroy it's own shaderResource
 		XMMATRIX GetScaleMatrix() override;
@@ -379,12 +396,18 @@ namespace dx2d
 
 		friend class CDrawManager;
 	public:
+		CTexture* GetTexture();
 		TEX_FILTER TexFilter; //point or linear
 		XMFLOAT2 Scale;
 		bool FlipHorizontally;
 		bool FlipVertically;
 		CSprite();
-		CSprite(const WCHAR* texture);		
+		CSprite(CTexture* texture);
+		CSprite(const WCHAR* file);
+		//sets up scale to match texture size
+		void SetNaturalScale();
+		//set up scale to match given size
+		void SetPixelScale(int width, int height);
 		void Destroy();
 	};
 
@@ -396,8 +419,8 @@ namespace dx2d
 
 		friend void Render(CCore* d3d);
 	public:
-		void AddEvent(std::function<int()> func, std::string name, double delay);
-		void RemoveEvent(std::string name);		
+		void AddEvent(std::function<int()> func, wstring name, double delay);
+		void RemoveEvent(wstring name);		
 		void Destroy();
 	};
 
@@ -431,12 +454,13 @@ namespace dx2d
 	{
 	private:
 		vector<UV> chars;
-		std::wstring fileName;
+		wstring resName;
 		ID3D11ShaderResourceView* shaderResource;
 		friend class CBitmapText;
 	public:
 		CBitmapFont(const WCHAR* file, vector<UV> _chars);
-		std::wstring GetFileName();
+		CBitmapFont(CTexture* texture, vector<UV> _chars);
+		wstring GetName();
 		void Destroy();
 	};
 
@@ -457,7 +481,31 @@ namespace dx2d
 		TextVerAlign VerticalAlign;
 		CBitmapText(CBitmapFont* _font);
 		TEX_FILTER TexFilter; //point or linear
-		std::wstring Text;
+		wstring Text;
+		float Size;
+		float Height;
+		float Width;
+		float HorizontalSpacing;
+		float VerticalSpacing;
 		void Destroy();		
+	};
+
+	class CDebugManager
+	{
+	private:
+		CBitmapText* debugText;
+		std::wstringstream wss;		
+
+		friend void Render(CCore* d3d);
+	public:
+		CDebugManager();
+		void Init(CBitmapFont* font);
+		void Debug(int debug, wstring name);
+		void Debug(float debug, wstring name);
+		void Debug(double debug, wstring name);
+		void Debug(wstring debug, wstring name);
+		//send wss to debugText and clear wss
+		void Flush();
+		void Destroy();
 	};
 }

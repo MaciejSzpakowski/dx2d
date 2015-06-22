@@ -55,13 +55,13 @@ namespace dx2d
 
 		//default white texture used by non textured objects
 		BYTE fourOnes[4] = { 1, 1, 1, 1 };
-		ID3D11Texture2D* tex = Functions::CreateTexture2D(fourOnes, 1, 1);
+		ID3D11Texture2D* tex = Functions::CreateTexture2DFromBytes(fourOnes, 1, 1);
 		GetDevice()->CreateShaderResourceView(tex, 0, &whiteRes);
 		tex->Release();		
 		
 		CreateSampler(TEX_FILTER::POINT,&pointSampler);
 		CreateSampler(TEX_FILTER::LINEAR, &lineSampler);
-		TexFilterCreationMode = TEX_FILTER::POINT;
+		TexFilterCreationMode = TEX_FILTER::POINT;		
 	}
 
 	void CDrawManager::AddPoly(CPolygon* p)
@@ -175,7 +175,8 @@ namespace dx2d
 				s->Draw();
 			}
 		}
-
+		//flush debug
+		DebugManager->Flush();
 		//bitmap text
 		for (CBitmapText* t : Texts)
 		{
@@ -212,7 +213,7 @@ namespace dx2d
 			return;
 		if (Polygons.size() == 0 || Polygons[p->index] != p)
 		{
-			MessageBox(0, "This polygon is not in CDrawManager.Polygons", "Error", MB_ICONERROR);
+			MessageBox(0, L"This polygon is not in CDrawManager.Polygons", L"Error", MB_ICONERROR);
 			return;
 		}
 		else if (p->index == Polygons.size() - 1)
@@ -235,7 +236,7 @@ namespace dx2d
 			return;
 		if (s->index >= Sprites.size() || Sprites[s->index] != s)
 		{
-			MessageBox(0, "This sprite is not in CDrawManager.Sprites", "Error", MB_ICONERROR);
+			MessageBox(0, L"This sprite is not in CDrawManager.Sprites", L"Error", MB_ICONERROR);
 			return;
 		}
 		else if (s->index == Sprites.size() - 1)
@@ -273,6 +274,11 @@ namespace dx2d
 		ResourceManager->AddBitmapFont(newFont);
 		return newFont;
 	}
+	
+	void CDrawManager::AddBitmapFont(CBitmapFont* font)
+	{
+		ResourceManager->AddBitmapFont(font);
+	}
 
 	CBitmapText* CDrawManager::AddBitmapText(CBitmapFont* font)
 	{
@@ -301,7 +307,7 @@ namespace dx2d
 			return;
 		if (text->index >= Texts.size() || Texts[text->index] != text)
 		{
-			MessageBox(0, "This text is not in CDrawManager.Texts", "Error", MB_ICONERROR);
+			MessageBox(0, L"This text is not in CDrawManager.Texts", L"Error", MB_ICONERROR);
 			return;
 		}
 		else if (text->index == Texts.size() - 1)
@@ -316,5 +322,10 @@ namespace dx2d
 			Texts.pop_back();
 		}
 		text->index = -1;
+	}
+
+	CBitmapFont* CDrawManager::DefaultFont()
+	{
+		return defaultFont;
 	}
 }

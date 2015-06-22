@@ -25,7 +25,7 @@ namespace dx2d
 
 	CWindow::CWindow(int sizex, int sizey,int style)
 	{
-		const char className[] = "myWindowClass";
+		const wchar_t className[] = L"myWindowClass";
 		WNDCLASSEX wc;		
 		ZeroMemory(&Msg, sizeof(Msg));
 		ZeroMemory(&wc, sizeof(wc));
@@ -39,7 +39,7 @@ namespace dx2d
 
 		if (!RegisterClassEx(&wc))
 		{
-			MessageBox(NULL, "Window Registration Failed!", "Error!",
+			MessageBox(NULL, L"Window Registration Failed!", L"Error!",
 				MB_ICONEXCLAMATION | MB_OK);
 			exit(0);
 		}
@@ -49,13 +49,13 @@ namespace dx2d
 			FALSE, 0);
 
 		handle = CreateWindowEx(0,
-			className,	"",	style,
+			className,	L"",	style,
 			CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top,
 			NULL, NULL, GetModuleHandle(0), NULL);
 
 		if (handle == NULL)
 		{
-			MessageBox(NULL, "Window Creation Failed!", "Error!",
+			MessageBox(NULL, L"Window Creation Failed!", L"Error!",
 				MB_ICONEXCLAMATION | MB_OK);
 			exit(0);
 		}

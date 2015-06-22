@@ -1,6 +1,4 @@
 #include "Private.h"
-#include <gdiplus.h>
-#pragma comment(lib,"Gdiplus.lib")
 #include <ctime>
 #include <sstream>
 
@@ -14,14 +12,15 @@ namespace dx2d
 	CInput* Input;
 	CEventManager* EventManager;
 	CResourceManager* ResourceManager;
+	CDebugManager* DebugManager;
 
 	HRESULT hr;
 
 	void Render(CCore* d3d)
 	{		
 		Camera->CamTransform();
-		d3d->context->ClearRenderTargetView(d3d->backBuffer, d3d->backBufferColor);		
-		DrawManager->DrawAll();
+		d3d->context->ClearRenderTargetView(d3d->backBuffer, d3d->backBufferColor);
+		DrawManager->DrawAll();		
 		d3d->swapChain->Present(0, 0);
 		Input->Activity();
 		EventManager->Activity();
@@ -69,7 +68,7 @@ namespace dx2d
 			return core;
 		}	
 
-		ID3D11Texture2D* CreateTexture2D(BYTE* data, int width, int height)
+		ID3D11Texture2D* CreateTexture2DFromBytes(BYTE* data, int width, int height)
 		{
 			ID3D11Texture2D *tex;
 			D3D11_TEXTURE2D_DESC tdesc;
@@ -98,6 +97,35 @@ namespace dx2d
 			return tex;
 		}
 
+		ID3D11Texture2D* CreateTexture2DFromGdibitmap(Gdiplus::Bitmap* _gdibitmap)
+		{
+			Gdiplus::Bitmap* gdibitmap = _gdibitmap;
+			UINT h = gdibitmap->GetHeight();
+			UINT w = gdibitmap->GetWidth();
+
+			HBITMAP hbitmap;
+			Gdiplus::Color c(0, 0, 0);
+			gdibitmap->GetHBITMAP(c, &hbitmap);
+			delete gdibitmap;
+
+			BITMAP bitmap;
+			GetObject(hbitmap, sizeof(bitmap), (LPVOID)&bitmap);
+			BYTE* data = (BYTE*)bitmap.bmBits;
+			//ID3D11Texture2D and BITMAP have red and blue swapped
+			//swap it back
+			//this for loop is ~10% of the function
+			for (int i = 0; i < (int)(h*w * 4); i += 4)
+			{
+				BYTE temp = data[i];
+				data[i] = data[i + 2];
+				data[i + 2] = temp;
+			}
+
+			ID3D11Texture2D* tex = CreateTexture2DFromBytes(data, w, h);
+			DeleteObject(hbitmap);
+			return tex;
+		}
+
 		ID3D11Texture2D* CreateTexture2DFromFile(const WCHAR* file)
 		{
 			ULONG_PTR m_gdiplusToken;
@@ -114,46 +142,48 @@ namespace dx2d
 				Gdiplus::GdiplusShutdown(m_gdiplusToken);
 				return nullptr;
 			}
-			UINT h = gdibitmap->GetHeight();
-			UINT w = gdibitmap->GetWidth();
-
-			HBITMAP hbitmap;
-			Gdiplus::Color c(0, 0, 0);
-			gdibitmap->GetHBITMAP(c, &hbitmap);
-			delete gdibitmap;
+			ID3D11Texture2D* tex = CreateTexture2DFromGdibitmap(gdibitmap);
 			Gdiplus::GdiplusShutdown(m_gdiplusToken);
-
-			BITMAP bitmap;
-			GetObject(hbitmap, sizeof(bitmap), (LPVOID)&bitmap);
-			BYTE* data = (BYTE*)bitmap.bmBits;
-			//ID3D11Texture2D and BITMAP have red and blue swapped
-			//swap it back
-			//this for loop is ~10% of the function
-			for (int i = 0; i < (int)(h*w * 4); i += 4)
-			{
-				BYTE temp = data[i];
-				data[i] = data[i + 2];
-				data[i + 2] = temp;
-			}
-
-			ID3D11Texture2D* tex = CreateTexture2D(data, w, h);
-			DeleteObject(hbitmap);
 			return tex;
 		}
 
+		ID3D11Texture2D* CreateTexture2DFromResource(int resource)
+		{
+			ULONG_PTR m_gdiplusToken;
+			Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+			Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
+
+			Gdiplus::Bitmap* gdibitmap = Gdiplus::Bitmap::FromResource(GetModuleHandle(0),
+				MAKEINTRESOURCE(resource));
+			Gdiplus::Status status = gdibitmap->GetLastStatus();
+			if (status != 0)
+			{
+				std::wstringstream msg;
+				msg << L"Could not load " << resource;
+				MessageBoxW(0, msg.str().c_str(), L"Resource error", MB_ICONEXCLAMATION);
+				delete gdibitmap;
+				Gdiplus::GdiplusShutdown(m_gdiplusToken);
+				return nullptr;
+			}
+			ID3D11Texture2D* tex = CreateTexture2DFromGdibitmap(gdibitmap);
+			Gdiplus::GdiplusShutdown(m_gdiplusToken);
+			return tex;
+		}		
+
 		//loads texture to shader resource, checks cache first
 		//if it's not in cache then load and store
-		void LoadCachedTexture(const WCHAR* textureFile, ID3D11ShaderResourceView*& shader)
+		CTexture* LoadCachedTextureFromFile(const WCHAR* file, ID3D11ShaderResourceView*& shader)
 		{
-			CTexture* res = ResourceManager->GetTexture(textureFile);
+			CTexture* res = ResourceManager->GetTexture(file);
 			if (res != nullptr)
 			{
 				shader = res->shaderResource;
+				return res;
 			}
 			else
 			{
 				D3D11_TEXTURE2D_DESC desc;
-				auto tex = Functions::CreateTexture2DFromFile(textureFile);
+				auto tex = Functions::CreateTexture2DFromFile(file);
 				if (tex == nullptr)
 					throw 0;
 				tex->GetDesc(&desc);
@@ -161,11 +191,41 @@ namespace dx2d
 				tex->Release();
 				//add to resources
 				CTexture* newRes = new CTexture;
-				newRes->fileName = textureFile;
+				newRes->name = file;
 				newRes->Height = desc.Height;
 				newRes->Width = desc.Width;
 				newRes->shaderResource = shader;
 				ResourceManager->AddTexture(newRes);
+				return newRes;
+			}
+		}
+
+		CTexture* LoadCachedTextureFromResource(int resource, ID3D11ShaderResourceView*& shader)
+		{
+			LPTSTR name = L"font.png";
+			CTexture* res = ResourceManager->GetTexture(name);
+			if (res != nullptr)
+			{
+				shader = res->shaderResource;
+				return res;
+			}
+			else
+			{
+				D3D11_TEXTURE2D_DESC desc;
+				auto tex = Functions::CreateTexture2DFromResource(resource);
+				if (tex == nullptr)
+					throw 0;
+				tex->GetDesc(&desc);
+				GetDevice()->CreateShaderResourceView(tex, 0, &shader);
+				tex->Release();
+				//add to resources
+				CTexture* newRes = new CTexture;
+				newRes->name = name;
+				newRes->Height = desc.Height;
+				newRes->Width = desc.Width;
+				newRes->shaderResource = shader;
+				ResourceManager->AddTexture(newRes);
+				return newRes;
 			}
 		}
 
@@ -174,13 +234,13 @@ namespace dx2d
 			if (hr == 0)
 				return;
 			char str[128];
-			FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0,
+			FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, 0,
 				hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL),
 				str, 128, 0);
-			std::stringstream message;
-			message << file << " line: " << line << "\n" << str;
+			std::wstringstream message;
+			message << file << L" line: " << line << L"\n" << str;
 			
-			MessageBox(0, message.str().c_str(), "HRESULT error", MB_ICONERROR);
+			MessageBox(0, message.str().c_str(), L"HRESULT error", MB_ICONERROR);
 			exit(1);
 		}
 
@@ -195,10 +255,10 @@ namespace dx2d
 
 		int RndInt(int min, int max)
 		{
-			int p1 = rand();
-			int p2 = rand() << 15;
-			int p3 = rand() << 30;
-			int t = p1 | p2 | p3;
+			unsigned int p1 = rand();
+			unsigned int p2 = rand() << 15;
+			unsigned int p3 = rand() << 30;
+			unsigned int t = p1 | p2 | p3;
 			return t % (max - min) + min;
 		}		
 	}

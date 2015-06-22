@@ -2,7 +2,7 @@
 
 namespace dx2d
 {
-	void CEventManager::AddEvent(std::function<int()> func, std::string name, double delay)
+	void CEventManager::AddEvent(std::function<int()> func, wstring name, double delay)
 	{
 		Event* newEvent = new Event;
 		newEvent->delay = delay;
@@ -12,7 +12,7 @@ namespace dx2d
 		events.push_back(newEvent);
 	}
 
-	void CEventManager::RemoveEvent(std::string name)
+	void CEventManager::RemoveEvent(wstring name)
 	{
 		for(int i = 0;i<events.size();i++)
 			if (events[i] && events[i]->Name == name)

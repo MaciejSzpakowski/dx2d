@@ -32,7 +32,7 @@ namespace dx2d
 
 	CPolygon::CPolygon(XMFLOAT2 points[], int n)
 	{
-		Color = SColor(0, 0, 0, 0);
+		Color = XMFLOAT4(0, 0, 0, 0);
 		vertexCount = n;
 
 		/*/method 1

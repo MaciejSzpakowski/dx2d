@@ -2,12 +2,16 @@
 
 namespace dx2d
 {
-	void CResourceManager::AddTexture(CTexture* tex)
+	CResourceManager::CResourceManager()
 	{
-		textures[tex->fileName] = tex;
 	}
 
-	CTexture* CResourceManager::GetTexture(std::wstring file)
+	void CResourceManager::AddTexture(CTexture* tex)
+	{
+		textures[tex->name] = tex;
+	}
+
+	CTexture* CResourceManager::GetTexture(wstring file)
 	{
 		auto it = textures.find(file);
 		if (it != textures.end())
@@ -18,10 +22,10 @@ namespace dx2d
 
 	void CResourceManager::AddBitmapFont(CBitmapFont* font)
 	{
-		fonts[font->GetFileName()] = font;
+		fonts[font->GetName()] = font;
 	}
 
-	CBitmapFont* CResourceManager::GetBitmapFont(std::wstring file)
+	CBitmapFont* CResourceManager::GetBitmapFont(wstring file)
 	{
 		auto it = fonts.find(file);
 		if (it != fonts.end())

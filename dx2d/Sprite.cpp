@@ -21,22 +21,35 @@ namespace dx2d
 		FlipVertically = false;
 		uncachedTex = false;
 		Scale = XMFLOAT2(1, 1);
-		Color = SColor(1, 1, 1, 1);
+		Color = XMFLOAT4(1, 1, 1, 1);
 		TexFilter = DrawManager->TexFilterCreationMode;
 	}
 
-	CSprite::CSprite(const WCHAR* textureFile)
+	CSprite::CSprite(const WCHAR* file)
 	{
+		resource = file;
 		FlipHorizontally = false;
 		FlipVertically = false;
 		uncachedTex = false;
 		vertexBuffer = nullptr;
 		Scale = XMFLOAT2(1, 1);
-		Color = SColor(1, 1, 1, 1);
+		Color = XMFLOAT4(1, 1, 1, 1);
 		TexFilter = DrawManager->TexFilterCreationMode;
 
-		Functions::LoadCachedTexture(textureFile, shaderResource);
-		
+		Functions::LoadCachedTextureFromFile(file, shaderResource);		
+	}
+
+	CSprite::CSprite(CTexture* texture)
+	{
+		resource = texture->name;
+		FlipHorizontally = false;
+		FlipVertically = false;
+		uncachedTex = false;
+		vertexBuffer = nullptr;
+		Scale = XMFLOAT2(1, 1);
+		Color = XMFLOAT4(1, 1, 1, 1);
+		TexFilter = DrawManager->TexFilterCreationMode;
+		shaderResource = texture->shaderResource;
 	}
 
 	void CSprite::Draw()
@@ -61,6 +74,28 @@ namespace dx2d
 	XMMATRIX CSprite::GetScaleMatrix()
 	{
 		return DirectX::XMMatrixScaling(Scale.x, Scale.y, 1);
+	}
+
+	CTexture* CSprite::GetTexture()
+	{
+		return ResourceManager->GetTexture(resource);
+	}
+
+	void CSprite::SetNaturalScale()
+	{
+		CTexture* tex = GetTexture();
+		SetPixelScale(tex->Width, tex->Height);
+	}
+
+	void CSprite::SetPixelScale(int width, int height)
+	{
+		POINTF frustum = Camera->GetFrustumSize(Position.z);
+		RECT client;
+		GetClientRect(Core->GetWindowHandle(), &client);
+		POINTF clientSize = { client.right - client.left, client.bottom - client.top };
+		POINTF unitsPerPixel = { frustum.x / clientSize.x, frustum.y / clientSize.y };
+		Scale.x = unitsPerPixel.x * width / 2;
+		Scale.y = unitsPerPixel.y * height / 2;
 	}
 
 	void CSprite::Destroy()

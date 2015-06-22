@@ -11,7 +11,6 @@ CAnimation* a1;
 CBitmapText* bmtext;
 std::vector<CSprite*> sprites;
 int t1;
-std::wstring cin;
 
 void Activity()
 {
@@ -19,8 +18,8 @@ void Activity()
 	if ((int)time(0) != t1)
 	{
 		t1 = (int)time(0);
-		char sfps[20];
-		sprintf_s(sfps, "%i", (int)Core->GetFps());
+		wchar_t sfps[20];
+		swprintf_s(sfps, 20, L"%i", (int)Core->GetFps());
 		Core->SetWindowTitle(sfps);
 	}
 
@@ -35,21 +34,15 @@ void Activity()
 		Camera->Velocity.x = -move;
 	if (Input->IsKeyDown(Key.Right))
 		Camera->Velocity.x = move;
-	c1->Velocity = XMFLOAT3(0, 0, 0);
-	if (Input->IsKeyDown('W'))
-		c1->Velocity.y = move;
-	if (Input->IsKeyDown('S'))
-		c1->Velocity.y = -move;
-	if (Input->IsKeyDown('A'))
-		c1->Velocity.x = -move;
-	if (Input->IsKeyDown('D'))
-		c1->Velocity.x = move;
 
 	if (Input->IsKeyDown(Key.MouseLeft))
 	{
-		POINTF pf = Core->GetCursorWorldPos(0);
+		POINTF pf = Camera->GetCursorWorldPos(0);
 		c1->Position = XMFLOAT3(pf.x, pf.y, 0);
 	}
+
+	DebugManager->Debug(c1->Position.x, L"x");
+	DebugManager->Debug(c1->Position.y, L"y");
 }
 
 int main(int argc, char** argv)
@@ -58,54 +51,42 @@ int main(int argc, char** argv)
 	t1 = (int)time(0);
 
 	Core->OpenConsole();
-	Core->SetBackgroundColor(SColor(0, 0, 0, 1));	
-	Core->SetWindowTitle("Hello");
-	c1 = DrawManager->AddCircle(2, 5);
+	Core->SetBackgroundColor({ 0, 0, 0, 1 });
+	c1 = DrawManager->AddCircle(0.5f, 5);
 	c1->Position = XMFLOAT3(0, 0, 0);
-	c1->Color = SColor(1, 1, 1, 0);	
+	c1->Color = XMFLOAT4(1, 1, 1, 0);
 	brick = DrawManager->AddSprite(L"brick.jpg");
-	brick->Scale = XMFLOAT2(22, 17);
 	brick->Position.z = 0.03f;
+	brick->SetNaturalScale();
 	brick->Color.a = 1;
 	a1 = DrawManager->AddAnimation(L"ani.png", 2, 4);
-	a1->TexFilter = TEX_FILTER::LINEAR;
 	a1->Speed = 15;
-	a1->Scale = XMFLOAT2(6, 3);
-
-	//gothic font
-	//36x40 one char
-	//28x8 all chars
-	vector<UV> chars;
-	for (int i = 0; i<8; i++)
-		for (int j = 0; j < 28; j++)
+	a1->SetPixelScale(512, 256);
+	a1->Scale.x /= 3.0f;
+	a1->Scale.y /= 3.0f;
+	EventManager->AddEvent([]()
+	{
+		a1->Speed = 0;
+		a1->Velocity = XMFLOAT3(0, 0, 0);
+		if (Input->IsKeyDown('A'))
 		{
-			chars.push_back(UV(36.0f / 1024.0f*j, 40.0f / 512.0f*i, 36.0f / 1024.0f*(j + 1), 40.0f / 512.0f*(i + 1)));
+			a1->Speed = 15;
+			a1->FlipHorizontally = true;
+			a1->Velocity.x = -10;
 		}
-	CBitmapFont* bmfont = DrawManager->AddBitmapFont(L"font.png", chars);
-	bmtext = DrawManager->AddBitmapText(bmfont);
-	bmtext->Text = L"Bmtext test\nyes";
-	bmtext->Position = XMFLOAT3(-15, 8, 0);
-	bmtext->HorizontalAlign = TextHorAlign::Left;
-	//bmtext->Parent = c2;
+		else if (Input->IsKeyDown('D'))
+		{
+			a1->Speed = 15;
+			a1->FlipHorizontally = false;
+			a1->Velocity.x = 10;
+		}
+		else
+			a1->Frame = 7;
+		return 1;
+	}, L"", 0);
 
 	CRectangle* r1 = DrawManager->AddRect(1, 1);
 	r1->Color = XMFLOAT4(1, 1, 1, 0);
-	EventManager->AddEvent([r1]()
-	{
-		if (Input->IsKeyDown('O'))
-			r1->Scale.x += 0.01f;
-		if (Input->IsKeyDown('P'))
-			r1->Scale.x -= 0.01f;
-		if (Input->IsKeyDown('K'))
-			r1->Scale.y += 0.01f;
-		if (Input->IsKeyDown('L'))
-			r1->Scale.y -= 0.01f;
-		wchar_t str[30];
-		swprintf(str, L"%f %f", r1->Scale.x, r1->Scale.y);
-		bmtext->Text = str;
-		
-		return 1;
-	}, "", 0);
 
 	Core->Run();
 	Core->Destroy();

@@ -138,12 +138,13 @@ namespace dx2d
 		Input = new CInput;
 		EventManager = new CEventManager;
 		ResourceManager = new CResourceManager;
+		DebugManager = new CDebugManager;
 
 		//timer
 		LARGE_INTEGER li;
 		if (!QueryPerformanceFrequency(&li))
 		{
-			MessageBox(0, "QueryPerformanceFrequency() failed", "Error", MB_ICONERROR);
+			MessageBox(0, L"QueryPerformanceFrequency() failed", L"Error", MB_ICONERROR);
 			exit(0);
 		}
 		frequency = double(li.QuadPart);
@@ -152,6 +153,21 @@ namespace dx2d
 		prevFrameTime = startTime;
 		gameTime = 0;
 		frameTime = 0;
+
+		//defalut font for drawmanager
+		//15x21 one char
+		//20x5 all chars
+		vector<UV> chars1;
+		for (int i = 0; i<5; i++)
+			for (int j = 0; j < 20; j++)
+			{
+				chars1.push_back(UV(15.0f / 300.0f*j, 21.0f / 105.0f*i, 15.0f / 300.0f*(j + 1), 21 / 105.0f*(i + 1)));
+			}
+		ID3D11ShaderResourceView* res1;
+		CTexture* tex1 = Functions::LoadCachedTextureFromFile(L"font.png", res1);
+		DrawManager->defaultFont = new CBitmapFont(tex1, chars1);
+		DrawManager->AddBitmapFont(DrawManager->defaultFont);
+		DebugManager->Init(DrawManager->DefaultFont());
 	}
 
 	void CCore::UpdateGameTime()
@@ -175,12 +191,12 @@ namespace dx2d
 		return window->Run();
 	}
 
-	void CCore::SetWindowTitle(const char* title)
+	void CCore::SetWindowTitle(const wchar_t* title)
 	{
 		SetWindowText(window->handle, title);
 	}
 
-	void CCore::SetBackgroundColor(SColor color)
+	void CCore::SetBackgroundColor(Color color)
 	{
 		backBufferColor[0] = color.r;
 		backBufferColor[1] = color.g;
@@ -191,7 +207,7 @@ namespace dx2d
 	void CCore::OpenConsole()
 	{
 		AllocConsole();
-		SetConsoleTitle("Console");
+		SetConsoleTitle(L"Console");
 		freopen("CONOUT$", "w", stdout);
 		freopen("CONIN$", "r", stdin);
 	}
@@ -233,31 +249,15 @@ namespace dx2d
 		::GetCursorPos(&p);
 		ScreenToClient(window->handle, &p);
 		return p;
-	}
-
-	POINTF CCore::GetCursorWorldPos(float z)
-	{
-		POINT p = GetCursorPos();
-		//formula to convert z distance from camera to z in z-buffer
-		//(20.0f + z) because by default camera is 20 from point (0,0,0)
-		float zbuffer = ((1000.0f + 0.1f) / (1000.0f - 0.1f) + ((-2.0f * 1000.0f * 0.1f) / (1000.0f - 0.1f)) / (20.0f + z) + 1.0f) / 2.0f;
-		XMFLOAT3 f3 = XMFLOAT3((float)p.x, (float)p.y, zbuffer);
-		XMVECTOR pos3 = DirectX::XMLoadFloat3(&f3);
-		XMVECTOR trans = DirectX::XMVector3Unproject(pos3, 0, 0, 800, 600, 0, 1,
-			Camera->GetProjMatrix(), Camera->GetViewMatrix(), DirectX::XMMatrixIdentity());
-		XMFLOAT3 f3t;
-		DirectX::XMStoreFloat3(&f3t, trans);
-
-		POINTF res = { f3t.x, f3t.y };
-
-		return res;
-	}
+	}	
 
 	void CCore::Destroy()
 	{
 		//engine objects
 		//keep this first
 		ResourceManager->Destroy();
+
+		DebugManager->Destroy();
 		EventManager->Destroy();
 		Input->Destroy();
 		Camera->Destroy();
