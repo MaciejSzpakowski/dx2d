@@ -37,14 +37,6 @@ namespace dx2d
 		return Core->context;
 	}
 
-	//applies time factor
-	void AddFloat3(XMFLOAT3* src, XMFLOAT3* dst)
-	{
-		dst->x += (src->x * float(Core->frameTime));
-		dst->y += (src->y * float(Core->frameTime));
-		dst->z += (src->z * float(Core->frameTime));
-	}
-
 	void CreateSampler(TEX_FILTER mode, ID3D11SamplerState** sampler)
 	{
 		D3D11_SAMPLER_DESC sampDesc;
@@ -261,5 +253,15 @@ namespace dx2d
 			unsigned int t = p1 | p2 | p3;
 			return t % (max - min) + min;
 		}		
+	}
+
+	namespace Collision
+	{
+		bool IsColliding(CCircle* c1, CCircle* c2)
+		{
+			XMVECTOR v = XMVectorSubtract(c1->GetPositionVector(), c2->GetPositionVector());
+			XMVECTOR len = XMVector2Length(v);
+			return XMVectorGetX(len) < (c1->Radius + c2->Radius);
+		}
 	}
 }

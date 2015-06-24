@@ -23,26 +23,27 @@ void Activity()
 		Core->SetWindowTitle(sfps);
 	}
 
-	Camera->Velocity = XMFLOAT3(0, 0, 0);
-	Camera->AngularVel.z = 0;
+	Camera->SetVelocity(0, 0, 0);
+	Camera->SetAngularVelZ(0);
 	float move = 10;
 	if (Input->IsKeyDown(Key.Up))
-		Camera->Velocity.y = move;
+		Camera->SetVelocityY(move);
 	if (Input->IsKeyDown(Key.Down))
-		Camera->Velocity.y = -move;
+		Camera->SetVelocityY(-move);
 	if (Input->IsKeyDown(Key.Left))
-		Camera->Velocity.x = -move;
+		Camera->SetVelocityX(-move);
 	if (Input->IsKeyDown(Key.Right))
-		Camera->Velocity.x = move;
+		Camera->SetVelocityX(move);
 
-	if (Input->IsKeyDown(Key.MouseLeft))
-	{
-		POINTF pf = Camera->GetCursorWorldPos(0);
-		c1->Position = XMFLOAT3(pf.x, pf.y, 0);
-	}
-
-	DebugManager->Debug(c1->Position.x, L"x");
-	DebugManager->Debug(c1->Position.y, L"y");
+	DebugManager->Debug(a1->IsUnderCursor(), L"Cursor");
+	c1->SetVelocityX(0);
+	c2->Color = XMFLOAT4(0, 0, 0, 0);
+	if (Input->IsKeyDown('A'))
+		c1->SetVelocityX(-0.01f);
+	if (Input->IsKeyDown('D'))
+		c1->SetVelocityX(0.01f);
+	if (Collision::IsColliding(c1, c2))
+		c2->Color.r = 1;
 }
 
 int main(int argc, char** argv)
@@ -52,11 +53,11 @@ int main(int argc, char** argv)
 
 	Core->OpenConsole();
 	Core->SetBackgroundColor({ 0, 0, 0, 1 });
-	c1 = DrawManager->AddCircle(0.5f, 5);
-	c1->Position = XMFLOAT3(0, 0, 0);
-	c1->Color = XMFLOAT4(1, 1, 1, 0);
+	c1 = DrawManager->AddCircle(1, 10);
+	c2 = DrawManager->AddCircle(1, 10);
+	c2->SetPositionX(10);
 	brick = DrawManager->AddSprite(L"brick.jpg");
-	brick->Position.z = 0.03f;
+	brick->SetPositionZ(0.03f);
 	brick->SetNaturalScale();
 	brick->Color.a = 1;
 	a1 = DrawManager->AddAnimation(L"ani.png", 2, 4);
@@ -64,29 +65,17 @@ int main(int argc, char** argv)
 	a1->SetPixelScale(512, 256);
 	a1->Scale.x /= 3.0f;
 	a1->Scale.y /= 3.0f;
-	EventManager->AddEvent([]()
-	{
-		a1->Speed = 0;
-		a1->Velocity = XMFLOAT3(0, 0, 0);
-		if (Input->IsKeyDown('A'))
-		{
-			a1->Speed = 15;
-			a1->FlipHorizontally = true;
-			a1->Velocity.x = -10;
-		}
-		else if (Input->IsKeyDown('D'))
-		{
-			a1->Speed = 15;
-			a1->FlipHorizontally = false;
-			a1->Velocity.x = 10;
-		}
-		else
-			a1->Frame = 7;
-		return 1;
-	}, L"", 0);
+	a1->Pickable = true;
+	a1->Speed = 15;
 
 	CRectangle* r1 = DrawManager->AddRect(1, 1);
-	r1->Color = XMFLOAT4(1, 1, 1, 0);
+	r1->Color = XMFLOAT4(0, 1, 0.2f, 0);
+	r1->SetVelocityX(0.01f);
+	EventManager->AddEvent([r1]()
+	{
+		r1->SetVelocityX(-r1->GetVelocity().x);
+		return 1;
+	}, L"", 0, 0, 2);
 
 	Core->Run();
 	Core->Destroy();

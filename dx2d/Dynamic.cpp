@@ -6,13 +6,15 @@ namespace dx2d
 
 	CDynamic::CDynamic()
 	{
-		Position = XMFLOAT3(0, 0, 0);
-		Rotation = XMFLOAT3(0, 0, 0);
-		Velocity = XMFLOAT3(0, 0, 0);
-		Acceleration = XMFLOAT3(0, 0, 0);
-		AngularVel = XMFLOAT3(0, 0, 0);
-		AngularAcc = XMFLOAT3(0, 0, 0);
+		SetPosition(0, 0, 0);
+		SetRotation(0, 0, 0);
+		SetVelocity(0, 0, 0);
+		SetAcceleration(0, 0, 0);
+		SetAngularVel(0, 0, 0);
+		SetAngularAcc(0, 0, 0);
 		Parent = nullptr;
+		Pickable = false;
+		underCursor = false;
 
 		//Create the buffer to send to the cbuffer in effect file
 		D3D11_BUFFER_DESC cbbd;
@@ -29,27 +31,35 @@ namespace dx2d
 	void CDynamic::Transform()
 	{
 		XMMATRIX scale = GetScaleMatrix();
-		XMMATRIX rot = DirectX::XMMatrixRotationRollPitchYaw(Rotation.x,Rotation.y,Rotation.z);
-		XMMATRIX loc = DirectX::XMMatrixTranslation(Position.x, Position.y, Position.z);
+		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(Rotation);
+		XMMATRIX loc = XMMatrixTranslationFromVector(Position);
 		XMMATRIX world = scale * rot * loc;
 		XMMATRIX worldViewProj = world * Camera->view * Camera->proj;
 		if (Parent != nullptr)
 		{
-			XMMATRIX parentLoc = DirectX::XMMatrixRotationRollPitchYaw(0, 0, Parent->Rotation.z);
-			XMMATRIX parentRot = DirectX::XMMatrixTranslation(Parent->Position.x, Parent->Position.y, Parent->Position.z);
+			XMMATRIX parentLoc = XMMatrixRotationRollPitchYawFromVector(Parent->Rotation);
+			XMMATRIX parentRot = XMMatrixTranslationFromVector(Parent->Position);
 			worldViewProj = world * parentLoc * parentRot * Camera->view * Camera->proj;
 		}
-		worldViewProj = DirectX::XMMatrixTranspose(worldViewProj);
+		//check for cursor
+		if(Pickable)
+			CheckForCursor(worldViewProj);
+		worldViewProj = XMMatrixTranspose(worldViewProj);
 		GetContext()->UpdateSubresource(cbBufferVS, 0, NULL, &worldViewProj, 0, 0);
 		GetContext()->VSSetConstantBuffers(0, 1, &cbBufferVS);
 	}
 
 	void CDynamic::Update()
 	{
-		AddFloat3(&Acceleration, &Velocity);
-		AddFloat3(&Velocity, &Position);
-		AddFloat3(&AngularAcc, &AngularVel);
-		AddFloat3(&AngularVel, &Rotation);
+		Velocity = XMVectorAdd(Acceleration, Velocity);
+		Position = XMVectorAdd(Velocity, Position);
+		AngularVel = XMVectorAdd(AngularAcc, AngularVel);
+		Rotation = XMVectorAdd(AngularVel, Rotation);
+	}
+
+	bool CDynamic::IsUnderCursor()
+	{
+		return underCursor;
 	}
 
 	CDynamic::~CDynamic()

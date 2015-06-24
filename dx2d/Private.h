@@ -18,16 +18,10 @@ namespace dx2d
 {
 #define CHECKHR() Functions::Checkhr(__FILE__,__LINE__)
 	//using	
-	using DirectX::XMFLOAT4;
-	using DirectX::XMFLOAT3;
-	using DirectX::XMFLOAT2;
-	using DirectX::XMVECTOR;
-	using DirectX::XMMATRIX;
-	using DirectX::XMVectorSet;
-	using DirectX::XM_PI;
-	using DirectX::XM_2PI;
+	using namespace DirectX;
 	using std::vector;
 	using std::wstring;
+	using std::wstringstream;
 
 	//prototypes
 	class CCore;
@@ -99,6 +93,9 @@ namespace dx2d
 	{
 		double startTime;
 		double delay;
+		double lifeTime;
+		double tick;
+		double lastPulse;
 		wstring Name;
 		std::function<int()> Activity;
 	};
@@ -133,6 +130,11 @@ namespace dx2d
 		//return integer
 		//between inclusive min and exclusive max
 		int RndInt(int min, int max);
+	}
+
+	namespace Collision
+	{
+		bool IsColliding(CCircle* c1, CCircle* c2);
 	}
 
 	class CWindow
@@ -213,6 +215,12 @@ namespace dx2d
 	class CDynamic
 	{
 	protected:
+		XMVECTOR Position;
+		XMVECTOR Rotation;
+		XMVECTOR Velocity;
+		XMVECTOR Acceleration;
+		XMVECTOR AngularVel;
+		XMVECTOR AngularAcc;
 		ID3D11Buffer* cbBufferVS;
 		//matrix algebra for
 		//produces worldViewProj used by VS
@@ -220,17 +228,56 @@ namespace dx2d
 		//updates PVAJ etc.
 		void Update();
 		virtual XMMATRIX GetScaleMatrix() = 0;
+		virtual void CheckForCursor(XMMATRIX transform){}
+		bool underCursor;
+
+		friend class CBitmapText;
 		friend class CDrawManager;
 	public:
+		bool Pickable;
+		bool IsUnderCursor();
 		CDynamic* Parent;
-		XMFLOAT3 Position;
-		XMFLOAT3 Rotation;
-		XMFLOAT3 Velocity;
-		XMFLOAT3 Acceleration;
-		XMFLOAT3 AngularVel;
-		XMFLOAT3 AngularAcc;
 		CDynamic();
 		~CDynamic();
+
+		//repetitive code
+		void SetPosition(XMFLOAT3 v){Position = XMLoadFloat3(&v);}
+		void SetPosition(float x, float y, float z){Position = XMVectorSet(x, y, z, 1);}
+		void SetPositionX(float x){Position = XMVectorSetX(Position, x);}
+		void SetPositionY(float y){ Position = XMVectorSetY(Position, y); }
+		void SetPositionZ(float z){ Position = XMVectorSetZ(Position, z); }
+		XMFLOAT3 GetPosition(){ XMFLOAT3 v; XMStoreFloat3(&v, Position); return v; }
+		XMVECTOR GetPositionVector(){return Position;}
+		void SetVelocity(XMFLOAT3 v){ Velocity = XMLoadFloat3(&v); }
+		void SetVelocity(float x, float y, float z){ Velocity = XMVectorSet(x, y, z, 1); }
+		void SetVelocityX(float x){ Velocity = XMVectorSetX(Velocity, x); }
+		void SetVelocityY(float y){ Velocity = XMVectorSetY(Velocity, y); }
+		void SetVelocityZ(float z){ Velocity = XMVectorSetZ(Velocity, z); }
+		XMFLOAT3 GetVelocity(){ XMFLOAT3 v; XMStoreFloat3(&v, Velocity); return v; }
+		void SetAcceleration(XMFLOAT3 v){ Acceleration = XMLoadFloat3(&v); }
+		void SetAcceleration(float x, float y, float z){ Acceleration = XMVectorSet(x, y, z, 1); }
+		void SetAccelerationX(float x){ Acceleration = XMVectorSetX(Acceleration, x); }
+		void SetAccelerationY(float y){ Acceleration = XMVectorSetY(Acceleration, y); }
+		void SetAccelerationZ(float z){ Acceleration = XMVectorSetZ(Acceleration, z); }
+		XMFLOAT3 GetAcceleration(){ XMFLOAT3 v; XMStoreFloat3(&v, Acceleration); return v; }
+		void SetRotation(XMFLOAT3 v){ Rotation = XMLoadFloat3(&v); }
+		void SetRotation(float x, float y, float z){ Rotation = XMVectorSet(x, y, z, 1); }
+		void SetRotationX(float x){ Rotation = XMVectorSetX(Rotation, x); }
+		void SetRotationY(float y){ Rotation = XMVectorSetY(Rotation, y); }
+		void SetRotationZ(float z){ Rotation = XMVectorSetZ(Rotation, z); }
+		XMFLOAT3 GetRotation(){ XMFLOAT3 v; XMStoreFloat3(&v, Rotation); return v; }
+		void SetAngularVel(XMFLOAT3 v){ AngularVel = XMLoadFloat3(&v); }
+		void SetAngularVel(float x, float y, float z){ AngularVel = XMVectorSet(x, y, z, 1); }
+		void SetAngularVelX(float x){ AngularVel = XMVectorSetX(AngularVel, x); }
+		void SetAngularVelY(float y){ AngularVel = XMVectorSetY(AngularVel, y); }
+		void SetAngularVelZ(float z){ AngularVel = XMVectorSetZ(AngularVel, z); }
+		XMFLOAT3 GetAngularVel(){ XMFLOAT3 v; XMStoreFloat3(&v, AngularVel); return v; }
+		void SetAngularAcc(XMFLOAT3 v){ AngularAcc = XMLoadFloat3(&v); }
+		void SetAngularAcc(float x, float y, float z){ AngularAcc = XMVectorSet(x, y, z, 1); }
+		void SetAngularAccX(float x){ AngularAcc = XMVectorSetX(AngularAcc, x); }
+		void SetAngularAccY(float y){ AngularAcc = XMVectorSetY(AngularAcc, y); }
+		void SetAngularAccZ(float z){ AngularAcc = XMVectorSetZ(AngularAcc, z); }
+		XMFLOAT3 GetAngularAcc(){ XMFLOAT3 v; XMStoreFloat3(&v, AngularAcc); return v; }		
 	};
 
 	class CDrawable
@@ -393,9 +440,10 @@ namespace dx2d
 		XMMATRIX GetScaleMatrix() override;
 		virtual void Play(){}
 		void Draw() override;
+		void CheckForCursor(XMMATRIX transform) override;
 
 		friend class CDrawManager;
-	public:
+	public:		
 		CTexture* GetTexture();
 		TEX_FILTER TexFilter; //point or linear
 		XMFLOAT2 Scale;
@@ -419,7 +467,11 @@ namespace dx2d
 
 		friend void Render(CCore* d3d);
 	public:
-		void AddEvent(std::function<int()> func, wstring name, double delay);
+		//func: code to execute by event (function pointer or closure)
+		//delay: how long to wait before start running
+		//lifeTime: destroy event after that time, 0 to never destroy
+		//tick: run event once every tick seconds, 0 to run every frame
+		void AddEvent(std::function<int()> func, wstring name, double delay, double lifeTime, double tick);
 		void RemoveEvent(wstring name);		
 		void Destroy();
 	};

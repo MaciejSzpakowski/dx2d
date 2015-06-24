@@ -76,7 +76,7 @@ namespace dx2d
 
 	XMMATRIX CPolygon::GetScaleMatrix()
 	{
-		return DirectX::XMMatrixIdentity();
+		return XMMatrixIdentity();
 	}
 
 	CRectangle::CRectangle(float scalex, float scaley)
@@ -110,7 +110,7 @@ namespace dx2d
 
 	XMMATRIX CRectangle::GetScaleMatrix()
 	{
-		return DirectX::XMMatrixScaling(Scale.x, Scale.y, 1);
+		return XMMatrixScaling(Scale.x, Scale.y, 1);
 	}
 
 	CCircle::CCircle(float radius, unsigned char resolution)
@@ -144,7 +144,7 @@ namespace dx2d
 
 	XMMATRIX CCircle::GetScaleMatrix()
 	{
-		return DirectX::XMMatrixScaling(Radius, Radius, 1);
+		return XMMatrixScaling(Radius, Radius, 1);
 	}
 
 	void CPolygon::Draw()

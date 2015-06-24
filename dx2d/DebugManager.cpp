@@ -18,7 +18,7 @@ namespace dx2d
 	void CDebugManager::Init(CBitmapFont* font)
 	{
 		debugText = DrawManager->AddBitmapText(font);
-		debugText->Position = XMFLOAT3(-9, 7, 10.3f);
+		debugText->SetPosition(-9, 7, 10.3f);
 		debugText->Parent = Camera;
 		debugText->HorizontalSpacing = -0.25f;
 		debugText->Width = 15.0f / 21.0f;

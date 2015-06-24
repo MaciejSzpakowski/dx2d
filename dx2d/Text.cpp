@@ -62,30 +62,30 @@ namespace dx2d
 			horAlignOffset = -len / 2.0f;
 		else if (HorizontalAlign == TextHorAlign::Right)
 			horAlignOffset = (float)-len;
-		XMMATRIX scale = DirectX::XMMatrixScaling(_Width, _Height, 1);
-		XMMATRIX rot = DirectX::XMMatrixRotationRollPitchYaw(Rotation.x, Rotation.y, Rotation.z);
+		XMMATRIX scale = XMMatrixScaling(_Width, _Height, 1);
+		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(Rotation);
 		//origin is translation matrix from the center of the text object
-		XMMATRIX origin = DirectX::XMMatrixTranslation(
+		XMMATRIX origin = XMMatrixTranslation(
 			(col*(_Width+_HorizontalSpacing) + horAlignOffset)*2,
 			(-row*(_Height+_VerticalSpacing) + verAlignOffset)*2, 0);
-		XMMATRIX loc = DirectX::XMMatrixTranslation(Position.x, Position.y, Position.z);
+		XMMATRIX loc = XMMatrixTranslationFromVector(Position);
 		XMMATRIX worldViewProj;
 		if (Parent == nullptr)
 			worldViewProj  = scale * origin * rot * loc * Camera->view * Camera->proj;
 		else
 		{
-			XMMATRIX parentLoc = DirectX::XMMatrixRotationRollPitchYaw(0, 0, Parent->Rotation.z);
-			XMMATRIX parentRot = DirectX::XMMatrixTranslation(Parent->Position.x, Parent->Position.y, Parent->Position.z);
+			XMMATRIX parentLoc = XMMatrixRotationRollPitchYawFromVector(Parent->Rotation);
+			XMMATRIX parentRot = XMMatrixTranslationFromVector(Parent->Position);
 			worldViewProj = scale * origin * rot * loc * parentLoc * parentRot * Camera->view * Camera->proj;
 		}
-		worldViewProj = DirectX::XMMatrixTranspose(worldViewProj);
+		worldViewProj = XMMatrixTranspose(worldViewProj);
 		GetContext()->UpdateSubresource(cbBufferVS, 0, NULL, &worldViewProj, 0, 0);
 		GetContext()->VSSetConstantBuffers(0, 1, &cbBufferVS);
 	}
 
 	XMMATRIX CBitmapText::GetScaleMatrix()
 	{
-		return DirectX::XMMatrixIdentity();
+		return XMMatrixIdentity();
 	}
 
 	void CBitmapText::Destroy()

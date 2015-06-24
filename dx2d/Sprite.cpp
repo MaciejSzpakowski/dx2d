@@ -73,7 +73,7 @@ namespace dx2d
 
 	XMMATRIX CSprite::GetScaleMatrix()
 	{
-		return DirectX::XMMatrixScaling(Scale.x, Scale.y, 1);
+		return XMMatrixScaling(Scale.x, Scale.y, 1);
 	}
 
 	CTexture* CSprite::GetTexture()
@@ -89,13 +89,75 @@ namespace dx2d
 
 	void CSprite::SetPixelScale(int width, int height)
 	{
-		POINTF frustum = Camera->GetFrustumSize(Position.z);
+		POINTF frustum = Camera->GetFrustumSize(GetPosition().z);
 		RECT client;
 		GetClientRect(Core->GetWindowHandle(), &client);
-		POINTF clientSize = { client.right - client.left, client.bottom - client.top };
+		POINTF clientSize = { (float)client.right - client.left, (float)client.bottom - client.top };
 		POINTF unitsPerPixel = { frustum.x / clientSize.x, frustum.y / clientSize.y };
 		Scale.x = unitsPerPixel.x * width / 2;
 		Scale.y = unitsPerPixel.y * height / 2;
+	}
+
+	void CSprite::CheckForCursor(XMMATRIX transform)
+	{
+		POINTF pf = Camera->GetCursorWorldPos(GetPosition().z);
+		XMVECTOR A = XMVectorSet(-1.0f, -1.0f, 0, 1);
+		XMVECTOR B = XMVectorSet(1.0f, -1.0f, 0, 1);
+		XMVECTOR C = XMVectorSet(1.0f, 1.0f, 0, 1);
+		XMVECTOR D = XMVectorSet(-1.0f, 1.0f, 0, 1);
+		XMVECTOR P = XMVectorSet(pf.x, pf.y, GetPosition().z, 1);
+		A = XMVector3Transform(A, transform);
+		B = XMVector3Transform(B, transform);
+		C = XMVector3Transform(C, transform);
+		D = XMVector3Transform(D, transform);
+
+		// FIRST TRIANGLE
+		//// Compute vectors        
+		XMVECTOR v0 = XMVectorSubtract(C, A);
+		XMVECTOR v1 = XMVectorSubtract(B, A);
+		XMVECTOR v2 = XMVectorSubtract(P, A);
+		// Compute dot products
+		XMVECTOR vdot00 = XMVector3Dot(v0, v0);
+		XMVECTOR vdot01 = XMVector3Dot(v0, v1);
+		XMVECTOR vdot02 = XMVector3Dot(v0, v2);
+		XMVECTOR vdot11 = XMVector3Dot(v1, v1);
+		XMVECTOR vdot12 = XMVector3Dot(v1, v2);
+		float dot00 = XMVectorGetX(vdot00);
+		float dot01 = XMVectorGetX(vdot01);
+		float dot02 = XMVectorGetX(vdot02);
+		float dot11 = XMVectorGetX(vdot11);
+		float dot12 = XMVectorGetX(vdot12);
+		// Compute barycentric coordinates
+		float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+		float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+		float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+		// Check if point is in triangle
+		underCursor = (u >= 0) && (v >= 0) && (u + v < 1);
+		if (underCursor)
+			return;
+
+		// SECOND TRIANGLE
+		//// Compute vectors
+		//v0 = XMVectorSubtract(C, A);
+		v1 = XMVectorSubtract(D, A);
+		//v2 = XMVectorSubtract(P, A);
+		// Compute dot products
+		//vdot00 = XMVector3Dot(v0, v0);
+		vdot01 = XMVector3Dot(v0, v1);
+		//vdot02 = XMVector3Dot(v0, v2);
+		vdot11 = XMVector3Dot(v1, v1);
+		vdot12 = XMVector3Dot(v1, v2);
+		//dot00 = XMVectorGetX(vdot00);
+		dot01 = XMVectorGetX(vdot01);
+		//dot02 = XMVectorGetX(vdot02);
+		dot11 = XMVectorGetX(vdot11);
+		dot12 = XMVectorGetX(vdot12);
+		// Compute barycentric coordinates
+		invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+		u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+		v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+		// Check if point is in triangle
+		underCursor = (u >= 0) && (v >= 0) && (u + v < 1);
 	}
 
 	void CSprite::Destroy()
