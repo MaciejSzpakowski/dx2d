@@ -51,10 +51,14 @@ namespace dx2d
 
 	void CDynamic::Update()
 	{
-		Velocity = XMVectorAdd(Acceleration, Velocity);
-		Position = XMVectorAdd(Velocity, Position);
-		AngularVel = XMVectorAdd(AngularAcc, AngularVel);
-		Rotation = XMVectorAdd(AngularVel, Rotation);
+		XMVECTOR a = XMVectorScale(Acceleration, Core->GetFrameTime());
+		XMVECTOR v = XMVectorScale(Velocity, Core->GetFrameTime());
+		Velocity = XMVectorAdd(a, Velocity);
+		Position = XMVectorAdd(v, Position);
+		XMVECTOR ra = XMVectorScale(AngularAcc, Core->GetFrameTime());
+		XMVECTOR rv = XMVectorScale(AngularVel, Core->GetFrameTime());
+		AngularVel = XMVectorAdd(ra, AngularVel);
+		Rotation = XMVectorAdd(rv, Rotation);
 	}
 
 	bool CDynamic::IsUnderCursor()

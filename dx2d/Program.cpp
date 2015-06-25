@@ -39,9 +39,9 @@ void Activity()
 	c1->SetVelocityX(0);
 	c2->Color = XMFLOAT4(0, 0, 0, 0);
 	if (Input->IsKeyDown('A'))
-		c1->SetVelocityX(-0.01f);
+		c1->SetVelocityX(-10);
 	if (Input->IsKeyDown('D'))
-		c1->SetVelocityX(0.01f);
+		c1->SetVelocityX(10);
 	if (Collision::IsColliding(c1, c2))
 		c2->Color.r = 1;
 }

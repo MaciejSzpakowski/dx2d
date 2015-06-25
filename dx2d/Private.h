@@ -539,7 +539,9 @@ namespace dx2d
 		float Width;
 		float HorizontalSpacing;
 		float VerticalSpacing;
-		void Destroy();		
+		//set up scale to match given size
+		void SetPixelScale(int width, int height);
+		void Destroy();
 	};
 
 	class CDebugManager

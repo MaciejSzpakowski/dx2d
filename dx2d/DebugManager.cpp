@@ -20,9 +20,7 @@ namespace dx2d
 		debugText = DrawManager->AddBitmapText(font);
 		debugText->SetPosition(-9, 7, 10.3f);
 		debugText->Parent = Camera;
-		debugText->HorizontalSpacing = -0.25f;
-		debugText->Width = 15.0f / 21.0f;
-		debugText->Size = 0.251f;
+		debugText->SetPixelScale(15, 21);
 	}
 
 	void CDebugManager::Debug(int debug, wstring name)

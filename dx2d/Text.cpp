@@ -83,6 +83,18 @@ namespace dx2d
 		GetContext()->VSSetConstantBuffers(0, 1, &cbBufferVS);
 	}
 
+	void CBitmapText::SetPixelScale(int width, int height)
+	{		
+		POINTF frustum = Camera->GetFrustumSize(GetPosition().z);
+		RECT client;
+		GetClientRect(Core->GetWindowHandle(), &client);
+		POINTF clientSize = { (float)client.right - client.left, (float)client.bottom - client.top };
+		POINTF unitsPerPixel = { frustum.x / clientSize.x, frustum.y / clientSize.y };
+		Width = unitsPerPixel.x * width / 4;
+		Height = unitsPerPixel.y * height / 4;
+		Size = 1;
+	}
+
 	XMMATRIX CBitmapText::GetScaleMatrix()
 	{
 		return XMMatrixIdentity();
