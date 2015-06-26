@@ -25,17 +25,7 @@ namespace dx2d
 		Input->Activity();
 		EventManager->Activity();
 		d3d->UpdateGameTime();
-	}
-
-	ID3D11Device* GetDevice()
-	{
-		return Core->device;
-	}
-
-	ID3D11DeviceContext* GetContext()
-	{
-		return Core->context;
-	}
+	}	
 
 	void CreateSampler(TEX_FILTER mode, ID3D11SamplerState** sampler)
 	{
@@ -50,6 +40,16 @@ namespace dx2d
 		sampDesc.MinLOD = 0;
 		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 		GetDevice()->CreateSamplerState(&sampDesc, sampler);
+	}
+
+	ID3D11Device* GetDevice()
+	{
+		return Core->device;
+	}
+
+	ID3D11DeviceContext* GetContext()
+	{
+		return Core->context;
 	}
 
 	namespace Functions

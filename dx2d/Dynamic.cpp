@@ -51,12 +51,12 @@ namespace dx2d
 
 	void CDynamic::Update()
 	{
-		XMVECTOR a = XMVectorScale(Acceleration, Core->GetFrameTime());
-		XMVECTOR v = XMVectorScale(Velocity, Core->GetFrameTime());
+		XMVECTOR a = XMVectorScale(Acceleration, (float)Core->GetFrameTime());
+		XMVECTOR v = XMVectorScale(Velocity, (float)Core->GetFrameTime());
 		Velocity = XMVectorAdd(a, Velocity);
 		Position = XMVectorAdd(v, Position);
-		XMVECTOR ra = XMVectorScale(AngularAcc, Core->GetFrameTime());
-		XMVECTOR rv = XMVectorScale(AngularVel, Core->GetFrameTime());
+		XMVECTOR ra = XMVectorScale(AngularAcc, (float)Core->GetFrameTime());
+		XMVECTOR rv = XMVectorScale(AngularVel, (float)Core->GetFrameTime());
 		AngularVel = XMVectorAdd(ra, AngularVel);
 		Rotation = XMVectorAdd(rv, Rotation);
 	}

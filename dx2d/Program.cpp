@@ -10,18 +10,10 @@ CSprite* s1, *s2;
 CAnimation* a1;
 CBitmapText* bmtext;
 std::vector<CSprite*> sprites;
-int t1;
 
 void Activity()
 {
-	Sleep(1);
-	if ((int)time(0) != t1)
-	{
-		t1 = (int)time(0);
-		wchar_t sfps[20];
-		swprintf_s(sfps, 20, L"%i", (int)Core->GetFps());
-		Core->SetWindowTitle(sfps);
-	}
+	Sleep(1);	
 
 	Camera->SetVelocity(0, 0, 0);
 	Camera->SetAngularVelZ(0);
@@ -49,8 +41,15 @@ void Activity()
 int main(int argc, char** argv)
 {
 	Functions::NewCore(800, 600, Activity);
-	t1 = (int)time(0);
 
+	//fps
+	EventManager->AddEvent([]()
+	{
+		wchar_t sfps[20];
+		swprintf_s(sfps, 20, L"%i", (int)Core->GetFps());
+		Core->SetWindowTitle(sfps);
+		return 1;
+	}, L"", 0, 0, 1);
 	Core->OpenConsole();
 	Core->SetBackgroundColor({ 0, 0, 0, 1 });
 	c1 = DrawManager->AddCircle(1, 10);
