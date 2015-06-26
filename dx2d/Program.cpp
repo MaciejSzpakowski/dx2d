@@ -76,6 +76,13 @@ int main(int argc, char** argv)
 		return 1;
 	}, L"", 0, 0, 2);
 
+	int t1 = time(0);
+	for (int i = 0; i < 2000; i++)
+	{
+		Functions::CreateTexture2DFromFile(L"sun_flower.png");
+	}
+	printf("%is\n", time(0) - t1);
+
 	Core->Run();
 	Core->Destroy();
 	return 0;

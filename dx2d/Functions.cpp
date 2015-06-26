@@ -18,13 +18,13 @@ namespace dx2d
 
 	void Render(CCore* d3d)
 	{		
-		Camera->CamTransform();
-		d3d->context->ClearRenderTargetView(d3d->backBuffer, d3d->backBufferColor);
-		DrawManager->DrawAll();		
-		d3d->swapChain->Present(0, 0);
-		Input->Activity();
-		EventManager->Activity();
-		d3d->UpdateGameTime();
+		Camera->zCamTransform();
+		d3d->zContext->ClearRenderTargetView(d3d->zBackBuffer, d3d->zBackBufferColor);
+		DrawManager->zDrawAll();		
+		d3d->zSwapChain->Present(0, 0);
+		Input->zActivity();
+		EventManager->zActivity();
+		d3d->zUpdateGameTime();
 	}	
 
 	void CreateSampler(TEX_FILTER mode, ID3D11SamplerState** sampler)
@@ -39,17 +39,7 @@ namespace dx2d
 		sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 		sampDesc.MinLOD = 0;
 		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-		GetDevice()->CreateSamplerState(&sampDesc, sampler);
-	}
-
-	ID3D11Device* GetDevice()
-	{
-		return Core->device;
-	}
-
-	ID3D11DeviceContext* GetContext()
-	{
-		return Core->context;
+		Core->zDevice->CreateSamplerState(&sampDesc, sampler);
 	}
 
 	namespace Functions
@@ -58,7 +48,7 @@ namespace dx2d
 		{
 			CCore* core = new CCore(sizex, sizey, worker, style);
 			return core;
-		}	
+		}
 
 		ID3D11Texture2D* CreateTexture2DFromBytes(BYTE* data, int width, int height)
 		{
@@ -84,21 +74,19 @@ namespace dx2d
 			tdesc.CPUAccessFlags = 0;
 			tdesc.MiscFlags = 0;
 
-			GetDevice()->CreateTexture2D(&tdesc, &tbsd, &tex);
+			Core->zDevice->CreateTexture2D(&tdesc, &tbsd, &tex);
 
 			return tex;
 		}
 
-		ID3D11Texture2D* CreateTexture2DFromGdibitmap(Gdiplus::Bitmap* _gdibitmap)
+		ID3D11Texture2D* CreateTexture2DFromGdibitmap(Gdiplus::Bitmap* gdibitmap)
 		{
-			Gdiplus::Bitmap* gdibitmap = _gdibitmap;
 			UINT h = gdibitmap->GetHeight();
 			UINT w = gdibitmap->GetWidth();
 
-			HBITMAP hbitmap;
+			/*HBITMAP hbitmap;
 			Gdiplus::Color c(0, 0, 0);
 			gdibitmap->GetHBITMAP(c, &hbitmap);
-			delete gdibitmap;
 
 			BITMAP bitmap;
 			GetObject(hbitmap, sizeof(bitmap), (LPVOID)&bitmap);
@@ -115,6 +103,24 @@ namespace dx2d
 
 			ID3D11Texture2D* tex = CreateTexture2DFromBytes(data, w, h);
 			DeleteObject(hbitmap);
+			return tex;*/
+			Gdiplus::BitmapData* bitmapData = new Gdiplus::BitmapData;
+			Gdiplus::Rect rect(0, 0, w, h);
+
+			// Lock a 5x3 rectangular portion of the bitmap for reading.
+			gdibitmap->LockBits(
+				&rect,
+				Gdiplus::ImageLockModeRead,
+				PixelFormat32bppARGB,
+				bitmapData);
+
+			// Display the hexadecimal value of each pixel in the 5x3 rectangle.
+			UINT* pixels = (UINT*)bitmapData->Scan0;
+
+			gdibitmap->UnlockBits(bitmapData);
+
+			delete bitmapData;
+			ID3D11Texture2D* tex = CreateTexture2DFromBytes((BYTE*)pixels, w, h);
 			return tex;
 		}
 
@@ -135,6 +141,7 @@ namespace dx2d
 				return nullptr;
 			}
 			ID3D11Texture2D* tex = CreateTexture2DFromGdibitmap(gdibitmap);
+			delete gdibitmap;
 			Gdiplus::GdiplusShutdown(m_gdiplusToken);
 			return tex;
 		}
@@ -158,6 +165,7 @@ namespace dx2d
 				return nullptr;
 			}
 			ID3D11Texture2D* tex = CreateTexture2DFromGdibitmap(gdibitmap);
+			delete gdibitmap;
 			Gdiplus::GdiplusShutdown(m_gdiplusToken);
 			return tex;
 		}		
@@ -169,7 +177,7 @@ namespace dx2d
 			CTexture* res = ResourceManager->GetTexture(file);
 			if (res != nullptr)
 			{
-				shader = res->shaderResource;
+				shader = res->zShaderResource;
 				return res;
 			}
 			else
@@ -179,14 +187,14 @@ namespace dx2d
 				if (tex == nullptr)
 					throw 0;
 				tex->GetDesc(&desc);
-				GetDevice()->CreateShaderResourceView(tex, 0, &shader);
+				Core->zDevice->CreateShaderResourceView(tex, 0, &shader);
 				tex->Release();
 				//add to resources
 				CTexture* newRes = new CTexture;
-				newRes->name = file;
-				newRes->Height = desc.Height;
-				newRes->Width = desc.Width;
-				newRes->shaderResource = shader;
+				newRes->zName = file;
+				newRes->zHeight = desc.Height;
+				newRes->zWidth = desc.Width;
+				newRes->zShaderResource = shader;
 				ResourceManager->AddTexture(newRes);
 				return newRes;
 			}
@@ -198,7 +206,7 @@ namespace dx2d
 			CTexture* res = ResourceManager->GetTexture(name);
 			if (res != nullptr)
 			{
-				shader = res->shaderResource;
+				shader = res->zShaderResource;
 				return res;
 			}
 			else
@@ -208,14 +216,14 @@ namespace dx2d
 				if (tex == nullptr)
 					throw 0;
 				tex->GetDesc(&desc);
-				GetDevice()->CreateShaderResourceView(tex, 0, &shader);
+				Core->zDevice->CreateShaderResourceView(tex, 0, &shader);
 				tex->Release();
 				//add to resources
 				CTexture* newRes = new CTexture;
-				newRes->name = name;
-				newRes->Height = desc.Height;
-				newRes->Width = desc.Width;
-				newRes->shaderResource = shader;
+				newRes->zName = name;
+				newRes->zHeight = desc.Height;
+				newRes->zWidth = desc.Width;
+				newRes->zShaderResource = shader;
 				ResourceManager->AddTexture(newRes);
 				return newRes;
 			}

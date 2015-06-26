@@ -5,7 +5,7 @@ namespace dx2d
 	CBitmapText::CBitmapText(CBitmapFont* _font)
 	{
 		Color = XMFLOAT4(1, 1, 1, 1);
-		font = _font;
+		zFont = _font;
 		Text = L"";
 		HorizontalAlign = TextHorAlign::Left;
 		VerticalAlign = TextVerAlign::Top;
@@ -16,15 +16,15 @@ namespace dx2d
 		Size = 1;
 	}
 
-	void CBitmapText::Draw()
+	void CBitmapText::zDraw()
 	{
 		if (Text.length() == 0)
 			return;
 		//color
-		GetContext()->UpdateSubresource(cbBufferPS, 0, NULL, &Color, 0, 0);
-		GetContext()->PSSetConstantBuffers(0, 1, &cbBufferPS);
+		Core->zContext->UpdateSubresource(zCbBufferPS, 0, NULL, &Color, 0, 0);
+		Core->zContext->PSSetConstantBuffers(0, 1, &zCbBufferPS);
 		//tex
-		GetContext()->PSSetShaderResources(0, 1, &font->shaderResource);
+		Core->zContext->PSSetShaderResources(0, 1, &zFont->zShaderResource);
 		int len = (int)Text.length();
 		int col = 0;
 		int row = 0;
@@ -39,18 +39,18 @@ namespace dx2d
 			}			
 			//uv
 			int index = Text[i] - ' ';
-			if (index < 0 || index > font->chars.size())
+			if (index < 0 || index > zFont->zChars.size())
 				continue;
-			GetContext()->UpdateSubresource(cbBufferUV, 0, NULL, &(font->chars[index]), 0, 0);
-			GetContext()->VSSetConstantBuffers(1, 1, &cbBufferUV);
+			Core->zContext->UpdateSubresource(zCbBufferUV, 0, NULL, &(zFont->zChars[index]), 0, 0);
+			Core->zContext->VSSetConstantBuffers(1, 1, &zCbBufferUV);
 			//transform letter and draw
-			TextTransform(col,row, len);
-			GetContext()->DrawIndexed(6, 0, 0);
+			zTextTransform(col,row, len);
+			Core->zContext->DrawIndexed(6, 0, 0);
 			col++;
 		}
 	}
 
-	void CBitmapText::TextTransform(int col, int row, int len)
+	void CBitmapText::zTextTransform(int col, int row, int len)
 	{
 		float _Height = Height * Size;
 		float _Width = Width * Size;
@@ -63,24 +63,25 @@ namespace dx2d
 		else if (HorizontalAlign == TextHorAlign::Right)
 			horAlignOffset = (float)-len;
 		XMMATRIX scale = XMMatrixScaling(_Width, _Height, 1);
-		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(Rotation);
+		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(zRotation);
 		//origin is translation matrix from the center of the text object
 		XMMATRIX origin = XMMatrixTranslation(
 			(col*(_Width+_HorizontalSpacing) + horAlignOffset)*2,
 			(-row*(_Height+_VerticalSpacing) + verAlignOffset)*2, 0);
-		XMMATRIX loc = XMMatrixTranslationFromVector(Position);
+		XMMATRIX loc = XMMatrixTranslationFromVector(zPosition);
 		XMMATRIX worldViewProj;
 		if (Parent == nullptr)
-			worldViewProj  = scale * origin * rot * loc * Camera->view * Camera->proj;
+			worldViewProj  = scale * origin * rot * loc * Camera->zView * Camera->zProj;
 		else
 		{
-			XMMATRIX parentLoc = XMMatrixRotationRollPitchYawFromVector(Parent->Rotation);
-			XMMATRIX parentRot = XMMatrixTranslationFromVector(Parent->Position);
-			worldViewProj = scale * origin * rot * loc * parentLoc * parentRot * Camera->view * Camera->proj;
+			XMMATRIX parentLoc = XMMatrixRotationRollPitchYawFromVector(Parent->zRotation);
+			XMMATRIX parentRot = XMMatrixTranslationFromVector(Parent->zPosition);
+			worldViewProj = scale * origin * rot * loc * parentLoc * parentRot *
+				Camera->zView * Camera->zProj;
 		}
 		worldViewProj = XMMatrixTranspose(worldViewProj);
-		GetContext()->UpdateSubresource(cbBufferVS, 0, NULL, &worldViewProj, 0, 0);
-		GetContext()->VSSetConstantBuffers(0, 1, &cbBufferVS);
+		Core->zContext->UpdateSubresource(zCbBufferVS, 0, NULL, &worldViewProj, 0, 0);
+		Core->zContext->VSSetConstantBuffers(0, 1, &zCbBufferVS);
 	}
 
 	void CBitmapText::SetPixelScale(int width, int height)
@@ -88,14 +89,15 @@ namespace dx2d
 		POINTF frustum = Camera->GetFrustumSize(GetPosition().z);
 		RECT client;
 		GetClientRect(Core->GetWindowHandle(), &client);
-		POINTF clientSize = { (float)client.right - client.left, (float)client.bottom - client.top };
+		POINTF clientSize = { (float)client.right - client.left, 
+			(float)client.bottom - client.top };
 		POINTF unitsPerPixel = { frustum.x / clientSize.x, frustum.y / clientSize.y };
 		Width = unitsPerPixel.x * width / 4;
 		Height = unitsPerPixel.y * height / 4;
 		Size = 1;
 	}
 
-	XMMATRIX CBitmapText::GetScaleMatrix()
+	XMMATRIX CBitmapText::zGetScaleMatrix()
 	{
 		return XMMatrixIdentity();
 	}
@@ -108,21 +110,21 @@ namespace dx2d
 
 	CBitmapFont::CBitmapFont(const WCHAR* file, vector<UV> _chars)
 	{
-		resName = file;
-		chars = _chars;
-		Functions::LoadCachedTextureFromFile(file, shaderResource);
+		zResName = file;
+		zChars = _chars;
+		Functions::LoadCachedTextureFromFile(file, zShaderResource);
 	}
 
 	CBitmapFont::CBitmapFont(CTexture* texture, vector<UV> _chars)
 	{
-		resName = texture->name;
-		chars = _chars;
-		shaderResource = texture->shaderResource;
+		zResName = texture->zName;
+		zChars = _chars;
+		zShaderResource = texture->zShaderResource;
 	}
 
 	wstring CBitmapFont::GetName()
 	{
-		return resName;
+		return zResName;
 	}
 
 	void CBitmapFont::Destroy()

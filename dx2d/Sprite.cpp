@@ -3,7 +3,7 @@
 /* HOW TO GET ID3D11TEXTURE2D and D3D11_TEXTURE2D_DESC from ID3D11ShaderResourceView
 ID3D11Texture2D *pTextureInterface = 0;
 ID3D11Resource *res;
-shaderResource->GetResource(&res);
+zShaderResource->GetResource(&res);
 res->QueryInterface<ID3D11Texture2D>(&pTextureInterface);
 D3D11_TEXTURE2D_DESC desc;
 pTextureInterface->GetDesc(&desc);
@@ -11,15 +11,13 @@ pTextureInterface->GetDesc(&desc);
 
 namespace dx2d
 {
-	ID3D11Device* GetDevice();
-	ID3D11DeviceContext* GetContext();
 	void CreateStandardSampler(ID3D11SamplerState** sampler);
 
 	CSprite::CSprite()
 	{
 		FlipHorizontally = false;
 		FlipVertically = false;
-		uncachedTex = false;
+		zUncachedTex = false;
 		Scale = XMFLOAT2(1, 1);
 		Color = XMFLOAT4(1, 1, 1, 1);
 		TexFilter = DrawManager->TexFilterCreationMode;
@@ -27,64 +25,64 @@ namespace dx2d
 
 	CSprite::CSprite(const WCHAR* file)
 	{
-		resource = file;
+		zResource = file;
 		FlipHorizontally = false;
 		FlipVertically = false;
-		uncachedTex = false;
-		vertexBuffer = nullptr;
+		zUncachedTex = false;
+		zVertexBuffer = nullptr;
 		Scale = XMFLOAT2(1, 1);
 		Color = XMFLOAT4(1, 1, 1, 1);
 		TexFilter = DrawManager->TexFilterCreationMode;
 
-		Functions::LoadCachedTextureFromFile(file, shaderResource);		
+		Functions::LoadCachedTextureFromFile(file, zShaderResource);		
 	}
 
 	CSprite::CSprite(CTexture* texture)
 	{
-		resource = texture->name;
+		zResource = texture->zName;
 		FlipHorizontally = false;
 		FlipVertically = false;
-		uncachedTex = false;
-		vertexBuffer = nullptr;
+		zUncachedTex = false;
+		zVertexBuffer = nullptr;
 		Scale = XMFLOAT2(1, 1);
 		Color = XMFLOAT4(1, 1, 1, 1);
 		TexFilter = DrawManager->TexFilterCreationMode;
-		shaderResource = texture->shaderResource;
+		zShaderResource = texture->zShaderResource;
 	}
 
-	void CSprite::Draw()
+	void CSprite::zDraw()
 	{
 		//color
-		GetContext()->UpdateSubresource(cbBufferPS, 0, NULL, &Color, 0, 0);
-		GetContext()->PSSetConstantBuffers(0, 1, &cbBufferPS);
+		Core->zContext->UpdateSubresource(zCbBufferPS, 0, NULL, &Color, 0, 0);
+		Core->zContext->PSSetConstantBuffers(0, 1, &zCbBufferPS);
 		//uv
 		UV _uv;
 		_uv.left = FlipHorizontally ? uv.right : uv.left;
 		_uv.right = FlipHorizontally ? uv.left : uv.right;
 		_uv.top = FlipVertically ? uv.bottom : uv.top;
 		_uv.bottom = FlipVertically ? uv.top : uv.bottom;
-		GetContext()->UpdateSubresource(cbBufferUV, 0, NULL, &_uv, 0, 0);
-		GetContext()->VSSetConstantBuffers(1, 1, &cbBufferUV);
+		Core->zContext->UpdateSubresource(zCbBufferUV, 0, NULL, &_uv, 0, 0);
+		Core->zContext->VSSetConstantBuffers(1, 1, &zCbBufferUV);
 		//tex
-		GetContext()->PSSetShaderResources(0, 1, &shaderResource);
+		Core->zContext->PSSetShaderResources(0, 1, &zShaderResource);
 		//draw
-		GetContext()->DrawIndexed(6, 0, 0);
+		Core->zContext->DrawIndexed(6, 0, 0);
 	}
 
-	XMMATRIX CSprite::GetScaleMatrix()
+	XMMATRIX CSprite::zGetScaleMatrix()
 	{
 		return XMMatrixScaling(Scale.x, Scale.y, 1);
 	}
 
 	CTexture* CSprite::GetTexture()
 	{
-		return ResourceManager->GetTexture(resource);
+		return ResourceManager->GetTexture(zResource);
 	}
 
 	void CSprite::SetNaturalScale()
 	{
 		CTexture* tex = GetTexture();
-		SetPixelScale(tex->Width, tex->Height);
+		SetPixelScale(tex->zWidth, tex->zHeight);
 	}
 
 	void CSprite::SetPixelScale(int width, int height)
@@ -92,13 +90,14 @@ namespace dx2d
 		POINTF frustum = Camera->GetFrustumSize(GetPosition().z);
 		RECT client;
 		GetClientRect(Core->GetWindowHandle(), &client);
-		POINTF clientSize = { (float)client.right - client.left, (float)client.bottom - client.top };
+		POINTF clientSize = { (float)client.right - client.left,
+			(float)client.bottom - client.top };
 		POINTF unitsPerPixel = { frustum.x / clientSize.x, frustum.y / clientSize.y };
 		Scale.x = unitsPerPixel.x * width / 2;
 		Scale.y = unitsPerPixel.y * height / 2;
 	}
 
-	void CSprite::CheckForCursor(XMMATRIX transform)
+	void CSprite::zCheckForCursor(XMMATRIX transform)
 	{
 		POINTF pf = Camera->GetCursorWorldPos(GetPosition().z);
 		XMVECTOR A = XMVectorSet(-1.0f, -1.0f, 0, 1);
@@ -132,8 +131,8 @@ namespace dx2d
 		float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
 		float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 		// Check if point is in triangle
-		underCursor = (u >= 0) && (v >= 0) && (u + v < 1);
-		if (underCursor)
+		zUnderCursor = (u >= 0) && (v >= 0) && (u + v < 1);
+		if (zUnderCursor)
 			return;
 
 		// SECOND TRIANGLE
@@ -157,67 +156,68 @@ namespace dx2d
 		u = (dot11 * dot02 - dot01 * dot12) * invDenom;
 		v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 		// Check if point is in triangle
-		underCursor = (u >= 0) && (v >= 0) && (u + v < 1);
+		zUnderCursor = (u >= 0) && (v >= 0) && (u + v < 1);
 	}
 
 	void CSprite::Destroy()
 	{
 		DrawManager->RemoveSprite(this);
-		if (uncachedTex)
-			shaderResource->Release();
+		if (zUncachedTex)
+			zShaderResource->Release();
 		delete this;
 	}
 
 	CAnimation::CAnimation(const WCHAR* file, int x, int y) : CSprite(file)
 	{
-		frameCount = x*y;
+		zFrameCount = x*y;
 		Start = 0;
-		Finish = frameCount - 1;
+		Finish = zFrameCount - 1;
 		Frame = 0;
 		Speed = 1;
-		frameChanged = true;
-		indicator = 0;
-		uvTable.reserve(frameCount);
+		zFrameChanged = true;
+		zIndicator = 0;
+		zUvTable.reserve(zFrameCount);
 		for (int i = 0; i < y; i++)
 			for (int j = 0; j < x; j++)
-				uvTable.push_back(UV(1.0f / x*j, 1.0f / y*i, 1.0f / x*(j + 1), 1.0f / y*(i + 1)));
-		uv = uvTable[Frame];
+				zUvTable.push_back(UV(1.0f / x*j, 1.0f / y*i, 1.0f / 
+				x*(j + 1), 1.0f / y*(i + 1)));
+		uv = zUvTable[Frame];
 	}
 
-	void CAnimation::Play()
+	void CAnimation::zPlay()
 	{
 		if (Speed != 0)
 		{
-			indicator += Speed * Core->GetFrameTime();
-			frameChanged = false;
-			if (indicator > 1)
+			zIndicator += Speed * Core->GetFrameTime();
+			zFrameChanged = false;
+			if (zIndicator > 1)
 			{
-				indicator = 0;
-				frameChanged = true;
+				zIndicator = 0;
+				zFrameChanged = true;
 				NextFrame();
 			}
-			else if (indicator < 0)
+			else if (zIndicator < 0)
 			{
-				indicator = 1;
-				frameChanged = true;
+				zIndicator = 1;
+				zFrameChanged = true;
 				PreviousFrame();
 			}
 		}
-		uv = uvTable[Frame];
+		uv = zUvTable[Frame];
 	}
 
 	void CAnimation::SetOrder(int* order)
 	{
 		vector<UV> newUvtable;
-		newUvtable.reserve(frameCount);
-		for (int i = 0; i < frameCount; i++)
-			newUvtable[i] = uvTable[order[i]];
-		uvTable = newUvtable;
+		newUvtable.reserve(zFrameCount);
+		for (int i = 0; i < zFrameCount; i++)
+			newUvtable[i] = zUvTable[order[i]];
+		zUvTable = newUvtable;
 	}
 
 	int CAnimation::GetFrameCount()
 	{
-		return frameCount;
+		return zFrameCount;
 	}
 
 	void CAnimation::NextFrame()
@@ -236,6 +236,6 @@ namespace dx2d
 
 	bool CAnimation::FrameChanged()
 	{
-		return frameChanged;
+		return zFrameChanged;
 	}
 }

@@ -8,13 +8,13 @@ namespace dx2d
 
 	void CResourceManager::AddTexture(CTexture* tex)
 	{
-		textures[tex->name] = tex;
+		zTextures[tex->zName] = tex;
 	}
 
 	CTexture* CResourceManager::GetTexture(wstring file)
 	{
-		auto it = textures.find(file);
-		if (it != textures.end())
+		auto it = zTextures.find(file);
+		if (it != zTextures.end())
 			return it->second;
 		else
 			return nullptr;
@@ -22,13 +22,13 @@ namespace dx2d
 
 	void CResourceManager::AddBitmapFont(CBitmapFont* font)
 	{
-		fonts[font->GetName()] = font;
+		zFonts[font->GetName()] = font;
 	}
 
 	CBitmapFont* CResourceManager::GetBitmapFont(wstring file)
 	{
-		auto it = fonts.find(file);
-		if (it != fonts.end())
+		auto it = zFonts.find(file);
+		if (it != zFonts.end())
 			return it->second;
 		else
 			return nullptr;
@@ -36,12 +36,12 @@ namespace dx2d
 
 	void CResourceManager::Clear()
 	{
-		for (auto const &it : textures)
+		for (auto const &it : zTextures)
 			delete it.second;
-		textures.clear();
-		for (auto const &it : fonts)
+		zTextures.clear();
+		for (auto const &it : zFonts)
 			delete it.second;
-		fonts.clear();
+		zFonts.clear();
 	}
 
 	void CResourceManager::Destroy()

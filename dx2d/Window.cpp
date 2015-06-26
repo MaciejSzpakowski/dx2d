@@ -15,7 +15,7 @@ namespace dx2d
 		case WM_COMMAND:
 			break;
 		case WM_MOUSEWHEEL:
-			Input->mouseWheel = GET_WHEEL_DELTA_WPARAM(wParam);
+			Input->zMouseWheel = GET_WHEEL_DELTA_WPARAM(wParam);
 			break;
 		default:
 			return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -27,7 +27,7 @@ namespace dx2d
 	{
 		const wchar_t className[] = L"myWindowClass";
 		WNDCLASSEX wc;		
-		ZeroMemory(&Msg, sizeof(Msg));
+		ZeroMemory(&zMsg, sizeof(zMsg));
 		ZeroMemory(&wc, sizeof(wc));
 		wc.cbSize = sizeof(WNDCLASSEX);
 		wc.lpfnWndProc = WndProc;
@@ -48,12 +48,12 @@ namespace dx2d
 		AdjustWindowRectEx(&rect, style | WS_CLIPSIBLINGS,
 			FALSE, 0);
 
-		handle = CreateWindowEx(0,
+		zHandle = CreateWindowEx(0,
 			className,	L"",	style,
 			CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top,
 			NULL, NULL, GetModuleHandle(0), NULL);
 
-		if (handle == NULL)
+		if (zHandle == NULL)
 		{
 			MessageBox(NULL, L"Window Creation Failed!", L"Error!",
 				MB_ICONEXCLAMATION | MB_OK);
@@ -61,23 +61,23 @@ namespace dx2d
 		}
 	}
 
-	int CWindow::Run()
+	int CWindow::zRun()
 	{
-		ShowWindow(handle, SW_SHOW);
-		UpdateWindow(handle);
-		while (WM_QUIT != Msg.message)
+		ShowWindow(zHandle, SW_SHOW);
+		UpdateWindow(zHandle);
+		while (WM_QUIT != zMsg.message)
 		{
-			if (PeekMessage(&Msg, NULL, 0, 0, PM_REMOVE))
+			if (PeekMessage(&zMsg, NULL, 0, 0, PM_REMOVE))
 			{
-					TranslateMessage(&Msg);
-					DispatchMessage(&Msg);
+					TranslateMessage(&zMsg);
+					DispatchMessage(&zMsg);
 			}
 			else
 			{
-				Worker();
-				Render(Core);
+				zWorker();
+				zRender(Core);
 			}
 		}
-		return (int)Msg.wParam;
+		return (int)zMsg.wParam;
 	}
 }

@@ -10,10 +10,10 @@ namespace dx2d
 		ZeroMemory(&rd, sizeof(rd));
 		rd.FillMode = D3D11_FILL_WIREFRAME;
 		rd.CullMode = D3D11_CULL_NONE;
-		hr = GetDevice()->CreateRasterizerState(&rd, &wireframe); CHECKHR();
+		hr = Core->zDevice->CreateRasterizerState(&rd, &zWireframe); CHECKHR();
 		rd.FillMode = D3D11_FILL_SOLID;
 		rd.CullMode = D3D11_CULL_FRONT;
-		hr = GetDevice()->CreateRasterizerState(&rd, &solid); CHECKHR();
+		hr = Core->zDevice->CreateRasterizerState(&rd, &zSolid); CHECKHR();
 
 		//sprite shared buffer
 		Vertex v[] =
@@ -35,10 +35,10 @@ namespace dx2d
 
 		D3D11_SUBRESOURCE_DATA srd;
 		srd.pSysMem = indices;
-		GetDevice()->CreateBuffer(&indexBufferDesc, &srd, &indexBufferSprite);
+		Core->zDevice->CreateBuffer(&indexBufferDesc, &srd, &zIndexBufferSprite);
 
 		//so far the only indexed buffer in the engine
-		GetContext()->IASetIndexBuffer(indexBufferSprite, DXGI_FORMAT_R32_UINT, 0);
+		Core->zContext->IASetIndexBuffer(zIndexBufferSprite, DXGI_FORMAT_R32_UINT, 0);
 
 		D3D11_BUFFER_DESC vertexBufferDesc;
 		ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
@@ -51,46 +51,46 @@ namespace dx2d
 		D3D11_SUBRESOURCE_DATA vertexBufferData;
 		ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
 		vertexBufferData.pSysMem = v;
-		GetDevice()->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &vertexBufferSprite);
+		Core->zDevice->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &zVertexBufferSprite);
 
 		//default white texture used by non textured objects
 		BYTE fourOnes[4] = { 1, 1, 1, 1 };
 		ID3D11Texture2D* tex = Functions::CreateTexture2DFromBytes(fourOnes, 1, 1);
-		GetDevice()->CreateShaderResourceView(tex, 0, &whiteRes);
+		Core->zDevice->CreateShaderResourceView(tex, 0, &zWhiteRes);
 		tex->Release();		
 		
-		CreateSampler(TEX_FILTER::POINT,&pointSampler);
-		CreateSampler(TEX_FILTER::LINEAR, &lineSampler);
+		CreateSampler(TEX_FILTER::POINT,&zPointSampler);
+		CreateSampler(TEX_FILTER::LINEAR, &zLineSampler);
 		TexFilterCreationMode = TEX_FILTER::POINT;		
 	}
 
 	void CDrawManager::AddPoly(CPolygon* p)
 	{
-		Polygons.push_back(p);
-		p->index = (int)Polygons.size() - 1;
+		zPolygons.push_back(p);
+		p->zIndex = (int)zPolygons.size() - 1;
 	}
 
 	CPolygon* CDrawManager::AddPoly(XMFLOAT2 points[], int n)
 	{
 		CPolygon* newPoly = new CPolygon(points, n);
-		Polygons.push_back(newPoly);
-		newPoly->index = (int)Polygons.size() - 1;
+		zPolygons.push_back(newPoly);
+		newPoly->zIndex = (int)zPolygons.size() - 1;
 		return newPoly;
 	}
 
 	CRectangle* CDrawManager::AddRect(float sizex, float sizey)
 	{
 		CRectangle* newRect = new CRectangle(sizex,sizey);
-		Polygons.push_back(newRect);
-		newRect->index = (int)Polygons.size() - 1;
+		zPolygons.push_back(newRect);
+		newRect->zIndex = (int)zPolygons.size() - 1;
 		return newRect;
 	}
 
 	CCircle* CDrawManager::AddCircle(float radius, unsigned char resolution)
 	{
 		CCircle* newCircle = new CCircle(radius, resolution);
-		Polygons.push_back(newCircle);
-		newCircle->index = (int)Polygons.size() - 1;
+		zPolygons.push_back(newCircle);
+		newCircle->zIndex = (int)zPolygons.size() - 1;
 		return newCircle;
 	}
 
@@ -105,15 +105,15 @@ namespace dx2d
 		{
 			return nullptr;
 		}
-		Sprites.push_back(newSprite);
-		newSprite->index = (int)Sprites.size() - 1;
+		zSprites.push_back(newSprite);
+		newSprite->zIndex = (int)zSprites.size() - 1;
 		return newSprite;
 	}
 
 	void CDrawManager::AddSprite(CSprite* s)
 	{
-		Sprites.push_back(s);
-		s->index = (int)Sprites.size() - 1;
+		zSprites.push_back(s);
+		s->zIndex = (int)zSprites.size() - 1;
 	}
 
 	CAnimation* CDrawManager::AddAnimation(const WCHAR* texture, int x, int y)
@@ -127,8 +127,8 @@ namespace dx2d
 		{
 			return nullptr;
 		}
-		Sprites.push_back(newAnimation);
-		newAnimation->index = (int)Sprites.size() - 1;
+		zSprites.push_back(newAnimation);
+		newAnimation->zIndex = (int)zSprites.size() - 1;
 		return newAnimation;
 	}
 
@@ -137,120 +137,121 @@ namespace dx2d
 		AddSprite(a);
 	}
 
-	void CDrawManager::DrawAll()
+	void CDrawManager::zDrawAll()
 	{
-		GetContext()->ClearDepthStencilView(Core->depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		Core->zContext->ClearDepthStencilView(Core->zDepthStencilView, 
+			D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 		//GetContext()->OMSetBlendState(Core->blendState, 0, 0xffffffff);
 
 		//polys
-		GetContext()->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP);
-		GetContext()->RSSetState(wireframe);
-		for (CPolygon* p : Polygons)
+		Core->zContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP);
+		Core->zContext->RSSetState(zWireframe);
+		for (CPolygon* p : zPolygons)
 		{			
-			p->Update();
+			p->zUpdate();
 			if (p->Visible)
 			{				
-				p->Transform();
-				p->Draw();
+				p->zTransform();
+				p->zDraw();
 			}
 		}
 		
 		//sprites, animations
-		GetContext()->RSSetState(solid);
-		GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		Core->zContext->RSSetState(zSolid);
+		Core->zContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
-		GetContext()->IASetVertexBuffers(0, 1, &vertexBufferSprite, &stride, &offset);
-		for (CSprite* s : Sprites)
+		Core->zContext->IASetVertexBuffers(0, 1, &zVertexBufferSprite, &stride, &offset);
+		for (CSprite* s : zSprites)
 		{
-			s->Update();
-			s->Play();
+			s->zUpdate();
+			s->zPlay();
 			if (s->Visible)
 			{
 				if(s->TexFilter == TEX_FILTER::LINEAR)
-					GetContext()->PSSetSamplers(0, 1, &lineSampler);
+					Core->zContext->PSSetSamplers(0, 1, &zLineSampler);
 				else
-					GetContext()->PSSetSamplers(0, 1, &pointSampler);
-				s->Transform();
-				s->Draw();
+					Core->zContext->PSSetSamplers(0, 1, &zPointSampler);
+				s->zTransform();
+				s->zDraw();
 			}
 		}
 		//flush debug
 		DebugManager->Flush();
 		//bitmap text
-		for (CBitmapText* t : Texts)
+		for (CBitmapText* t : zTexts)
 		{
-			t->Update();
+			t->zUpdate();
 			if (t->Visible)
 			{
 				if (t->TexFilter == TEX_FILTER::LINEAR)
-					GetContext()->PSSetSamplers(0, 1, &lineSampler);
+					Core->zContext->PSSetSamplers(0, 1, &zLineSampler);
 				else
-					GetContext()->PSSetSamplers(0, 1, &pointSampler);
-				t->Draw();
+					Core->zContext->PSSetSamplers(0, 1, &zPointSampler);
+				t->zDraw();
 			}
 		}
 	}
 
 	void CDrawManager::Destroy()
 	{
-		lineSampler->Release();
-		pointSampler->Release();
-		for (int i = (int)Polygons.size() - 1; i >= 0; i--)
-			Polygons[i]->Destroy();
-		for (int i = (int)Sprites.size() - 1; i >= 0; i--)
-			Sprites[i]->Destroy();
-		indexBufferSprite->Release();
-		vertexBufferSprite->Release();
-		wireframe->Release();
-		solid->Release();
+		zLineSampler->Release();
+		zPointSampler->Release();
+		for (int i = (int)zPolygons.size() - 1; i >= 0; i--)
+			zPolygons[i]->Destroy();
+		for (int i = (int)zSprites.size() - 1; i >= 0; i--)
+			zSprites[i]->Destroy();
+		zIndexBufferSprite->Release();
+		zVertexBufferSprite->Release();
+		zWireframe->Release();
+		zSolid->Release();
 		delete this;
 	}
 
 	void CDrawManager::RemovePoly(CPolygon* p)
 	{
-		if (p->index == -1)
+		if (p->zIndex == -1)
 			return;
-		if (Polygons.size() == 0 || Polygons[p->index] != p)
+		if (zPolygons.size() == 0 || zPolygons[p->zIndex] != p)
 		{
 			MessageBox(0, L"This polygon is not in CDrawManager.Polygons", L"Error", MB_ICONERROR);
 			return;
 		}
-		else if (p->index == Polygons.size() - 1)
+		else if (p->zIndex == zPolygons.size() - 1)
 		{			
-			Polygons.pop_back();
+			zPolygons.pop_back();
 		}
 		else
 		{
 			//move end to where p is and update index
-			Polygons[p->index] = Polygons.back();
-			Polygons[p->index]->index = p->index;
-			Polygons.pop_back();
+			zPolygons[p->zIndex] = zPolygons.back();
+			zPolygons[p->zIndex]->zIndex = p->zIndex;
+			zPolygons.pop_back();
 		}
-		p->index = -1;
+		p->zIndex = -1;
 	}
 
 	void CDrawManager::RemoveSprite(CSprite* s)
 	{
-		if (s->index == -1)
+		if (s->zIndex == -1)
 			return;
-		if (s->index >= Sprites.size() || Sprites[s->index] != s)
+		if (s->zIndex >= zSprites.size() || zSprites[s->zIndex] != s)
 		{
 			MessageBox(0, L"This sprite is not in CDrawManager.Sprites", L"Error", MB_ICONERROR);
 			return;
 		}
-		else if (s->index == Sprites.size() - 1)
+		else if (s->zIndex == zSprites.size() - 1)
 		{
-			Sprites.pop_back();
+			zSprites.pop_back();
 		}
 		else
 		{
 			//move end to where p is and update index
-			Sprites[s->index] = Sprites.back();
-			Sprites[s->index]->index = s->index;
-			Sprites.pop_back();
+			zSprites[s->zIndex] = zSprites.back();
+			zSprites[s->zIndex]->zIndex = s->zIndex;
+			zSprites.pop_back();
 		}
-		s->index = -1;
+		s->zIndex = -1;
 	}
 
 	void CDrawManager::RemoveAnimation(CAnimation* a)
@@ -285,15 +286,15 @@ namespace dx2d
 		if (font == nullptr)
 			return nullptr;
 		CBitmapText* newText = new CBitmapText(font);
-		Texts.push_back(newText);
-		newText->index = (int)Texts.size() - 1;
+		zTexts.push_back(newText);
+		newText->zIndex = (int)zTexts.size() - 1;
 		return newText;
 	}
 
 	void CDrawManager::AddBitmapText(CBitmapText* text)
 	{
-		Texts.push_back(text);
-		text->index = (int)Texts.size() - 1;
+		zTexts.push_back(text);
+		text->zIndex = (int)zTexts.size() - 1;
 	}
 
 	void CDrawManager::RemoveBitmapFont(CBitmapFont* font)
@@ -303,29 +304,29 @@ namespace dx2d
 
 	void CDrawManager::RemoveBitmapText(CBitmapText* text)
 	{
-		if (text->index == -1)
+		if (text->zIndex == -1)
 			return;
-		if (text->index >= Texts.size() || Texts[text->index] != text)
+		if (text->zIndex >= zTexts.size() || zTexts[text->zIndex] != text)
 		{
 			MessageBox(0, L"This text is not in CDrawManager.Texts", L"Error", MB_ICONERROR);
 			return;
 		}
-		else if (text->index == Texts.size() - 1)
+		else if (text->zIndex == zTexts.size() - 1)
 		{
-			Texts.pop_back();
+			zTexts.pop_back();
 		}
 		else
 		{
 			//move end to where p is and update index
-			Texts[text->index] = Texts.back();
-			Texts[text->index]->index = text->index;
-			Texts.pop_back();
+			zTexts[text->zIndex] = zTexts.back();
+			zTexts[text->zIndex]->zIndex = text->zIndex;
+			zTexts.pop_back();
 		}
-		text->index = -1;
+		text->zIndex = -1;
 	}
 
 	CBitmapFont* CDrawManager::DefaultFont()
 	{
-		return defaultFont;
+		return zDefaultFont;
 	}
 }

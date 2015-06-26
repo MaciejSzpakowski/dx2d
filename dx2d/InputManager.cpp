@@ -4,57 +4,57 @@ namespace dx2d
 {
 	CInput::CInput()
 	{
-		mouseWheel = 0;
-		keyCount = 256;
-		curState = new bool[keyCount];
-		prevState = new bool[keyCount];
-		curMouse = new POINT;
-		prevMouse = new POINT;
-		ZeroMemory(curState, sizeof(bool)*keyCount);
-		ZeroMemory(prevState, sizeof(bool)*keyCount);
-		GetCursorPos(curMouse);
-		GetCursorPos(prevMouse);
+		zMouseWheel = 0;
+		zKeyCount = 256;
+		zCurState = new bool[zKeyCount];
+		zPrevState = new bool[zKeyCount];
+		zCurMouse = new POINT;
+		zPrevMouse = new POINT;
+		ZeroMemory(zCurState, sizeof(bool)*zKeyCount);
+		ZeroMemory(zPrevState, sizeof(bool)*zKeyCount);
+		GetCursorPos(zCurMouse);
+		GetCursorPos(zPrevMouse);
 	}
 
-	void CInput::Activity()
+	void CInput::zActivity()
 	{
 		//swap current and previous states
-		mouseWheel = 0;
-		bool* temp = prevState;
-		prevState = curState;
-		curState = temp;
-		POINT* temp1 = prevMouse;
-		prevMouse = curMouse;
-		curMouse = temp1;
+		zMouseWheel = 0;
+		bool* temp = zPrevState;
+		zPrevState = zCurState;
+		zCurState = temp;
+		POINT* temp1 = zPrevMouse;
+		zPrevMouse = zCurMouse;
+		zCurMouse = temp1;
 
 		//get current state
-		for (int i = 0; i < keyCount; i++)
+		for (int i = 0; i < zKeyCount; i++)
 		{
-			curState[i] = (GetAsyncKeyState(i) & 0x8000) && true;
+			zCurState[i] = (GetAsyncKeyState(i) & 0x8000) && true;
 		}
 
-		GetCursorPos(curMouse);
+		GetCursorPos(zCurMouse);
 	}
 
 	bool CInput::IsKeyDown(int vKey)
 	{
-		return curState[vKey];
+		return zCurState[vKey];
 	}
 
 	bool CInput::IsKeyPressed(int vKey)
 	{
-		return curState[vKey] && !prevState[vKey];
+		return zCurState[vKey] && !zPrevState[vKey];
 	}
 
 	bool CInput::IsKeyReleased(int vKey)
 	{
-		return !curState[vKey] && prevState[vKey];
+		return !zCurState[vKey] && zPrevState[vKey];
 	}
 
 	bool CInput::IsAnyKeyDown()
 	{
-		for (int i = 0; i < keyCount; i++)
-			if (curState[i])
+		for (int i = 0; i < zKeyCount; i++)
+			if (zCurState[i])
 				return true;
 		return false;
 	}
@@ -62,8 +62,8 @@ namespace dx2d
 	POINT CInput::GetCursorDelta()
 	{
 		POINT point;
-		point.x = curMouse->x - prevMouse->x;
-		point.y = curMouse->y - prevMouse->y;
+		point.x = zCurMouse->x - zPrevMouse->x;
+		point.y = zCurMouse->y - zPrevMouse->y;
 		return point;
 	}
 
@@ -103,31 +103,31 @@ namespace dx2d
 
 	char CInput::GetKey(int offset)
 	{
-		for (int i = offset; i < keyCount; i++)
-			if (curState[i])
+		for (int i = offset; i < zKeyCount; i++)
+			if (zCurState[i])
 				return (char)i;
 		return 0;
 	}
 
 	void CInput::ResetKey(int vKey)
 	{
-		if (vKey < 0 || vKey > keyCount)
+		if (vKey < 0 || vKey > zKeyCount)
 			return;
-		curState[vKey] = false;
-		prevState[vKey] = false;
+		zCurState[vKey] = false;
+		zPrevState[vKey] = false;
 	}
 
 	int CInput::GetMouseWheel()
 	{
-		return mouseWheel;
+		return zMouseWheel;
 	}
 
 	void CInput::Destroy()
 	{
-		delete[] curState;
-		delete[] prevState;
-		delete curMouse;
-		delete prevMouse;
+		delete[] zCurState;
+		delete[] zPrevState;
+		delete zCurMouse;
+		delete zPrevMouse;
 		delete this;
 	}
 }

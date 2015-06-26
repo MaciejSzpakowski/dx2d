@@ -6,45 +6,45 @@ namespace dx2d
 
 	CCamera::CCamera()
 	{
-		nearPlane = 0.1f;
-		farPlane = 1000.0f;
-		fovAngle = 0.4f*3.14f; //72 deg
+		zNearPlane = 0.1f;
+		zFarPlane = 1000.0f;
+		zFovAngle = 0.4f*3.14f; //72 deg
 		//Camera information
 		SetPosition(0, 0, -20);
 		XMVECTOR target = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
-		up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+		zUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
 		//Set the View matrix
-		view = XMMatrixLookAtLH(Position, target, up);
+		zView = XMMatrixLookAtLH(zPosition, target, zUp);
 
 		//Set the Projection matrix
 		RECT rect;
 		GetWindowRect(Core->GetWindowHandle(), &rect);
-		aspectRatio = (float)(rect.right - rect.left) / (rect.bottom - rect.top);
-		proj = XMMatrixPerspectiveFovLH(fovAngle, aspectRatio, nearPlane, farPlane);
+		zAspectRatio = (float)(rect.right - rect.left) / (rect.bottom - rect.top);
+		zProj = XMMatrixPerspectiveFovLH(zFovAngle, zAspectRatio, zNearPlane, zFarPlane);
 	}
 
-	XMMATRIX CCamera::GetScaleMatrix()
+	XMMATRIX CCamera::zGetScaleMatrix()
 	{
 		return XMMatrixIdentity();
 	}
 
-	void CCamera::CamTransform()
+	void CCamera::zCamTransform()
 	{
-		Update();
-		XMVECTOR target = XMVectorAdd(Position, XMVectorSet(0, 0, 20, 1));
-		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(Rotation);
-		view = XMMatrixLookAtLH(Position, target, up) * rot;
+		zUpdate();
+		XMVECTOR target = XMVectorAdd(zPosition, XMVectorSet(0, 0, 20, 1));
+		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(zRotation);
+		zView = XMMatrixLookAtLH(zPosition, target, zUp) * rot;
 	}
 
 	XMMATRIX CCamera::GetViewMatrix()
 	{
-		return view;
+		return zView;
 	}
 
 	XMMATRIX CCamera::GetProjMatrix()
 	{
-		return proj;
+		return zProj;
 	}
 
 	POINTF CCamera::GetCursorWorldPos(float z)
@@ -52,14 +52,15 @@ namespace dx2d
 		POINT p = Core->GetCursorPos();
 		//formula to convert z distance from camera to z in z-buffer
 		//(20.0f + z) because by default camera is 20 from point (0,0,0)
-		float zbuffer = ((farPlane + nearPlane) / (farPlane - nearPlane) + ((-2.0f * farPlane * nearPlane) /
-			(farPlane - nearPlane)) / (20.0f + z) + 1.0f) / 2.0f;
+		float zbuffer = ((zFarPlane + zNearPlane) / (zFarPlane - zNearPlane) + 
+			((-2.0f * zFarPlane * zNearPlane) /
+			(zFarPlane - zNearPlane)) / (20.0f + z) + 1.0f) / 2.0f;
 		XMVECTOR pos3 = XMVectorSet((float)p.x, (float)p.y, zbuffer, 1);
 		RECT r1;
 		GetClientRect(Core->GetWindowHandle(), &r1);
 		XMVECTOR trans = XMVector3Unproject(pos3, 0.0f, 0.0f, (float)r1.right - r1.left,
-			(float)r1.bottom - r1.top, 0.0f, 1.0f, proj,
-			view, XMMatrixIdentity());
+			(float)r1.bottom - r1.top, 0.0f, 1.0f, zProj,
+			zView, XMMatrixIdentity());
 		XMFLOAT3 f3t;
 		XMStoreFloat3(&f3t, trans);
 		return { f3t.x, f3t.y };
@@ -68,8 +69,8 @@ namespace dx2d
 	POINTF CCamera::GetFrustumSize(float z)
 	{
 		POINTF res;
-		res.x = (20 + z) * tan(fovAngle/2) * aspectRatio * 2;
-		res.y = (20 + z) * tan(fovAngle/2) * 2;
+		res.x = (20 + z) * tan(zFovAngle/2) * zAspectRatio * 2;
+		res.y = (20 + z) * tan(zFovAngle/2) * 2;
 		return res;
 	}
 

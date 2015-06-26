@@ -1,15 +1,12 @@
 #include "Private.h"
 
-ID3D11Device* GetDevice();
-ID3D11DeviceContext* GetContext();
-
 namespace dx2d
 {
 	CDrawable::CDrawable()
 	{
 		Visible = true;
 		uv = UV(0, 0, 1, 1);
-		index = -1;
+		zIndex = -1;
 		D3D11_BUFFER_DESC cbbd;
 		ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
 		cbbd.Usage = D3D11_USAGE_DEFAULT;
@@ -17,14 +14,14 @@ namespace dx2d
 		cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		cbbd.CPUAccessFlags = 0;
 		cbbd.MiscFlags = 0;
-		GetDevice()->CreateBuffer(&cbbd, NULL, &cbBufferPS);
-		GetDevice()->CreateBuffer(&cbbd, NULL, &cbBufferUV); //has the same size
+		Core->zDevice->CreateBuffer(&cbbd, NULL, &zCbBufferPS);
+		Core->zDevice->CreateBuffer(&cbbd, NULL, &zCbBufferUV); //has the same size
 	}
 
 	CDrawable::~CDrawable()
 	{
-		cbBufferPS->Release();
-		cbBufferUV->Release();
+		zCbBufferPS->Release();
+		zCbBufferUV->Release();
 	}
 
 	CPolygon::CPolygon()
@@ -33,7 +30,7 @@ namespace dx2d
 	CPolygon::CPolygon(XMFLOAT2 points[], int n)
 	{
 		Color = XMFLOAT4(0, 0, 0, 0);
-		vertexCount = n;
+		zVertexCount = n;
 
 		/*/method 1
 		D3D11_BUFFER_DESC bd;
@@ -70,25 +67,25 @@ namespace dx2d
 		ZeroMemory(&sd, sizeof(sd));
 		sd.pSysMem = vertices;                   //Memory in CPU to copy in to GPU
 
-		GetDevice()->CreateBuffer(&bd, &sd, &vertexBuffer);
+		Core->zDevice->CreateBuffer(&bd, &sd, &zVertexBuffer);
 		delete[] vertices;//*/
 	}
 
-	XMMATRIX CPolygon::GetScaleMatrix()
+	XMMATRIX CPolygon::zGetScaleMatrix()
 	{
 		return XMMatrixIdentity();
 	}
 
 	CRectangle::CRectangle(float scalex, float scaley)
 	{
-		vertexCount = 5;
+		zVertexCount = 5;
 		Scale.x = scalex;
 		Scale.y = scaley;
 		//method 2
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
 		bd.Usage = D3D11_USAGE_DEFAULT;				   // GPU writes and reads
-		bd.ByteWidth = sizeof(Vertex) * vertexCount;	           // size is the VERTEX struct * 3
+		bd.ByteWidth = sizeof(Vertex) * zVertexCount;	           // size is the VERTEX struct * 3
 		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;       // use as a vertex buffer
 		bd.CPUAccessFlags = 0;		                   // CPU does nothing
 
@@ -105,30 +102,30 @@ namespace dx2d
 		ZeroMemory(&sd, sizeof(sd));
 		sd.pSysMem = &vertices;                   //Memory in CPU to copy in to GPU
 
-		GetDevice()->CreateBuffer(&bd, &sd, &vertexBuffer);
+		Core->zDevice->CreateBuffer(&bd, &sd, &zVertexBuffer);
 	}
 
-	XMMATRIX CRectangle::GetScaleMatrix()
+	XMMATRIX CRectangle::zGetScaleMatrix()
 	{
 		return XMMatrixScaling(Scale.x, Scale.y, 1);
 	}
 
 	CCircle::CCircle(float radius, unsigned char resolution)
 	{
-		vertexCount = resolution + 1;
+		zVertexCount = resolution + 1;
 		Radius = radius;
 
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
 		bd.Usage = D3D11_USAGE_DEFAULT;				   // GPU writes and reads
-		bd.ByteWidth = sizeof(Vertex) * vertexCount;	           // size is the VERTEX struct * 3
+		bd.ByteWidth = sizeof(Vertex) * zVertexCount;	           // size is the VERTEX struct * 3
 		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;       // use as a vertex buffer
 		bd.CPUAccessFlags = 0;		                   // CPU does nothing
 
-		Vertex* vertices = new Vertex[vertexCount];
+		Vertex* vertices = new Vertex[zVertexCount];
 		float angle = 0;
-		float delta = XM_2PI / (vertexCount - 1);
-		for (int i = 0; i < vertexCount; i++)
+		float delta = XM_2PI / (zVertexCount - 1);
+		for (int i = 0; i < zVertexCount; i++)
 		{
 			vertices[i] = { cos(angle)*radius, sin(angle)*radius, 0, 1, 1, 1, 0, 0 };
 			angle += delta;
@@ -138,29 +135,29 @@ namespace dx2d
 		ZeroMemory(&sd, sizeof(sd));
 		sd.pSysMem = vertices;                   //Memory in CPU to copy in to GPU
 
-		GetDevice()->CreateBuffer(&bd, &sd, &vertexBuffer);
+		Core->zDevice->CreateBuffer(&bd, &sd, &zVertexBuffer);
 		delete[] vertices;
 	}
 
-	XMMATRIX CCircle::GetScaleMatrix()
+	XMMATRIX CCircle::zGetScaleMatrix()
 	{
 		return XMMatrixScaling(Radius, Radius, 1);
 	}
 
-	void CPolygon::Draw()
+	void CPolygon::zDraw()
 	{		
-		GetContext()->UpdateSubresource(cbBufferPS, 0, NULL, &Color, 0, 0);
-		GetContext()->PSSetConstantBuffers(0, 1, &cbBufferPS);
+		Core->zContext->UpdateSubresource(zCbBufferPS, 0, NULL, &Color, 0, 0);
+		Core->zContext->PSSetConstantBuffers(0, 1, &zCbBufferPS);
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
-		GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-		GetContext()->Draw(vertexCount, 0);
+		Core->zContext->IASetVertexBuffers(0, 1, &zVertexBuffer, &stride, &offset);
+		Core->zContext->Draw(zVertexCount, 0);
 	}
 
 	void CPolygon::Destroy()
 	{
 		DrawManager->RemovePoly(this);
-		vertexBuffer->Release();
+		zVertexBuffer->Release();
 		delete this;
 	}	
 }

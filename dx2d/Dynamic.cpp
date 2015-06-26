@@ -14,7 +14,7 @@ namespace dx2d
 		SetAngularAcc(0, 0, 0);
 		Parent = nullptr;
 		Pickable = false;
-		underCursor = false;
+		zUnderCursor = false;
 
 		//Create the buffer to send to the cbuffer in effect file
 		D3D11_BUFFER_DESC cbbd;
@@ -25,49 +25,49 @@ namespace dx2d
 		cbbd.CPUAccessFlags = 0;
 		cbbd.MiscFlags = 0;
 
-		GetDevice()->CreateBuffer(&cbbd, NULL, &cbBufferVS);
+		Core->zDevice->CreateBuffer(&cbbd, NULL, &zCbBufferVS);
 	}
 
-	void CDynamic::Transform()
+	void CDynamic::zTransform()
 	{
-		XMMATRIX scale = GetScaleMatrix();
-		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(Rotation);
-		XMMATRIX loc = XMMatrixTranslationFromVector(Position);
+		XMMATRIX scale = zGetScaleMatrix();
+		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(zRotation);
+		XMMATRIX loc = XMMatrixTranslationFromVector(zPosition);
 		XMMATRIX world = scale * rot * loc;
-		XMMATRIX worldViewProj = world * Camera->view * Camera->proj;
+		XMMATRIX worldViewProj = world * Camera->zView * Camera->zProj;
 		if (Parent != nullptr)
 		{
-			XMMATRIX parentLoc = XMMatrixRotationRollPitchYawFromVector(Parent->Rotation);
-			XMMATRIX parentRot = XMMatrixTranslationFromVector(Parent->Position);
-			worldViewProj = world * parentLoc * parentRot * Camera->view * Camera->proj;
+			XMMATRIX parentLoc = XMMatrixRotationRollPitchYawFromVector(Parent->zRotation);
+			XMMATRIX parentRot = XMMatrixTranslationFromVector(Parent->zPosition);
+			worldViewProj = world * parentLoc * parentRot * Camera->zView * Camera->zProj;
 		}
 		//check for cursor
 		if(Pickable)
-			CheckForCursor(worldViewProj);
+			zCheckForCursor(worldViewProj);
 		worldViewProj = XMMatrixTranspose(worldViewProj);
-		GetContext()->UpdateSubresource(cbBufferVS, 0, NULL, &worldViewProj, 0, 0);
-		GetContext()->VSSetConstantBuffers(0, 1, &cbBufferVS);
+		Core->zContext->UpdateSubresource(zCbBufferVS, 0, NULL, &worldViewProj, 0, 0);
+		Core->zContext->VSSetConstantBuffers(0, 1, &zCbBufferVS);
 	}
 
-	void CDynamic::Update()
+	void CDynamic::zUpdate()
 	{
-		XMVECTOR a = XMVectorScale(Acceleration, (float)Core->GetFrameTime());
-		XMVECTOR v = XMVectorScale(Velocity, (float)Core->GetFrameTime());
-		Velocity = XMVectorAdd(a, Velocity);
-		Position = XMVectorAdd(v, Position);
-		XMVECTOR ra = XMVectorScale(AngularAcc, (float)Core->GetFrameTime());
-		XMVECTOR rv = XMVectorScale(AngularVel, (float)Core->GetFrameTime());
-		AngularVel = XMVectorAdd(ra, AngularVel);
-		Rotation = XMVectorAdd(rv, Rotation);
+		XMVECTOR a = XMVectorScale(zAcceleration, (float)Core->GetFrameTime());
+		XMVECTOR v = XMVectorScale(zVelocity, (float)Core->GetFrameTime());
+		zVelocity = XMVectorAdd(a,zVelocity);
+		zPosition = XMVectorAdd(v, zPosition);
+		XMVECTOR ra = XMVectorScale(zAngularAcc, (float)Core->GetFrameTime());
+		XMVECTOR rv = XMVectorScale(zAngularVel, (float)Core->GetFrameTime());
+		zAngularVel = XMVectorAdd(ra, zAngularVel);
+		zRotation = XMVectorAdd(rv, zRotation);
 	}
 
 	bool CDynamic::IsUnderCursor()
 	{
-		return underCursor;
+		return zUnderCursor;
 	}
 
 	CDynamic::~CDynamic()
 	{
-		cbBufferVS->Release();
+		zCbBufferVS->Release();
 	}
 }

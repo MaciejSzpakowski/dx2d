@@ -2,7 +2,8 @@
 
 namespace dx2d
 {
-	void CEventManager::AddEvent(std::function<int()> func, wstring name, double delay, double lifeTime, double tick)
+	void CEventManager::AddEvent
+		(std::function<int()> func, wstring name, double delay, double lifeTime, double tick)
 	{
 		Event* newEvent = new Event;
 		newEvent->tick = tick;
@@ -12,58 +13,59 @@ namespace dx2d
 		newEvent->Activity = func;
 		newEvent->Name = name;
 		newEvent->lastPulse = 0;
-		events.push_back(newEvent);
+		zEvents.push_back(newEvent);
 	}
 
 	void CEventManager::RemoveEvent(wstring name)
 	{
-		for(int i = 0;i<events.size();i++)
-			if (events[i] && events[i]->Name == name)
+		for(int i = 0;i<zEvents.size();i++)
+			if (zEvents[i] && zEvents[i]->Name == name)
 			{
-				delete events[i];
-				events[i] = nullptr;
+				delete zEvents[i];
+				zEvents[i] = nullptr;
 			}
 	}
 
-	void CEventManager::Activity()
+	void CEventManager::zActivity()
 	{
 		//might be removed so backwards iteration
-		for (int i = (int)events.size() - 1; i >= 0; i--)
+		for (int i = (int)zEvents.size() - 1; i >= 0; i--)
 		{
 			//pop if last event is empty
-			if (events[i] == nullptr && i == events.size() - 1)
-				events.pop_back();
+			if (zEvents[i] == nullptr && i == zEvents.size() - 1)
+				zEvents.pop_back();
 			//if its empty but not last
-			else if (events[i] == nullptr)
+			else if (zEvents[i] == nullptr)
 			{
-				events[i] = events.back();
-				events.pop_back();
+				zEvents[i] = zEvents.back();
+				zEvents.pop_back();
 			}			
 			int ret = 1;
 			
 			//if delay time has passed...
-			if (Core->GetGameTime() - events[i]->startTime > events[i]->delay)
+			if (Core->GetGameTime() - zEvents[i]->startTime > zEvents[i]->delay)
 			//...and it's time for next pulse then run
-			if (events[i]->tick == 0 || (Core->GetGameTime() - events[i]->lastPulse > events[i]->tick))
+			if (zEvents[i]->tick == 0 ||
+				(Core->GetGameTime() - zEvents[i]->lastPulse > zEvents[i]->tick))
 			{
-				ret = events[i]->Activity();
-				events[i]->lastPulse = Core->GetGameTime();
+				ret = zEvents[i]->Activity();
+				zEvents[i]->lastPulse = Core->GetGameTime();
 			}
 			//if returned 0 or expired then remove
-			if (ret == 0 || (events[i]->lifeTime > 0 && 
-				Core->GetGameTime() - events[i]->startTime > events[i]->lifeTime))
+			if (ret == 0 || (zEvents[i]->lifeTime > 0 &&
+				Core->GetGameTime() - zEvents[i]->startTime > zEvents[i]->lifeTime))
 			{
-				delete events[i];
-				events[i] = events.back();
-				events.pop_back();
+				delete zEvents[i];
+				zEvents[i] = zEvents.back();
+				zEvents.pop_back();
 			}
 		}
 	}
 
 	void CEventManager::Destroy()
 	{
-		for (int i = 0; i < events.size(); i++)
-			delete events[i];
+		for (int i = 0; i < zEvents.size(); i++)
+			delete zEvents[i];
 		delete this;
 	}
 }

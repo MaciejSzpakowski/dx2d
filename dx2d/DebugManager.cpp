@@ -4,49 +4,49 @@ namespace dx2d
 {
 	CDebugManager::CDebugManager()
 	{
-		debugText = nullptr;		
+		zDebugText = nullptr;		
 	}
 
 	void CDebugManager::Flush()
 	{
-		if (debugText == nullptr)
+		if (zDebugText == nullptr)
 			return;
-		debugText->Text = wss.str();
-		wss.str(L"");
+		zDebugText->Text = zWss.str();
+		zWss.str(L"");
 	}
 
 	void CDebugManager::Init(CBitmapFont* font)
 	{
-		debugText = DrawManager->AddBitmapText(font);
-		debugText->SetPosition(-9, 7, 10.3f);
-		debugText->Parent = Camera;
-		debugText->SetPixelScale(15, 21);
+		zDebugText = DrawManager->AddBitmapText(font);
+		zDebugText->SetPosition(-9, 7, 10.3f);
+		zDebugText->Parent = Camera;
+		zDebugText->SetPixelScale(15, 21);
 	}
 
 	void CDebugManager::Debug(int debug, wstring name)
 	{
-		wss << name << ": " << debug << "\n";
+		zWss << name << ": " << debug << "\n";
 	}
 
 	void CDebugManager::Debug(float debug, wstring name)
 	{
-		wss << name << ": " << debug << "\n";
+		zWss << name << ": " << debug << "\n";
 	}
 
 	void CDebugManager::Debug(double debug, wstring name)
 	{
-		wss << name << ": " << debug << "\n";
+		zWss << name << ": " << debug << "\n";
 	}
 
 	void CDebugManager::Debug(wstring debug, wstring name)
 	{
-		wss << name << ": " << debug << "\n";
+		zWss << name << ": " << debug << "\n";
 	}
 	
 	void CDebugManager::Destroy()
 	{
-		if (debugText != nullptr)
-			debugText->Destroy();
+		if (zDebugText != nullptr)
+			zDebugText->Destroy();
 		delete this;
 	}
 }

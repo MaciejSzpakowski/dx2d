@@ -4,24 +4,26 @@
 
 namespace dx2d
 {
+	void Render(CCore* d3d);
+
 	CCore::CCore(int sizex, int sizey, std::function<void()> worker, int style)
 	{
 		srand((int)time(0));
 		hr = 0;
-		fullscreen = false;
-		clientSize.x = sizex;
-		clientSize.y = sizey;
+		zFullscreen = false;
+		zClientSize.x = sizex;
+		zClientSize.y = sizey;
 		//assign global variable
 		Core = this;
 		//create window
-		window = new CWindow(sizex, sizey, style);
-		window->Worker = worker;
-		window->Render = Render;
+		zWindow = new CWindow(sizex, sizey, style);
+		zWindow->zWorker = worker;
+		zWindow->zRender = Render;
 
-		backBufferColor[0] = 1.0f;
-		backBufferColor[1] = 1.0f;
-		backBufferColor[2] = 1.0f;
-		backBufferColor[3] = 1.0f;
+		zBackBufferColor[0] = 1.0f;
+		zBackBufferColor[1] = 1.0f;
+		zBackBufferColor[2] = 1.0f;
+		zBackBufferColor[3] = 1.0f;
 
 		//// *********** PIPELINE SETUP STARTS HERE *********** ////
 		// create a struct to hold information about the swap chain
@@ -30,7 +32,7 @@ namespace dx2d
 		scd.BufferCount = 1;                                    // one back buffer
 		scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;     // use 32-bit color
 		scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;      // how swap chain is to be used
-		scd.OutputWindow = window->handle;                 // the window to be used
+		scd.OutputWindow = zWindow->zHandle;                 // the window to be used
 		scd.SampleDesc.Quality = 0;
 		scd.SampleDesc.Count = 1;                               // no anti aliasing
 		scd.Windowed = TRUE;                                    // windowed/full-screen mode
@@ -41,17 +43,17 @@ namespace dx2d
 			D3D_DRIVER_TYPE_HARDWARE, NULL, NULL, NULL, NULL,
 			D3D11_SDK_VERSION,
 			&scd,
-			&swapChain,
-			&device, NULL,
-			&context);
+			&zSwapChain,
+			&zDevice, NULL,
+			&zContext);
 		CHECKHR();
 
 		////    BACK BUFFER AS RENDER TARGET, DEPTH STENCIL   ////
 		// get the address of the back buffer
 		ID3D11Texture2D* buf;
-		swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&buf);
+		zSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&buf);
 		// use the back buffer address to create the render target
-		hr = device->CreateRenderTargetView(buf, NULL, &backBuffer); CHECKHR();
+		hr = zDevice->CreateRenderTargetView(buf, NULL, &zBackBuffer); CHECKHR();
 		buf->Release();
 
 		//Describe our Depth/Stencil Buffer
@@ -68,11 +70,11 @@ namespace dx2d
 		depthStencilDesc.CPUAccessFlags = 0;
 		depthStencilDesc.MiscFlags = 0;
 		//Create the Depth/Stencil View
-		hr = device->CreateTexture2D(&depthStencilDesc, NULL, &depthStencilBuffer); CHECKHR();
-		hr = device->CreateDepthStencilView(depthStencilBuffer, NULL, &depthStencilView); CHECKHR();
+		hr = zDevice->CreateTexture2D(&depthStencilDesc, NULL, &zDepthStencilBuffer); CHECKHR();
+		hr = zDevice->CreateDepthStencilView(zDepthStencilBuffer, NULL, &zDepthStencilView); CHECKHR();
 
 		// set the render target as the back buffer
-		context->OMSetRenderTargets(1, &backBuffer, depthStencilView);
+		zContext->OMSetRenderTargets(1, &zBackBuffer, zDepthStencilView);
 
 		////   VIEWPORT    ////
 		// Set the viewport
@@ -84,32 +86,38 @@ namespace dx2d
 		viewport.Height = (float)sizey;
 		viewport.MinDepth = 0.0f;
 		viewport.MaxDepth = 1.0f;
-		context->RSSetViewports(1, &viewport);
+		zContext->RSSetViewports(1, &viewport);
 
 		////    VS and PS    ////
 		//default shaders
 		ID3D10Blob *VS, *PS; //release this after CreateInputLayout()
 		hr = D3DCompileFromFile(L"VertexShader.hlsl", 0, 0, "main", "vs_5_0", 0, 0, &VS, 0); CHECKHR();
 		hr = D3DCompileFromFile(L"PixelShader.hlsl", 0, 0, "main", "ps_5_0", 0, 0, &PS, 0); CHECKHR();
-		hr = device->CreateVertexShader(VS->GetBufferPointer(), VS->GetBufferSize(), NULL, &defaultVS); CHECKHR();
-		hr = device->CreatePixelShader(PS->GetBufferPointer(), PS->GetBufferSize(), NULL, &defaultPS); CHECKHR();
-		context->VSSetShader(defaultVS, 0, 0);
-		context->PSSetShader(defaultPS, 0, 0);
+		hr = zDevice->CreateVertexShader(VS->GetBufferPointer(), VS->GetBufferSize(), NULL,
+			&zDefaultVS); CHECKHR();
+		hr = zDevice->CreatePixelShader(PS->GetBufferPointer(), PS->GetBufferSize(), NULL,
+			&zDefaultPS); CHECKHR();
+		zContext->VSSetShader(zDefaultVS, 0, 0);
+		zContext->PSSetShader(zDefaultPS, 0, 0);
 
 		////    INPUT LAYOUT    ////
 		//defaul input layout
 		D3D11_INPUT_ELEMENT_DESC ied[] =
 		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 
+				0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 
+				0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 
+				0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			//if you need to pass something on your own to PS or VS per vertex
 			//{ "SOME_MORE_DATA", 0, DXGI_FORMAT_R32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 		};
-		hr = device->CreateInputLayout(ied, 3, VS->GetBufferPointer(), VS->GetBufferSize(), &layout); CHECKHR();
+		hr = zDevice->CreateInputLayout(ied, 3, VS->GetBufferPointer(), VS->GetBufferSize(), 
+			&zLayout); CHECKHR();
 		VS->Release();
 		PS->Release();
-		context->IASetInputLayout(layout);
+		zContext->IASetInputLayout(zLayout);
 
 		///    BLEND STATE    ////
 		D3D11_BLEND_DESC blendDesc;
@@ -126,8 +134,8 @@ namespace dx2d
 		rtbd.RenderTargetWriteMask = D3D10_COLOR_WRITE_ENABLE_ALL;
 		blendDesc.AlphaToCoverageEnable = false;
 		blendDesc.RenderTarget[0] = rtbd;
-		hr = device->CreateBlendState(&blendDesc, &blendState); CHECKHR();
-		if (blendState == nullptr)
+		hr = zDevice->CreateBlendState(&blendDesc, &zBlendState); CHECKHR();
+		if (zBlendState == nullptr)
 			exit(0);
 
 		//// *********** PIPELINE SETUP ENDS HERE *********** ////
@@ -147,12 +155,12 @@ namespace dx2d
 			MessageBox(0, L"QueryPerformanceFrequency() failed", L"Error", MB_ICONERROR);
 			exit(0);
 		}
-		frequency = double(li.QuadPart);
+		zFrequency = double(li.QuadPart);
 		QueryPerformanceCounter(&li);
-		startTime = li.QuadPart;
-		prevFrameTime = startTime;
-		gameTime = 0;
-		frameTime = 0;
+		zStartTime = li.QuadPart;
+		zPrevFrameTime = zStartTime;
+		zGameTime = 0;
+		zFrameTime = 0;
 
 		//defalut font for drawmanager
 		//15x21 one char
@@ -161,47 +169,48 @@ namespace dx2d
 		for (int i = 0; i<5; i++)
 			for (int j = 0; j < 20; j++)
 			{
-				chars1.push_back(UV(15.0f / 300.0f*j, 21.0f / 105.0f*i, 15.0f / 300.0f*(j + 1), 21 / 105.0f*(i + 1)));
+				chars1.push_back(UV(15.0f / 300.0f*j, 21.0f / 105.0f*i, 15.0f /
+					300.0f*(j + 1), 21 / 105.0f*(i + 1)));
 			}
 		ID3D11ShaderResourceView* res1;
 		CTexture* tex1 = Functions::LoadCachedTextureFromFile(L"font.png", res1);
-		DrawManager->defaultFont = new CBitmapFont(tex1, chars1);
-		DrawManager->AddBitmapFont(DrawManager->defaultFont);
+		DrawManager->zDefaultFont = new CBitmapFont(tex1, chars1);
+		DrawManager->AddBitmapFont(DrawManager->zDefaultFont);
 		DebugManager->Init(DrawManager->DefaultFont());
 	}
 
-	void CCore::UpdateGameTime()
+	void CCore::zUpdateGameTime()
 	{
 		LARGE_INTEGER currentTime;
 		long long frameTickCount;
 		QueryPerformanceCounter(&currentTime);
-		frameTickCount = currentTime.QuadPart - prevFrameTime;
-		frameTime = double(frameTickCount) / frequency;
-		prevFrameTime = currentTime.QuadPart;
-		gameTime = double(currentTime.QuadPart - startTime) / frequency;
+		frameTickCount = currentTime.QuadPart - zPrevFrameTime;
+		zFrameTime = double(frameTickCount) / zFrequency;
+		zPrevFrameTime = currentTime.QuadPart;
+		zGameTime = double(currentTime.QuadPart - zStartTime) / zFrequency;
 	}
 
 	HWND CCore::GetWindowHandle()
 	{
-		return window->handle;
+		return zWindow->zHandle;
 	}
 
 	int CCore::Run()
 	{
-		return window->Run();
+		return zWindow->zRun();
 	}
 
 	void CCore::SetWindowTitle(const wchar_t* title)
 	{
-		SetWindowText(window->handle, title);
+		SetWindowText(zWindow->zHandle, title);
 	}
 
 	void CCore::SetBackgroundColor(Color color)
 	{
-		backBufferColor[0] = color.r;
-		backBufferColor[1] = color.g;
-		backBufferColor[2] = color.b;
-		backBufferColor[3] = color.a;
+		zBackBufferColor[0] = color.r;
+		zBackBufferColor[1] = color.g;
+		zBackBufferColor[2] = color.b;
+		zBackBufferColor[3] = color.a;
 	}
 
 	void CCore::OpenConsole()
@@ -219,35 +228,35 @@ namespace dx2d
 
 	double CCore::GetFrameTime()
 	{
-		return frameTime;
+		return zFrameTime;
 	}
 
 	double CCore::GetGameTime()
 	{
-		return gameTime;
+		return zGameTime;
 	}
 
 	double CCore::GetFps()
 	{
-		return 1 / frameTime;
+		return 1 / zFrameTime;
 	}
 
 	void CCore::SetFullscreen(bool state)
 	{
-		fullscreen = state;
-		swapChain->SetFullscreenState(state, NULL);
+		zFullscreen = state;
+		zSwapChain->SetFullscreenState(state, NULL);
 	}
 
 	bool CCore::GetFullscreen()
 	{
-		return fullscreen;
+		return zFullscreen;
 	}
 
 	POINT CCore::GetCursorPos()
 	{
 		POINT p;
 		::GetCursorPos(&p);
-		ScreenToClient(window->handle, &p);
+		ScreenToClient(zWindow->zHandle, &p);
 		return p;
 	}	
 
@@ -263,17 +272,17 @@ namespace dx2d
 		Camera->Destroy();
 		DrawManager->Destroy();
 		//com objects
-		layout->Release();
-		defaultPS->Release();
-		defaultVS->Release();
-		swapChain->Release();
-		depthStencilView->Release();
-		depthStencilBuffer->Release();
-		blendState->Release();
-		backBuffer->Release();
-		device->Release();
-		context->Release();
-		delete window;
+		zLayout->Release();
+		zDefaultPS->Release();
+		zDefaultVS->Release();
+		zSwapChain->Release();
+		zDepthStencilView->Release();
+		zDepthStencilBuffer->Release();
+		zBlendState->Release();
+		zBackBuffer->Release();
+		zDevice->Release();
+		zContext->Release();
+		delete zWindow;
 		delete this;
 	}
 }
