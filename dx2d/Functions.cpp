@@ -84,7 +84,7 @@ namespace dx2d
 			UINT h = gdibitmap->GetHeight();
 			UINT w = gdibitmap->GetWidth();
 
-			/*HBITMAP hbitmap;
+			HBITMAP hbitmap;
 			Gdiplus::Color c(0, 0, 0);
 			gdibitmap->GetHBITMAP(c, &hbitmap);
 
@@ -103,8 +103,9 @@ namespace dx2d
 
 			ID3D11Texture2D* tex = CreateTexture2DFromBytes(data, w, h);
 			DeleteObject(hbitmap);
-			return tex;*/
-			Gdiplus::BitmapData* bitmapData = new Gdiplus::BitmapData;
+			return tex;
+			
+			/*Gdiplus::BitmapData* bitmapData = new Gdiplus::BitmapData;
 			Gdiplus::Rect rect(0, 0, w, h);
 
 			// Lock a 5x3 rectangular portion of the bitmap for reading.
@@ -121,7 +122,7 @@ namespace dx2d
 
 			delete bitmapData;
 			ID3D11Texture2D* tex = CreateTexture2DFromBytes((BYTE*)pixels, w, h);
-			return tex;
+			return tex;/**/
 		}
 
 		ID3D11Texture2D* CreateTexture2DFromFile(const WCHAR* file)
@@ -270,6 +271,32 @@ namespace dx2d
 			XMVECTOR v = XMVectorSubtract(c1->GetPositionVector(), c2->GetPositionVector());
 			XMVECTOR len = XMVector2Length(v);
 			return XMVectorGetX(len) < (c1->Radius + c2->Radius);
+		}
+
+		bool IsColliding(CSprite* s1, CSprite* s2)
+		{
+			XMVECTOR A = XMVectorSet(-1.0f, -1.0f, 0, 0);
+			XMVECTOR B = XMVectorSet(1.0f, -1.0f, 0, 0);
+			XMVECTOR C = XMVectorSet(1.0f, 1.0f, 0, 0);
+			XMVECTOR D = XMVectorSet(-1.0f, 1.0f, 0, 0);
+			XMVECTOR A1 = XMVector3Transform(A, s1->zWorld);
+			XMVECTOR B1 = XMVector3Transform(B, s1->zWorld);
+			XMVECTOR C1 = XMVector3Transform(C, s1->zWorld);
+			XMVECTOR D1 = XMVector3Transform(D, s1->zWorld);
+			XMVECTOR A2 = XMVector3Transform(A, s2->zWorld);
+			XMVECTOR B2 = XMVector3Transform(B, s2->zWorld);
+			XMVECTOR C2 = XMVector3Transform(C, s2->zWorld);
+			XMVECTOR D2 = XMVector3Transform(D, s2->zWorld);
+			bool result;
+			result = TriangleTests::Intersects(A1, B1, C1, A2, B2, C2);
+			if (result) return true;
+			result = TriangleTests::Intersects(A1, B1, C1, A2, C2, D2);
+			if (result) return true;
+			result = TriangleTests::Intersects(A1, C1, D1, A2, B2, C2);
+			if (result) return true;
+			result = TriangleTests::Intersects(A1, C1, D1, A2, C2, D2);
+			if (result) return true;
+			return false;
 		}
 	}
 }

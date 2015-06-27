@@ -1,18 +1,5 @@
 #pragma once
-#include <Windows.h>
-#include <functional>
-#include <d3d11.h>
-#include <DirectXMath.h>
-#include <vector>
-#include <string>
-#include <map>
-#include <sstream>
-#include <gdiplus.h>
-#include "Keys.h"
-#pragma comment(lib,"Gdiplus.lib")
-#pragma comment (lib, "d3d11.lib")
-#pragma comment (lib, "D3DCompiler.lib")
-#pragma comment(linker, "/subsystem:windows /ENTRY:mainCRTStartup")
+#include "Proto.h"
 
 namespace dx2d
 {
@@ -21,35 +8,7 @@ namespace dx2d
 	using namespace DirectX;
 	using std::vector;
 	using std::wstring;
-	using std::wstringstream;
-
-	//prototypes
-	class CCore;
-	class CDrawable;
-	class CPolygon;
-	class CRectangle;
-	class CCircle;
-	class CDrawManager;
-	class CCamera;
-	class CInput;
-	class CSprite;
-	class CEventManager;
-	class CResourceManager;
-	class CAnimation;
-	class CBitmapFont;
-	class CBitmapText;
-	class CDebugManager;
-
-	//externals
-	extern CCore* Core;
-	extern CKey Key;
-	extern CDrawManager* DrawManager;
-	extern CCamera* Camera;
-	extern CInput* Input;
-	extern CEventManager* EventManager;
-	extern CResourceManager* ResourceManager;
-	extern CDebugManager* DebugManager;
-	extern HRESULT hr;
+	using std::wstringstream;	
 
 	struct Vertex
 	{
@@ -117,29 +76,7 @@ namespace dx2d
 		{
 			zShaderResource->Release();
 		}				
-	};
-
-	namespace Functions
-	{
-		CCore* NewCore(int sizex, int sizey, std::function<void()> worker, int style = WS_OVERLAPPEDWINDOW);
-		ID3D11Texture2D* CreateTexture2DFromBytes(BYTE* data, int width, int height);
-		ID3D11Texture2D* CreateTexture2DFromGdibitmap(Gdiplus::Bitmap* _gdibitmap);
-		ID3D11Texture2D* CreateTexture2DFromFile(const WCHAR* file);
-		ID3D11Texture2D* CreateTexture2DFromResource(int resource);
-		CTexture* LoadCachedTextureFromFile(const WCHAR* file, ID3D11ShaderResourceView*& shader);
-		CTexture* LoadCachedTextureFromResource(int resource, ID3D11ShaderResourceView*& shader);
-		void Checkhr(const char* file, int line);
-		//return double between 0 and 1
-		double RndDouble();
-		//return integer
-		//between inclusive min and exclusive max
-		int RndInt(int min, int max);
-	}
-
-	namespace Collision
-	{
-		bool IsColliding(CCircle* c1, CCircle* c2);
-	}
+	};	
 
 	class CWindow
 	{
@@ -211,6 +148,7 @@ namespace dx2d
 	class CDynamic
 	{
 	public:
+		XMMATRIX zWorld;
 		XMVECTOR zPosition;
 		XMVECTOR zRotation;
 		XMVECTOR zVelocity;
@@ -377,7 +315,7 @@ namespace dx2d
 		float zAspectRatio;
 
 		CCamera();
-		POINTF GetCursorWorldPos(float z);
+		XMFLOAT3 GetCursorWorldPos(float z);
 		POINTF GetFrustumSize(float z);
 		XMMATRIX GetViewMatrix();
 		XMMATRIX GetProjMatrix();

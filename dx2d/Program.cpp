@@ -27,15 +27,25 @@ void Activity()
 	if (Input->IsKeyDown(Key.Right))
 		Camera->SetVelocityX(move);
 
-	DebugManager->Debug(a1->IsUnderCursor(), L"Cursor");
-	c1->SetVelocityX(0);
-	c2->Color = XMFLOAT4(0, 0, 0, 0);
+	a1->Color.r = 1;
+	if (a1->IsUnderCursor())
+		a1->Color.r = 3;
+	a1->SetVelocity(0, 0, 0);
+	a1->SetAngularVelZ(0);
 	if (Input->IsKeyDown('A'))
-		c1->SetVelocityX(-10);
+		a1->SetVelocityX(-10);
 	if (Input->IsKeyDown('D'))
-		c1->SetVelocityX(10);
-	if (Collision::IsColliding(c1, c2))
-		c2->Color.r = 1;
+		a1->SetVelocityX(10);
+	if (Input->IsKeyDown('W'))
+		a1->SetVelocityY(10);
+	if (Input->IsKeyDown('S'))
+		a1->SetVelocityY(-10);
+	if (Input->IsKeyDown('Q'))
+		a1->SetAngularVelZ(5);
+	if (Input->IsKeyDown('E'))
+		a1->SetAngularVelZ(-5);
+
+	DebugManager->Debug(L"hello", L"h");
 }
 
 int main(int argc, char** argv)
@@ -69,17 +79,71 @@ int main(int argc, char** argv)
 
 	CRectangle* r1 = DrawManager->AddRect(1, 1);
 	r1->Color = XMFLOAT4(0, 1, 0.2f, 0);
-	r1->SetVelocityX(0.01f);
 	EventManager->AddEvent([r1]()
 	{
-		r1->SetVelocityX(-r1->GetVelocity().x);
+		if (Input->IsKeyPressed(Key.Right))
+		{
+			r1->SetVelocityX(1);
+			XMFLOAT3 pos = r1->GetPosition();
+			EventManager->AddEvent([r1,pos]()
+			{
+				if (r1->GetPosition().x <= pos.x + 1)
+				{
+					r1->SetVelocity(0, 0, 0);
+					return 0;
+				}
+				return 1;
+			}, L"", 0, 0, 0);
+		}
+		if (Input->IsKeyPressed(Key.Down))
+		{
+			r1->SetVelocityY(-1);
+			XMFLOAT3 pos = r1->GetPosition();
+			EventManager->AddEvent([r1, pos]()
+			{
+				if (r1->GetPosition().y <= pos.y - 1)
+				{
+					r1->SetVelocity(0, 0, 0);
+					return 0;
+				}
+				return 1;
+			}, L"", 0, 0, 0);
+		}
+		if (Input->IsKeyPressed(Key.Up))
+		{
+			r1->SetVelocityY(1);
+			XMFLOAT3 pos = r1->GetPosition();
+			EventManager->AddEvent([r1, pos]()
+			{
+				if (r1->GetPosition().y <= pos.y + 1)
+				{
+					r1->SetVelocity(0, 0, 0);
+					return 0;
+				}
+				return 1;
+			}, L"", 0, 0, 0);
+		}
+		if (Input->IsKeyPressed(Key.Left))
+		{
+			r1->SetVelocityX(-1);
+			XMFLOAT3 pos = r1->GetPosition();
+			EventManager->AddEvent([r1, pos]()
+			{
+				if (r1->GetPosition().x <= pos.x - 1)
+				{
+					r1->SetVelocity(0, 0, 0);
+					return 0;
+				}
+				return 1;
+			}, L"", 0, 0, 0);
+		}
 		return 1;
-	}, L"", 0, 0, 2);
+	}, L"", 0, 0, 0);
 
 	int t1 = time(0);
 	for (int i = 0; i < 2000; i++)
 	{
-		Functions::CreateTexture2DFromFile(L"sun_flower.png");
+		//Functions::CreateTexture2DFromFile(L"sun_flower.png");
 	}
 	printf("%is\n", time(0) - t1);
 

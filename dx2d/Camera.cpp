@@ -47,7 +47,7 @@ namespace dx2d
 		return zProj;
 	}
 
-	POINTF CCamera::GetCursorWorldPos(float z)
+	XMFLOAT3 CCamera::GetCursorWorldPos(float z)
 	{
 		POINT p = Core->GetCursorPos();
 		//formula to convert z distance from camera to z in z-buffer
@@ -63,7 +63,7 @@ namespace dx2d
 			zView, XMMatrixIdentity());
 		XMFLOAT3 f3t;
 		XMStoreFloat3(&f3t, trans);
-		return { f3t.x, f3t.y };
+		return { f3t.x, f3t.y, z };
 	}
 
 	POINTF CCamera::GetFrustumSize(float z)

@@ -33,17 +33,17 @@ namespace dx2d
 		XMMATRIX scale = zGetScaleMatrix();
 		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(zRotation);
 		XMMATRIX loc = XMMatrixTranslationFromVector(zPosition);
-		XMMATRIX world = scale * rot * loc;
-		XMMATRIX worldViewProj = world * Camera->zView * Camera->zProj;
+		zWorld = scale * rot * loc;		
 		if (Parent != nullptr)
 		{
 			XMMATRIX parentLoc = XMMatrixRotationRollPitchYawFromVector(Parent->zRotation);
 			XMMATRIX parentRot = XMMatrixTranslationFromVector(Parent->zPosition);
-			worldViewProj = world * parentLoc * parentRot * Camera->zView * Camera->zProj;
+			zWorld = zWorld * parentLoc * parentRot;
 		}
+		XMMATRIX worldViewProj = zWorld * Camera->zView * Camera->zProj;
 		//check for cursor
-		if(Pickable)
-			zCheckForCursor(worldViewProj);
+		if (Pickable)
+			zCheckForCursor(zWorld);
 		worldViewProj = XMMatrixTranspose(worldViewProj);
 		Core->zContext->UpdateSubresource(zCbBufferVS, 0, NULL, &worldViewProj, 0, 0);
 		Core->zContext->VSSetConstantBuffers(0, 1, &zCbBufferVS);

@@ -157,6 +157,7 @@
   <ItemGroup>
     <ClInclude Include="Keys.h" />
     <ClInclude Include="Private.h" />
+    <ClInclude Include="Proto.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PixelShader.hlsl">
