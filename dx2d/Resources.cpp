@@ -22,7 +22,7 @@ namespace dx2d
 
 	void CResourceManager::AddBitmapFont(CBitmapFont* font)
 	{
-		zFonts[font->GetName()] = font;
+		zFonts[font->zTexture->zName] = font;
 	}
 
 	CBitmapFont* CResourceManager::GetBitmapFont(wstring file)

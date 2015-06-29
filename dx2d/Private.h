@@ -3,12 +3,7 @@
 
 namespace dx2d
 {
-#define CHECKHR() Functions::Checkhr(__FILE__,__LINE__)
-	//using	
-	using namespace DirectX;
-	using std::vector;
-	using std::wstring;
-	using std::wstringstream;	
+#define CHECKHR() Functions::Checkhr(__FILE__,__LINE__)	
 
 	struct Vertex
 	{
@@ -63,18 +58,22 @@ namespace dx2d
 	class CTexture
 	{
 	public:
+		bool zCached;
 		int zHeight;
 		int zWidth;
 		wstring zName;
 		ID3D11ShaderResourceView* zShaderResource;
 
+		CTexture(bool cached, int height, int width, wstring name, 
+			ID3D11ShaderResourceView* shaderResource) :
+			zCached(cached),zHeight(height),zWidth(width),zShaderResource(shaderResource){}
 		int GetWidth(){ return zWidth; }
 		int GetHeight(){ return zHeight; }
 		wstring GetName(){ return zName;}
-		//destructor exclusive for resource manager
-		~CTexture()
+		void Destroy()
 		{
 			zShaderResource->Release();
+			delete this;
 		}				
 	};	
 
@@ -274,6 +273,7 @@ namespace dx2d
 		ID3D11RasterizerState* zWireframe;
 		ID3D11RasterizerState* zSolid;
 		void zDrawAll();
+		bool zHasObject(CDrawable* d);
 
 		CDrawManager();
 		void Destroy();
@@ -299,6 +299,7 @@ namespace dx2d
 		CBitmapFont* DefaultFont();
 
 		TEX_FILTER TexFilterCreationMode;
+		bool SupressDuplicateWarning;
 	};
 
 	class CCamera : public CDynamic
@@ -351,18 +352,19 @@ namespace dx2d
 	class CSprite : public CDrawable, public CDynamic
 	{
 	public:
-		wstring zResource;
+		CTexture* zTexture;
 		ID3D11ShaderResourceView* zShaderResource;
-		bool zUncachedTex; //if true sprite will destroy it's own shaderResource
 		XMMATRIX zGetScaleMatrix() override;
 		virtual void zPlay(){}
 		void zDraw() override;
 		void zCheckForCursor(XMMATRIX transform) override;
-
-		CTexture* GetTexture();		
+		
 		CSprite();
 		CSprite(CTexture* texture);
 		CSprite(const WCHAR* file);
+
+		CTexture* GetTexture(){ return zTexture; }
+
 		//sets up scale to match texture size
 		void SetNaturalScale();
 		//set up scale to match given size
@@ -421,12 +423,12 @@ namespace dx2d
 	{
 	public:
 		vector<UV> zChars;
-		wstring zResName;
+		CTexture* zTexture;
 		ID3D11ShaderResourceView* zShaderResource;
 
 		CBitmapFont(const WCHAR* file, vector<UV> _chars);
 		CBitmapFont(CTexture* texture, vector<UV> _chars);
-		wstring GetName();
+		CTexture* GetTexture(){ return zTexture; }
 		void Destroy();
 	};
 

@@ -45,6 +45,19 @@ void Activity()
 	if (Input->IsKeyDown('E'))
 		a1->SetAngularVelZ(-5);
 
+	if (Input->IsKeyPressed(Key.Space))
+	{
+		CSprite* ls = DrawManager->AddSprite(L"sun_flower.png");
+		float x = Functions::RndDouble() * 10 - 5;
+		float y = Functions::RndDouble() * 10 - 5;
+		ls->SetVelocity(x, y, 0);
+		EventManager->AddEvent([ls]()
+		{
+			ls->Destroy();
+			return 0;
+		}, L"", 3, 0, 0);
+	}
+
 	DebugManager->Debug(L"hello", L"h");
 }
 
@@ -78,67 +91,6 @@ int main(int argc, char** argv)
 	a1->Speed = 15;
 
 	CRectangle* r1 = DrawManager->AddRect(1, 1);
-	r1->Color = XMFLOAT4(0, 1, 0.2f, 0);
-	EventManager->AddEvent([r1]()
-	{
-		if (Input->IsKeyPressed(Key.Right))
-		{
-			r1->SetVelocityX(1);
-			XMFLOAT3 pos = r1->GetPosition();
-			EventManager->AddEvent([r1,pos]()
-			{
-				if (r1->GetPosition().x <= pos.x + 1)
-				{
-					r1->SetVelocity(0, 0, 0);
-					return 0;
-				}
-				return 1;
-			}, L"", 0, 0, 0);
-		}
-		if (Input->IsKeyPressed(Key.Down))
-		{
-			r1->SetVelocityY(-1);
-			XMFLOAT3 pos = r1->GetPosition();
-			EventManager->AddEvent([r1, pos]()
-			{
-				if (r1->GetPosition().y <= pos.y - 1)
-				{
-					r1->SetVelocity(0, 0, 0);
-					return 0;
-				}
-				return 1;
-			}, L"", 0, 0, 0);
-		}
-		if (Input->IsKeyPressed(Key.Up))
-		{
-			r1->SetVelocityY(1);
-			XMFLOAT3 pos = r1->GetPosition();
-			EventManager->AddEvent([r1, pos]()
-			{
-				if (r1->GetPosition().y <= pos.y + 1)
-				{
-					r1->SetVelocity(0, 0, 0);
-					return 0;
-				}
-				return 1;
-			}, L"", 0, 0, 0);
-		}
-		if (Input->IsKeyPressed(Key.Left))
-		{
-			r1->SetVelocityX(-1);
-			XMFLOAT3 pos = r1->GetPosition();
-			EventManager->AddEvent([r1, pos]()
-			{
-				if (r1->GetPosition().x <= pos.x - 1)
-				{
-					r1->SetVelocity(0, 0, 0);
-					return 0;
-				}
-				return 1;
-			}, L"", 0, 0, 0);
-		}
-		return 1;
-	}, L"", 0, 0, 0);
 
 	int t1 = time(0);
 	for (int i = 0; i < 2000; i++)

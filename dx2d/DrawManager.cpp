@@ -4,7 +4,9 @@ namespace dx2d
 {
 	void CreateSampler(TEX_FILTER mode, ID3D11SamplerState** sampler);
 
-	CDrawManager::CDrawManager()
+	CDrawManager::CDrawManager() : 
+		SupressDuplicateWarning(false),
+		TexFilterCreationMode (TEX_FILTER::POINT)
 	{
 		D3D11_RASTERIZER_DESC rd;
 		ZeroMemory(&rd, sizeof(rd));
@@ -60,12 +62,25 @@ namespace dx2d
 		tex->Release();		
 		
 		CreateSampler(TEX_FILTER::POINT,&zPointSampler);
-		CreateSampler(TEX_FILTER::LINEAR, &zLineSampler);
-		TexFilterCreationMode = TEX_FILTER::POINT;		
+		CreateSampler(TEX_FILTER::LINEAR, &zLineSampler);		
+	}
+
+	//when adding drawable to drawmanager, its index should be -1
+	//if it's not it probably means that it's there already
+	bool CDrawManager::zHasObject(CDrawable* d)
+	{
+		if ( !SupressDuplicateWarning && d->zIndex != -1)
+		{
+			MessageBox(0, L"This object has already been added", L"Error", MB_ICONEXCLAMATION);
+			return true;
+		}
+		return false;
 	}
 
 	void CDrawManager::AddPoly(CPolygon* p)
 	{
+		if (zHasObject(p))
+			return;
 		zPolygons.push_back(p);
 		p->zIndex = (int)zPolygons.size() - 1;
 	}
@@ -112,6 +127,8 @@ namespace dx2d
 
 	void CDrawManager::AddSprite(CSprite* s)
 	{
+		if (zHasObject(s))
+			return;
 		zSprites.push_back(s);
 		s->zIndex = (int)zSprites.size() - 1;
 	}
@@ -278,6 +295,7 @@ namespace dx2d
 	
 	void CDrawManager::AddBitmapFont(CBitmapFont* font)
 	{
+		MessageBox(0, L"Adding font, implement checking if its already there", 0, 0);
 		ResourceManager->AddBitmapFont(font);
 	}
 
@@ -293,13 +311,15 @@ namespace dx2d
 
 	void CDrawManager::AddBitmapText(CBitmapText* text)
 	{
+		if (zHasObject(text))
+			return;
 		zTexts.push_back(text);
 		text->zIndex = (int)zTexts.size() - 1;
 	}
 
 	void CDrawManager::RemoveBitmapFont(CBitmapFont* font)
 	{
-		throw 1;
+		MessageBox(0, L"CDrawManager::RemoveBitmapFont(CBitmapFont* font)\nnot implemented", 0, 0);
 	}
 
 	void CDrawManager::RemoveBitmapText(CBitmapText* text)

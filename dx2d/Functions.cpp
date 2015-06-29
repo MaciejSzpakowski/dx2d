@@ -91,8 +91,8 @@ namespace dx2d
 			BITMAP bitmap;
 			GetObject(hbitmap, sizeof(bitmap), (LPVOID)&bitmap);
 			BYTE* data = (BYTE*)bitmap.bmBits;
-			//ID3D11Texture2D and BITMAP have red and blue swapped
-			//swap it back
+			//have to swap red and blue because bitmap has pixels as integers
+			//and shader will read in byte by byte instead of int by int
 			//this for loop is ~10% of the function
 			for (int i = 0; i < (int)(h*w * 4); i += 4)
 			{
@@ -169,65 +169,66 @@ namespace dx2d
 			delete gdibitmap;
 			Gdiplus::GdiplusShutdown(m_gdiplusToken);
 			return tex;
-		}		
+		}
 
-		//loads texture to shader resource, checks cache first
-		//if it's not in cache then load and store
-		CTexture* LoadCachedTextureFromFile(const WCHAR* file, ID3D11ShaderResourceView*& shader)
+		CTexture* GetCachedTextureFromFile(const WCHAR* file)
 		{
 			CTexture* res = ResourceManager->GetTexture(file);
 			if (res != nullptr)
-			{
-				shader = res->zShaderResource;
 				return res;
-			}
 			else
-			{
+			{				
 				D3D11_TEXTURE2D_DESC desc;
 				auto tex = Functions::CreateTexture2DFromFile(file);
 				if (tex == nullptr)
 					throw 0;
 				tex->GetDesc(&desc);
-				Core->zDevice->CreateShaderResourceView(tex, 0, &shader);
+				ID3D11ShaderResourceView* srv;
+				Core->zDevice->CreateShaderResourceView(tex, 0, &srv);
 				tex->Release();
+				CTexture* newRes = new CTexture(true, desc.Height, desc.Width, file, srv);
 				//add to resources
-				CTexture* newRes = new CTexture;
-				newRes->zName = file;
-				newRes->zHeight = desc.Height;
-				newRes->zWidth = desc.Width;
-				newRes->zShaderResource = shader;
 				ResourceManager->AddTexture(newRes);
 				return newRes;
 			}
 		}
 
-		CTexture* LoadCachedTextureFromResource(int resource, ID3D11ShaderResourceView*& shader)
+		CTexture* GetCachedTextureFromResource(int resource, wstring name)
 		{
-			LPTSTR name = L"font.png";
 			CTexture* res = ResourceManager->GetTexture(name);
 			if (res != nullptr)
-			{
-				shader = res->zShaderResource;
 				return res;
-			}
 			else
-			{
+			{				
 				D3D11_TEXTURE2D_DESC desc;
 				auto tex = Functions::CreateTexture2DFromResource(resource);
 				if (tex == nullptr)
 					throw 0;
 				tex->GetDesc(&desc);
-				Core->zDevice->CreateShaderResourceView(tex, 0, &shader);
+				ID3D11ShaderResourceView* srv;
+				Core->zDevice->CreateShaderResourceView(tex, 0, &srv);
 				tex->Release();
+				CTexture* newRes = new CTexture(true, desc.Height, desc.Width, name, srv);
 				//add to resources
-				CTexture* newRes = new CTexture;
-				newRes->zName = name;
-				newRes->zHeight = desc.Height;
-				newRes->zWidth = desc.Width;
-				newRes->zShaderResource = shader;
 				ResourceManager->AddTexture(newRes);
 				return newRes;
 			}
+		}
+
+		CTexture* GetUncachedTextureFromBytes(BYTE* data, int width, int height)
+		{
+			auto tex = Functions::CreateTexture2DFromBytes(data, width, height);
+			if (tex == nullptr)
+			{
+				MessageBox(0, L"GetUncachedTextureFromBytes(BYTE* data, int width, int height) failed",
+					L"Error", MB_ICONEXCLAMATION);
+				return nullptr;
+			}
+			ID3D11ShaderResourceView* srv;
+			Core->zDevice->CreateShaderResourceView(tex, 0, &srv);
+			tex->Release();
+			CTexture* newRes = new CTexture(false, height, width, L"custom", srv);
+			return newRes;
 		}
 
 		void Checkhr(const char* file, int line)

@@ -172,8 +172,7 @@ namespace dx2d
 				chars1.push_back(UV(15.0f / 300.0f*j, 21.0f / 105.0f*i, 15.0f /
 					300.0f*(j + 1), 21 / 105.0f*(i + 1)));
 			}
-		ID3D11ShaderResourceView* res1;
-		CTexture* tex1 = Functions::LoadCachedTextureFromFile(L"font.png", res1);
+		CTexture* tex1 = Functions::GetCachedTextureFromFile(L"font.png");
 		DrawManager->zDefaultFont = new CBitmapFont(tex1, chars1);
 		DrawManager->AddBitmapFont(DrawManager->zDefaultFont);
 		DebugManager->Init(DrawManager->DefaultFont());

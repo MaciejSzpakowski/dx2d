@@ -17,7 +17,6 @@ namespace dx2d
 	{
 		FlipHorizontally = false;
 		FlipVertically = false;
-		zUncachedTex = false;
 		Scale = XMFLOAT2(1, 1);
 		Color = XMFLOAT4(1, 1, 1, 1);
 		TexFilter = DrawManager->TexFilterCreationMode;
@@ -25,28 +24,25 @@ namespace dx2d
 
 	CSprite::CSprite(const WCHAR* file)
 	{
-		zResource = file;
 		FlipHorizontally = false;
 		FlipVertically = false;
-		zUncachedTex = false;
 		zVertexBuffer = nullptr;
 		Scale = XMFLOAT2(1, 1);
 		Color = XMFLOAT4(1, 1, 1, 1);
 		TexFilter = DrawManager->TexFilterCreationMode;
-
-		Functions::LoadCachedTextureFromFile(file, zShaderResource);		
+		zTexture = Functions::GetCachedTextureFromFile(file);
+		zShaderResource = zTexture->zShaderResource;
 	}
 
 	CSprite::CSprite(CTexture* texture)
 	{
-		zResource = texture->zName;
 		FlipHorizontally = false;
 		FlipVertically = false;
-		zUncachedTex = false;
 		zVertexBuffer = nullptr;
 		Scale = XMFLOAT2(1, 1);
 		Color = XMFLOAT4(1, 1, 1, 1);
 		TexFilter = DrawManager->TexFilterCreationMode;
+		zTexture = texture;
 		zShaderResource = texture->zShaderResource;
 	}
 
@@ -72,11 +68,6 @@ namespace dx2d
 	XMMATRIX CSprite::zGetScaleMatrix()
 	{
 		return XMMatrixScaling(Scale.x, Scale.y, 1);
-	}
-
-	CTexture* CSprite::GetTexture()
-	{
-		return ResourceManager->GetTexture(zResource);
 	}
 
 	void CSprite::SetNaturalScale()
@@ -112,8 +103,9 @@ namespace dx2d
 		XMVECTOR origin = XMVectorSet(pf.x, pf.y, Camera->GetPosition().z, 0);
 		XMVECTOR dir = XMVectorSet(0, 0, 1, 0);
 		float dist;
-		//ray - traingle collision
+		//ray - triangle collision
 		zUnderCursor = TriangleTests::Intersects(origin, dir, A, B, C, dist);
+		//if cursor is not over 1st triangle, try the second one
 		if(!zUnderCursor)
 			zUnderCursor = TriangleTests::Intersects(origin, dir, A, C, D, dist);
 	}
@@ -121,8 +113,8 @@ namespace dx2d
 	void CSprite::Destroy()
 	{
 		DrawManager->RemoveSprite(this);
-		if (zUncachedTex)
-			zShaderResource->Release();
+		if (!zTexture->zCached)
+			zTexture->Destroy();
 		delete this;
 	}
 

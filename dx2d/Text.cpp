@@ -110,21 +110,16 @@ namespace dx2d
 
 	CBitmapFont::CBitmapFont(const WCHAR* file, vector<UV> _chars)
 	{
-		zResName = file;
 		zChars = _chars;
-		Functions::LoadCachedTextureFromFile(file, zShaderResource);
+		zTexture = Functions::GetCachedTextureFromFile(file);
+		zShaderResource = zTexture->zShaderResource;
 	}
 
 	CBitmapFont::CBitmapFont(CTexture* texture, vector<UV> _chars)
 	{
-		zResName = texture->zName;
 		zChars = _chars;
+		zTexture = texture;
 		zShaderResource = texture->zShaderResource;
-	}
-
-	wstring CBitmapFont::GetName()
-	{
-		return zResName;
 	}
 
 	void CBitmapFont::Destroy()
