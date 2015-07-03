@@ -22,6 +22,12 @@ namespace dx2d
 		GetWindowRect(Core->GetWindowHandle(), &rect);
 		zAspectRatio = (float)(rect.right - rect.left) / (rect.bottom - rect.top);
 		zProj = XMMatrixPerspectiveFovLH(zFovAngle, zAspectRatio, zNearPlane, zFarPlane);
+
+		//render target matrix
+		DrawManager->zRenderTargetSize = { (float)rect.right - rect.left, (float)rect.bottom - rect.top };
+		float scalex = 20 * tan(zFovAngle / 2) * zAspectRatio;
+		float scaley = 20 * tan(zFovAngle / 2);
+		DrawManager->zRenderTargetMatrix = XMMatrixScaling(scalex, scaley, 1) * zView * zProj;
 	}
 
 	XMMATRIX CCamera::zGetScaleMatrix()

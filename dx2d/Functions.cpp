@@ -17,30 +17,15 @@ namespace dx2d
 	HRESULT hr;
 
 	void Render(CCore* d3d)
-	{		
-		Camera->zCamTransform();
-		d3d->zContext->ClearRenderTargetView(d3d->zBackBuffer, d3d->zBackBufferColor);
-		DrawManager->zDrawAll();		
-		d3d->zSwapChain->Present(0, 0);
+	{
 		Input->zActivity();
 		EventManager->zActivity();
+		Camera->zCamTransform();
+		d3d->zContext->ClearRenderTargetView(d3d->zBackBuffer, d3d->zBackBufferColor);
+		DrawManager->zDrawAll();
+		d3d->zSwapChain->Present(0, 0);
 		d3d->zUpdateGameTime();
 	}	
-
-	void CreateSampler(TEX_FILTER mode, ID3D11SamplerState** sampler)
-	{
-		D3D11_SAMPLER_DESC sampDesc;
-		ZeroMemory(&sampDesc, sizeof(sampDesc));
-		sampDesc.Filter = mode == TEX_FILTER::POINT ? 
-			D3D11_FILTER_MIN_MAG_MIP_POINT : D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-		sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-		sampDesc.MinLOD = 0;
-		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-		Core->zDevice->CreateSamplerState(&sampDesc, sampler);
-	}
 
 	namespace Functions
 	{
@@ -125,7 +110,7 @@ namespace dx2d
 			return tex;/**/
 		}
 
-		ID3D11Texture2D* CreateTexture2DFromFile(const WCHAR* file)
+		ID3D11Texture2D* CreateTexture2DFromFile(LPCWSTR file)
 		{
 			ULONG_PTR m_gdiplusToken;
 			Gdiplus::GdiplusStartupInput gdiplusStartupInput;
@@ -171,7 +156,7 @@ namespace dx2d
 			return tex;
 		}
 
-		CTexture* GetCachedTextureFromFile(const WCHAR* file)
+		CTexture* GetCachedTextureFromFile(LPCWSTR file)
 		{
 			CTexture* res = ResourceManager->GetTexture(file);
 			if (res != nullptr)
@@ -262,7 +247,18 @@ namespace dx2d
 			unsigned int p3 = rand() << 30;
 			unsigned int t = p1 | p2 | p3;
 			return t % (max - min) + min;
-		}		
+		}
+
+		ID3D11PixelShader* CreatePSFromFile(LPCWSTR file, LPCSTR entryPoint, LPCSTR target)
+		{
+			ID3D11PixelShader* result;
+			ID3D10Blob *ps;
+			hr = D3DCompileFromFile(file, 0, 0, entryPoint, target, 0, 0, &ps, 0); CHECKHR();
+			hr = Core->zDevice->CreatePixelShader(ps->GetBufferPointer(), ps->GetBufferSize(), 0,
+				&result); CHECKHR();
+			ps->Release();
+			return result;
+		}
 	}
 
 	namespace Collision
@@ -276,10 +272,10 @@ namespace dx2d
 
 		bool IsColliding(CSprite* s1, CSprite* s2)
 		{
-			XMVECTOR A = XMVectorSet(-1.0f, -1.0f, 0, 0);
-			XMVECTOR B = XMVectorSet(1.0f, -1.0f, 0, 0);
-			XMVECTOR C = XMVectorSet(1.0f, 1.0f, 0, 0);
-			XMVECTOR D = XMVectorSet(-1.0f, 1.0f, 0, 0);
+			XMVECTOR A = XMVectorSet(-1.0f, -1.0f, 0, 1);
+			XMVECTOR B = XMVectorSet(1.0f, -1.0f, 0, 1);
+			XMVECTOR C = XMVectorSet(1.0f, 1.0f, 0, 1);
+			XMVECTOR D = XMVectorSet(-1.0f, 1.0f, 0, 1);
 			XMVECTOR A1 = XMVector3Transform(A, s1->zWorld);
 			XMVECTOR B1 = XMVector3Transform(B, s1->zWorld);
 			XMVECTOR C1 = XMVector3Transform(C, s1->zWorld);
@@ -289,6 +285,7 @@ namespace dx2d
 			XMVECTOR C2 = XMVector3Transform(C, s2->zWorld);
 			XMVECTOR D2 = XMVector3Transform(D, s2->zWorld);
 			bool result;
+			//check all possibilities and return as soon as collision detected
 			result = TriangleTests::Intersects(A1, B1, C1, A2, B2, C2);
 			if (result) return true;
 			result = TriangleTests::Intersects(A1, B1, C1, A2, C2, D2);

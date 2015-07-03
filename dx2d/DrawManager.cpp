@@ -2,7 +2,20 @@
 
 namespace dx2d
 {
-	void CreateSampler(TEX_FILTER mode, ID3D11SamplerState** sampler);
+	void CreateSampler(TEX_FILTER mode, ID3D11SamplerState** sampler)
+	{
+		D3D11_SAMPLER_DESC sampDesc;
+		ZeroMemory(&sampDesc, sizeof(sampDesc));
+		sampDesc.Filter = mode == TEX_FILTER::POINT ?
+		D3D11_FILTER_MIN_MAG_MIP_POINT : D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+		sampDesc.MinLOD = 0;
+		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+		Core->zDevice->CreateSamplerState(&sampDesc, sampler);
+	}
 
 	CDrawManager::CDrawManager() : 
 		SupressDuplicateWarning(false),
@@ -65,6 +78,49 @@ namespace dx2d
 		CreateSampler(TEX_FILTER::LINEAR, &zLineSampler);		
 	}
 
+	void CDrawManager::zInit()
+	{
+		///////////////////////
+		//default render target
+		///////////////////////
+		RenderTarget defaultTarget;
+		D3D11_TEXTURE2D_DESC textureDesc;
+		D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+
+		ZeroMemory(&textureDesc, sizeof(textureDesc));
+		textureDesc.Width = 800;
+		textureDesc.Height = 600;
+		textureDesc.MipLevels = 1;
+		textureDesc.ArraySize = 1;
+		textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		textureDesc.SampleDesc.Count = 1;
+		textureDesc.Usage = D3D11_USAGE_DEFAULT;
+		textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+		textureDesc.CPUAccessFlags = 0;
+		textureDesc.MiscFlags = 0;
+		Core->zDevice->CreateTexture2D(&textureDesc, NULL, &defaultTarget.texture);
+
+		renderTargetViewDesc.Format = textureDesc.Format;
+		renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		renderTargetViewDesc.Texture2D.MipSlice = 0;
+		Core->zDevice->CreateRenderTargetView(defaultTarget.texture,
+			&renderTargetViewDesc, &defaultTarget.targetView);
+
+		shaderResourceViewDesc.Format = textureDesc.Format;
+		shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
+		shaderResourceViewDesc.Texture2D.MipLevels = 1;
+		Core->zDevice->CreateShaderResourceView(defaultTarget.texture,
+			&shaderResourceViewDesc, &defaultTarget.shaderResource);
+
+		defaultTarget.sprite = new CSprite();
+		defaultTarget.sprite->zTexture = nullptr;
+		defaultTarget.sprite->PixelShader = Core->zDefaultPost;
+		defaultTarget.sprite->zShaderResource = defaultTarget.shaderResource;
+		zRenderTargets.push_back(defaultTarget);
+	}
+
 	//when adding drawable to drawmanager, its index should be -1
 	//if it's not it probably means that it's there already
 	bool CDrawManager::zHasObject(CDrawable* d)
@@ -109,12 +165,12 @@ namespace dx2d
 		return newCircle;
 	}
 
-	CSprite* CDrawManager::AddSprite(const WCHAR* textureFile)
+	CSprite* CDrawManager::AddSprite(LPCWSTR file)
 	{
 		CSprite* newSprite;
 		try
 		{
-			newSprite = new CSprite(textureFile);
+			newSprite = new CSprite(file);
 		}
 		catch (int)
 		{
@@ -133,12 +189,12 @@ namespace dx2d
 		s->zIndex = (int)zSprites.size() - 1;
 	}
 
-	CAnimation* CDrawManager::AddAnimation(const WCHAR* texture, int x, int y)
+	CAnimation* CDrawManager::AddAnimation(LPCWSTR file, int x, int y)
 	{
 		CAnimation* newAnimation;
 		try
 		{
-			newAnimation = new CAnimation(texture, x, y);
+			newAnimation = new CAnimation(file, x, y);
 		}
 		catch (int)
 		{
@@ -154,20 +210,31 @@ namespace dx2d
 		AddSprite(a);
 	}
 
+	void CDrawManager::zRenderTargetTransform()
+	{
+		XMMATRIX transform = XMMatrixTranspose(zRenderTargetMatrix);
+		Core->zContext->UpdateSubresource(zRenderTargets[0].sprite->zCbBufferVS, 0, NULL, &transform, 0, 0);
+		Core->zContext->VSSetConstantBuffers(0, 1, &zRenderTargets[0].sprite->zCbBufferVS);
+	}
+
 	void CDrawManager::zDrawAll()
 	{
 		Core->zContext->ClearDepthStencilView(Core->zDepthStencilView, 
 			D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 		//GetContext()->OMSetBlendState(Core->blendState, 0, 0xffffffff);
 
+		Core->zContext->ClearRenderTargetView(zRenderTargets[0].targetView, Core->zBackBufferColor);
+		Core->zContext->OMSetRenderTargets(1, &zRenderTargets[0].targetView, Core->zDepthStencilView);
+
 		//polys
+		Core->zContext->PSSetShader(Core->zDefaultPS, 0, 0);
 		Core->zContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP);
 		Core->zContext->RSSetState(zWireframe);
 		for (CPolygon* p : zPolygons)
-		{			
+		{
 			p->zUpdate();
 			if (p->Visible)
-			{				
+			{
 				p->zTransform();
 				p->zDraw();
 			}
@@ -208,10 +275,23 @@ namespace dx2d
 				t->zDraw();
 			}
 		}
+		Core->zContext->ClearDepthStencilView(Core->zDepthStencilView,
+			D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		Core->zContext->OMSetRenderTargets(1, &Core->zBackBuffer, Core->zDepthStencilView);
+		zRenderTargetTransform();
+		zRenderTargets[0].sprite->FlipVertically = true;
+		zRenderTargets[0].sprite->zDraw();
 	}
 
 	void CDrawManager::Destroy()
 	{
+		for (int i = (int)zRenderTargets.size() - 1; i >= 0; i--)
+		{
+			zRenderTargets[i].shaderResource->Release();
+			zRenderTargets[i].texture->Release();
+			zRenderTargets[i].targetView->Release();
+			zRenderTargets[i].sprite->Destroy();
+		}
 		zLineSampler->Release();
 		zPointSampler->Release();
 		for (int i = (int)zPolygons.size() - 1; i >= 0; i--)
@@ -276,7 +356,7 @@ namespace dx2d
 		RemoveSprite(a);
 	}
 
-	CBitmapFont* CDrawManager::AddBitmapFont(const WCHAR* file, vector<UV> chars)
+	CBitmapFont* CDrawManager::AddBitmapFont(LPCWSTR file, vector<Rect> chars)
 	{
 		CBitmapFont* newFont = ResourceManager->GetBitmapFont(file);
 		if (newFont != nullptr)
@@ -295,7 +375,9 @@ namespace dx2d
 	
 	void CDrawManager::AddBitmapFont(CBitmapFont* font)
 	{
-		MessageBox(0, L"Adding font, implement checking if its already there", 0, 0);
+		CBitmapFont* newFont = ResourceManager->GetBitmapFont(font->zTexture->zName);
+		if (newFont != nullptr)
+			return;
 		ResourceManager->AddBitmapFont(font);
 	}
 
@@ -345,7 +427,7 @@ namespace dx2d
 		text->zIndex = -1;
 	}
 
-	CBitmapFont* CDrawManager::DefaultFont()
+	CBitmapFont* CDrawManager::GetDefaultFont()
 	{
 		return zDefaultFont;
 	}

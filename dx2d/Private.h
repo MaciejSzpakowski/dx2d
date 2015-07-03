@@ -32,15 +32,23 @@ namespace dx2d
 		}
 	};
 
-	struct UV
+	struct Rect
 	{
 		float left;
 		float top;
 		float right;
 		float bottom;
-		UV(){}
-		UV(float _left, float _top, float _right, float _bottom) :
+		Rect(){}
+		Rect(float _left, float _top, float _right, float _bottom) :
 			left(_left), top(_top), right(_right), bottom(_bottom){}
+	};
+
+	struct RenderTarget
+	{
+		ID3D11ShaderResourceView* shaderResource;
+		ID3D11Texture2D* texture;
+		ID3D11RenderTargetView* targetView;
+		CSprite* sprite;
 	};
 
 	struct Event
@@ -66,7 +74,8 @@ namespace dx2d
 
 		CTexture(bool cached, int height, int width, wstring name, 
 			ID3D11ShaderResourceView* shaderResource) :
-			zCached(cached),zHeight(height),zWidth(width),zShaderResource(shaderResource){}
+			zCached(cached),zHeight(height),zWidth(width),zName(name),
+			zShaderResource(shaderResource){}
 		int GetWidth(){ return zWidth; }
 		int GetHeight(){ return zHeight; }
 		wstring GetName(){ return zName;}
@@ -99,6 +108,7 @@ namespace dx2d
 		ID3D11DeviceContext* zContext;
 		ID3D11VertexShader* zDefaultVS;
 		ID3D11PixelShader* zDefaultPS;
+		ID3D11PixelShader* zDefaultPost;
 		ID3D11InputLayout* zLayout; //vertex input layout pos:float[3] col:float[3] uv:float[2]
 		ID3D11DepthStencilView* zDepthStencilView;
 		ID3D11Texture2D* zDepthStencilBuffer;
@@ -114,7 +124,7 @@ namespace dx2d
 
 		CCore(int sizex, int sizey, std::function<void()> worker, int style);
 		HWND GetWindowHandle();
-		void SetWindowTitle(const wchar_t* title);
+		void SetWindowTitle(LPCWSTR title);
 		void SetBackgroundColor(Color color);
 		int Run();
 		void OpenConsole();
@@ -226,7 +236,7 @@ namespace dx2d
 
 		bool Visible;
 		Color Color;
-		UV uv;
+		Rect UV;
 	};
 
 	class CPolygon : public CDrawable, public CDynamic
@@ -261,6 +271,7 @@ namespace dx2d
 	class CDrawManager
 	{
 	public:
+		vector<RenderTarget> zRenderTargets;
 		CBitmapFont* zDefaultFont;
 		ID3D11ShaderResourceView* zWhiteRes;
 		ID3D11SamplerState* zPointSampler;
@@ -272,8 +283,13 @@ namespace dx2d
 		vector<CBitmapText*> zTexts;
 		ID3D11RasterizerState* zWireframe;
 		ID3D11RasterizerState* zSolid;
+		XMMATRIX zRenderTargetMatrix; //used for render target transformation
+		POINTF zRenderTargetSize;
 		void zDrawAll();
 		bool zHasObject(CDrawable* d);
+		//post constructor
+		void zInit();
+		void zRenderTargetTransform();
 
 		CDrawManager();
 		void Destroy();
@@ -284,19 +300,19 @@ namespace dx2d
 		void RemovePoly(CPolygon* p);
 		//add sprite from file
 		//supported file formats: BMP, GIF, JPEG, PNG, TIFF, Exif, WMF, EMF
-		CSprite* AddSprite(const WCHAR* texture);
+		CSprite* AddSprite(LPCWSTR texture);
 		void AddSprite(CSprite* s);
 		void RemoveSprite(CSprite* s);
-		CAnimation* AddAnimation(const WCHAR* texture, int x, int y);
+		CAnimation* AddAnimation(LPCWSTR file, int x, int y);
 		void AddAnimation(CAnimation* a);
 		void RemoveAnimation(CAnimation* a);		
-		CBitmapFont* AddBitmapFont(const WCHAR* file, vector<UV> chars);
+		CBitmapFont* AddBitmapFont(LPCWSTR file, vector<Rect> chars);
 		void AddBitmapFont(CBitmapFont* font);
 		CBitmapText* AddBitmapText(CBitmapFont* font);
 		void AddBitmapText(CBitmapText* text);
 		void RemoveBitmapFont(CBitmapFont* font);
 		void RemoveBitmapText(CBitmapText* text);
-		CBitmapFont* DefaultFont();
+		CBitmapFont* GetDefaultFont();
 
 		TEX_FILTER TexFilterCreationMode;
 		bool SupressDuplicateWarning;
@@ -351,7 +367,7 @@ namespace dx2d
 
 	class CSprite : public CDrawable, public CDynamic
 	{
-	public:
+	public:		
 		CTexture* zTexture;
 		ID3D11ShaderResourceView* zShaderResource;
 		XMMATRIX zGetScaleMatrix() override;
@@ -361,7 +377,7 @@ namespace dx2d
 		
 		CSprite();
 		CSprite(CTexture* texture);
-		CSprite(const WCHAR* file);
+		CSprite(LPCWSTR file);
 
 		CTexture* GetTexture(){ return zTexture; }
 
@@ -375,6 +391,7 @@ namespace dx2d
 		XMFLOAT2 Scale;
 		bool FlipHorizontally;
 		bool FlipVertically;
+		ID3D11PixelShader* PixelShader;
 	};
 
 	class CEventManager
@@ -397,13 +414,13 @@ namespace dx2d
 	public:
 		double zLastFrameChangeTime;
 		int zFrameCount;
-		vector<UV> zUvTable;
+		vector<Rect> zUvTable;
 		double zIndicator;
 		bool zFrameChanged;
 		//plays animation
 		void zPlay() override;
 		
-		CAnimation(const WCHAR* file, int x, int y);
+		CAnimation(LPCWSTR file, int x, int y);
 		bool FrameChanged(); //true if frame changed in prev game frame
 		//set frames order, size of int should be the same as frame count
 		void SetOrder(int* order);
@@ -422,12 +439,12 @@ namespace dx2d
 	class CBitmapFont
 	{
 	public:
-		vector<UV> zChars;
+		vector<Rect> zChars;
 		CTexture* zTexture;
 		ID3D11ShaderResourceView* zShaderResource;
 
-		CBitmapFont(const WCHAR* file, vector<UV> _chars);
-		CBitmapFont(CTexture* texture, vector<UV> _chars);
+		CBitmapFont(LPCWSTR file, vector<Rect> _chars);
+		CBitmapFont(CTexture* texture, vector<Rect> _chars);
 		CTexture* GetTexture(){ return zTexture; }
 		void Destroy();
 	};

@@ -10,6 +10,7 @@ CSprite* s1, *s2;
 CAnimation* a1;
 CBitmapText* bmtext;
 std::vector<CSprite*> sprites;
+int fps;
 
 void Activity()
 {
@@ -45,34 +46,23 @@ void Activity()
 	if (Input->IsKeyDown('E'))
 		a1->SetAngularVelZ(-5);
 
-	if (Input->IsKeyPressed(Key.Space))
-	{
-		CSprite* ls = DrawManager->AddSprite(L"sun_flower.png");
-		float x = Functions::RndDouble() * 10 - 5;
-		float y = Functions::RndDouble() * 10 - 5;
-		ls->SetVelocity(x, y, 0);
-		EventManager->AddEvent([ls]()
-		{
-			ls->Destroy();
-			return 0;
-		}, L"", 3, 0, 0);
-	}
-
-	DebugManager->Debug(L"hello", L"h");
+	s1->Color.b = 1;
+	/*if (Collision::IsColliding(a1, s1))
+		s1->Color.b = 3;*/
 }
 
 int main(int argc, char** argv)
 {
 	Functions::NewCore(800, 600, Activity);
 
-	//fps
-	EventManager->AddEvent([]()
-	{
-		wchar_t sfps[20];
-		swprintf_s(sfps, 20, L"%i", (int)Core->GetFps());
-		Core->SetWindowTitle(sfps);
-		return 1;
-	}, L"", 0, 0, 1);
+	EventManager->AddEvent([]()	{
+		fps = (int)Core->GetFps();
+		return 1;	}, L"", 0, 0, 1);
+	EventManager->AddEvent([]()	{
+		DebugManager->Debug(fps, L"FPS");
+		return 1;	}, L"", 0, 0, 0);
+
+	Core->SetWindowTitle(L"Hello");
 	Core->OpenConsole();
 	Core->SetBackgroundColor({ 0, 0, 0, 1 });
 	c1 = DrawManager->AddCircle(1, 10);
@@ -90,9 +80,12 @@ int main(int argc, char** argv)
 	a1->Pickable = true;
 	a1->Speed = 15;
 
-	CRectangle* r1 = DrawManager->AddRect(1, 1);
+	s1 = DrawManager->AddSprite(L"ani.png");
+	s1->UV = Rect( 0, 0, 0.5f, 0.25f );
+	s1->SetRotationZ(0.2f);
+	s1->SetPositionX(6);
 
-	int t1 = time(0);
+	int t1 = (int)time(0);
 	for (int i = 0; i < 2000; i++)
 	{
 		//Functions::CreateTexture2DFromFile(L"sun_flower.png");

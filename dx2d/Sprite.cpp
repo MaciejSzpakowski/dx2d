@@ -11,19 +11,26 @@ pTextureInterface->GetDesc(&desc);
 
 namespace dx2d
 {
-	void CreateStandardSampler(ID3D11SamplerState** sampler);
+	void debug1(CSprite* s, LPCWSTR name)
+	{
+		wprintf(L"s%x %s\n", (int)s, name);
+	}
 
 	CSprite::CSprite()
 	{
+		PixelShader = Core->zDefaultPS;
 		FlipHorizontally = false;
 		FlipVertically = false;
+		zVertexBuffer = nullptr;
 		Scale = XMFLOAT2(1, 1);
 		Color = XMFLOAT4(1, 1, 1, 1);
 		TexFilter = DrawManager->TexFilterCreationMode;
+		debug1(this, L"default");
 	}
 
-	CSprite::CSprite(const WCHAR* file)
+	CSprite::CSprite(LPCWSTR file)
 	{
+		PixelShader = Core->zDefaultPS;
 		FlipHorizontally = false;
 		FlipVertically = false;
 		zVertexBuffer = nullptr;
@@ -32,10 +39,13 @@ namespace dx2d
 		TexFilter = DrawManager->TexFilterCreationMode;
 		zTexture = Functions::GetCachedTextureFromFile(file);
 		zShaderResource = zTexture->zShaderResource;
+		LPCWSTR str = &zTexture->zName[0];
+		debug1(this, zTexture->zName.c_str());
 	}
 
 	CSprite::CSprite(CTexture* texture)
 	{
+		PixelShader = Core->zDefaultPS;
 		FlipHorizontally = false;
 		FlipVertically = false;
 		zVertexBuffer = nullptr;
@@ -44,20 +54,23 @@ namespace dx2d
 		TexFilter = DrawManager->TexFilterCreationMode;
 		zTexture = texture;
 		zShaderResource = texture->zShaderResource;
+		debug1(this, zTexture->zName.c_str());
 	}
 
 	void CSprite::zDraw()
 	{
-		//color
-		Core->zContext->UpdateSubresource(zCbBufferPS, 0, NULL, &Color, 0, 0);
+		//ps
+		Core->zContext->PSSetShader(PixelShader, 0, 0);
+		//color		
+		Core->zContext->UpdateSubresource(zCbBufferPS, 0, 0, &Color, 0, 0);
 		Core->zContext->PSSetConstantBuffers(0, 1, &zCbBufferPS);
 		//uv
-		UV _uv;
-		_uv.left = FlipHorizontally ? uv.right : uv.left;
-		_uv.right = FlipHorizontally ? uv.left : uv.right;
-		_uv.top = FlipVertically ? uv.bottom : uv.top;
-		_uv.bottom = FlipVertically ? uv.top : uv.bottom;
-		Core->zContext->UpdateSubresource(zCbBufferUV, 0, NULL, &_uv, 0, 0);
+		Rect uv;
+		uv.left = FlipHorizontally ? UV.right : UV.left;
+		uv.right = FlipHorizontally ? UV.left : UV.right;
+		uv.top = FlipVertically ? UV.bottom : UV.top;
+		uv.bottom = FlipVertically ? UV.top : UV.bottom;
+		Core->zContext->UpdateSubresource(zCbBufferUV, 0, 0, &uv, 0, 0);
 		Core->zContext->VSSetConstantBuffers(1, 1, &zCbBufferUV);
 		//tex
 		Core->zContext->PSSetShaderResources(0, 1, &zShaderResource);
@@ -91,10 +104,10 @@ namespace dx2d
 	void CSprite::zCheckForCursor(XMMATRIX transform)
 	{
 		XMFLOAT3 pf = Camera->GetCursorWorldPos(GetPosition().z);
-		XMVECTOR A = XMVectorSet(-1.0f, -1.0f, 0, 0);
-		XMVECTOR B = XMVectorSet(1.0f, -1.0f, 0, 0);
-		XMVECTOR C = XMVectorSet(1.0f, 1.0f, 0, 0);
-		XMVECTOR D = XMVectorSet(-1.0f, 1.0f, 0, 0);		
+		XMVECTOR A = XMVectorSet(-1.0f, -1.0f, 0, 1);
+		XMVECTOR B = XMVectorSet(1.0f, -1.0f, 0, 1);
+		XMVECTOR C = XMVectorSet(1.0f, 1.0f, 0, 1);
+		XMVECTOR D = XMVectorSet(-1.0f, 1.0f, 0, 1);		
 		A = XMVector3Transform(A, transform);
 		B = XMVector3Transform(B, transform);
 		C = XMVector3Transform(C, transform);
@@ -113,12 +126,12 @@ namespace dx2d
 	void CSprite::Destroy()
 	{
 		DrawManager->RemoveSprite(this);
-		if (!zTexture->zCached)
+		if (zTexture != nullptr && !zTexture->zCached)
 			zTexture->Destroy();
 		delete this;
 	}
 
-	CAnimation::CAnimation(const WCHAR* file, int x, int y) : CSprite(file)
+	CAnimation::CAnimation(LPCWSTR file, int x, int y) : CSprite(file)
 	{
 		zFrameCount = x*y;
 		Start = 0;
@@ -130,9 +143,9 @@ namespace dx2d
 		zUvTable.reserve(zFrameCount);
 		for (int i = 0; i < y; i++)
 			for (int j = 0; j < x; j++)
-				zUvTable.push_back(UV(1.0f / x*j, 1.0f / y*i, 1.0f / 
+				zUvTable.push_back(Rect(1.0f / x*j, 1.0f / y*i, 1.0f / 
 				x*(j + 1), 1.0f / y*(i + 1)));
-		uv = zUvTable[Frame];
+		UV = zUvTable[Frame];
 	}
 
 	void CAnimation::zPlay()
@@ -154,12 +167,12 @@ namespace dx2d
 				PreviousFrame();
 			}
 		}
-		uv = zUvTable[Frame];
+		UV = zUvTable[Frame];
 	}
 
 	void CAnimation::SetOrder(int* order)
 	{
-		vector<UV> newUvtable;
+		vector<Rect> newUvtable;
 		newUvtable.reserve(zFrameCount);
 		for (int i = 0; i < zFrameCount; i++)
 			newUvtable[i] = zUvTable[order[i]];

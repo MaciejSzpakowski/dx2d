@@ -108,14 +108,14 @@ namespace dx2d
 		delete this;
 	}
 
-	CBitmapFont::CBitmapFont(const WCHAR* file, vector<UV> _chars)
+	CBitmapFont::CBitmapFont(const WCHAR* file, vector<Rect> _chars)
 	{
 		zChars = _chars;
 		zTexture = Functions::GetCachedTextureFromFile(file);
 		zShaderResource = zTexture->zShaderResource;
 	}
 
-	CBitmapFont::CBitmapFont(CTexture* texture, vector<UV> _chars)
+	CBitmapFont::CBitmapFont(CTexture* texture, vector<Rect> _chars)
 	{
 		zChars = _chars;
 		zTexture = texture;

@@ -1,6 +1,4 @@
 #include "Private.h"
-#include <ctime>
-#include <d3dcompiler.h>
 
 namespace dx2d
 {
@@ -90,21 +88,20 @@ namespace dx2d
 
 		////    VS and PS    ////
 		//default shaders
-		ID3D10Blob *VS, *PS; //release this after CreateInputLayout()
-		hr = D3DCompileFromFile(L"VertexShader.hlsl", 0, 0, "main", "vs_5_0", 0, 0, &VS, 0); CHECKHR();
-		hr = D3DCompileFromFile(L"PixelShader.hlsl", 0, 0, "main", "ps_5_0", 0, 0, &PS, 0); CHECKHR();
-		hr = zDevice->CreateVertexShader(VS->GetBufferPointer(), VS->GetBufferSize(), NULL,
+		ID3D10Blob *vs; //release vs after CreateInputLayout()
+		//alternative method to loading shader from cso file
+		hr = D3DCompileFromFile(L"VertexShader.hlsl", 0, 0, "main", "vs_5_0", 0, 0, &vs, 0); CHECKHR();
+		hr = zDevice->CreateVertexShader(vs->GetBufferPointer(), vs->GetBufferSize(), 0,
 			&zDefaultVS); CHECKHR();
-		hr = zDevice->CreatePixelShader(PS->GetBufferPointer(), PS->GetBufferSize(), NULL,
-			&zDefaultPS); CHECKHR();
 		zContext->VSSetShader(zDefaultVS, 0, 0);
-		zContext->PSSetShader(zDefaultPS, 0, 0);
+		zDefaultPS = Functions::CreatePSFromFile(L"PixelShader.hlsl", "main");
+		zDefaultPost = Functions::CreatePSFromFile(L"PostProcessing.hlsl", "main");
 
 		////    INPUT LAYOUT    ////
 		//defaul input layout
 		D3D11_INPUT_ELEMENT_DESC ied[] =
 		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
 				0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 
 				0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -113,10 +110,9 @@ namespace dx2d
 			//if you need to pass something on your own to PS or VS per vertex
 			//{ "SOME_MORE_DATA", 0, DXGI_FORMAT_R32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 		};
-		hr = zDevice->CreateInputLayout(ied, 3, VS->GetBufferPointer(), VS->GetBufferSize(), 
+		hr = zDevice->CreateInputLayout(ied, 3, vs->GetBufferPointer(), vs->GetBufferSize(), 
 			&zLayout); CHECKHR();
-		VS->Release();
-		PS->Release();
+		vs->Release();
 		zContext->IASetInputLayout(zLayout);
 
 		///    BLEND STATE    ////
@@ -142,6 +138,7 @@ namespace dx2d
 
 		//main objects
 		DrawManager = new CDrawManager;
+		DrawManager->zInit();
 		Camera = new CCamera;
 		Input = new CInput;
 		EventManager = new CEventManager;
@@ -165,17 +162,17 @@ namespace dx2d
 		//defalut font for drawmanager
 		//15x21 one char
 		//20x5 all chars
-		vector<UV> chars1;
+		vector<Rect> chars1;
 		for (int i = 0; i<5; i++)
 			for (int j = 0; j < 20; j++)
 			{
-				chars1.push_back(UV(15.0f / 300.0f*j, 21.0f / 105.0f*i, 15.0f /
+				chars1.push_back(Rect(15.0f / 300.0f*j, 21.0f / 105.0f*i, 15.0f /
 					300.0f*(j + 1), 21 / 105.0f*(i + 1)));
 			}
 		CTexture* tex1 = Functions::GetCachedTextureFromFile(L"font.png");
 		DrawManager->zDefaultFont = new CBitmapFont(tex1, chars1);
 		DrawManager->AddBitmapFont(DrawManager->zDefaultFont);
-		DebugManager->Init(DrawManager->DefaultFont());
+		DebugManager->Init(DrawManager->GetDefaultFont());
 	}
 
 	void CCore::zUpdateGameTime()
@@ -262,14 +259,12 @@ namespace dx2d
 	void CCore::Destroy()
 	{
 		//engine objects
-		//keep this first
-		ResourceManager->Destroy();
-
 		DebugManager->Destroy();
 		EventManager->Destroy();
 		Input->Destroy();
 		Camera->Destroy();
 		DrawManager->Destroy();
+		ResourceManager->Destroy();
 		//com objects
 		zLayout->Release();
 		zDefaultPS->Release();

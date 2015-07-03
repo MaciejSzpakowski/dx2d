@@ -5,7 +5,7 @@ namespace dx2d
 	CDrawable::CDrawable()
 	{
 		Visible = true;
-		uv = UV(0, 0, 1, 1);
+		UV = Rect(0, 0, 1, 1);
 		zIndex = -1;
 		D3D11_BUFFER_DESC cbbd;
 		ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));

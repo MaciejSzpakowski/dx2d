@@ -9,6 +9,8 @@
 #include <map>
 #include <sstream>
 #include <gdiplus.h>
+#include <ctime>
+#include <d3dcompiler.h>
 #include "Keys.h"
 #pragma comment(lib,"Gdiplus.lib")
 #pragma comment (lib, "d3d11.lib")
@@ -67,7 +69,7 @@ namespace dx2d
 		
 		//creates new ID3D11Texture2D object from file
 		//you probably dont want to use it unless you want to deal with directx directly
-		ID3D11Texture2D* CreateTexture2DFromFile(const WCHAR* file);
+		ID3D11Texture2D* CreateTexture2DFromFile(LPCWSTR file);
 		
 		//creates new ID3D11Texture2D object from resource
 		//you probably dont want to use it unless you want to deal with directx directly
@@ -80,7 +82,7 @@ namespace dx2d
 		
 		//creates CTexture obj that can be used to create sprite or font
 		//source: file
-		CTexture* GetCachedTextureFromFile(const WCHAR* file);
+		CTexture* GetCachedTextureFromFile(LPCWSTR file);
 
 		//creates CTexture obj that can be used to create sprite or font
 		//source: internal resource
@@ -88,7 +90,7 @@ namespace dx2d
 		CTexture* GetCachedTextureFromResource(int resource, wstring name);
 
 		//check for HR when directx init functions are called
-		void Checkhr(const char* file, int line);
+		void Checkhr(LPCSTR file, int line);
 
 		//return double between 0 and 1
 		double RndDouble();
@@ -96,6 +98,11 @@ namespace dx2d
 		//return integer
 		//between inclusive min and exclusive max
 		int RndInt(int min, int max);
+
+		//ps from file
+		//entryPoint: main of the ps
+		//target: ps version, ps_5_0 by default
+		ID3D11PixelShader* CreatePSFromFile(LPCWSTR file, LPCSTR entryPoint, LPCSTR target = "ps_5_0");
 	}
 
 	namespace Collision

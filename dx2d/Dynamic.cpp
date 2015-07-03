@@ -33,7 +33,7 @@ namespace dx2d
 		XMMATRIX scale = zGetScaleMatrix();
 		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(zRotation);
 		XMMATRIX loc = XMMatrixTranslationFromVector(zPosition);
-		zWorld = scale * rot * loc;		
+		zWorld = scale * rot * loc;
 		if (Parent != nullptr)
 		{
 			XMMATRIX parentLoc = XMMatrixRotationRollPitchYawFromVector(Parent->zRotation);
