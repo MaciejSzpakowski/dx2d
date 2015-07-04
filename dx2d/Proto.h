@@ -42,6 +42,7 @@ namespace dx2d
 	class CBitmapText;
 	class CDebugManager;
 	class CTexture;
+	class CRenderTarget;
 
 	//externals
 	extern CCore* Core;

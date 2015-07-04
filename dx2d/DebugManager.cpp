@@ -17,7 +17,7 @@ namespace dx2d
 
 	void CDebugManager::Init(CBitmapFont* font)
 	{
-		zDebugText = DrawManager->AddBitmapText(font);
+		zDebugText = new CBitmapText(DrawManager->zDefaultFont);
 		zDebugText->SetPosition(-9, 7, 10.3f);
 		zDebugText->Parent = Camera;
 		zDebugText->SetPixelScale(15, 21);

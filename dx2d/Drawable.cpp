@@ -4,6 +4,7 @@ namespace dx2d
 {
 	CDrawable::CDrawable()
 	{
+		zRenderTarget = nullptr;
 		Visible = true;
 		UV = Rect(0, 0, 1, 1);
 		zIndex = -1;

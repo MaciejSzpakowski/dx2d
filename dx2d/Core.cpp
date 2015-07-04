@@ -71,9 +71,6 @@ namespace dx2d
 		hr = zDevice->CreateTexture2D(&depthStencilDesc, NULL, &zDepthStencilBuffer); CHECKHR();
 		hr = zDevice->CreateDepthStencilView(zDepthStencilBuffer, NULL, &zDepthStencilView); CHECKHR();
 
-		// set the render target as the back buffer
-		zContext->OMSetRenderTargets(1, &zBackBuffer, zDepthStencilView);
-
 		////   VIEWPORT    ////
 		// Set the viewport
 		D3D11_VIEWPORT viewport;
@@ -138,7 +135,6 @@ namespace dx2d
 
 		//main objects
 		DrawManager = new CDrawManager;
-		DrawManager->zInit();
 		Camera = new CCamera;
 		Input = new CInput;
 		EventManager = new CEventManager;

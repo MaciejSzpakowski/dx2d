@@ -80,45 +80,12 @@ namespace dx2d
 
 	void CDrawManager::zInit()
 	{
-		///////////////////////
-		//default render target
-		///////////////////////
-		RenderTarget defaultTarget;
-		D3D11_TEXTURE2D_DESC textureDesc;
-		D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
-		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+		//render target size
+		RECT rect;
+		GetWindowRect(Core->GetWindowHandle(), &rect);
+		zRenderTargetSize = { (float)rect.right - rect.left, (float)rect.bottom - rect.top };
 
-		ZeroMemory(&textureDesc, sizeof(textureDesc));
-		textureDesc.Width = 800;
-		textureDesc.Height = 600;
-		textureDesc.MipLevels = 1;
-		textureDesc.ArraySize = 1;
-		textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		textureDesc.SampleDesc.Count = 1;
-		textureDesc.Usage = D3D11_USAGE_DEFAULT;
-		textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-		textureDesc.CPUAccessFlags = 0;
-		textureDesc.MiscFlags = 0;
-		Core->zDevice->CreateTexture2D(&textureDesc, NULL, &defaultTarget.texture);
-
-		renderTargetViewDesc.Format = textureDesc.Format;
-		renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-		renderTargetViewDesc.Texture2D.MipSlice = 0;
-		Core->zDevice->CreateRenderTargetView(defaultTarget.texture,
-			&renderTargetViewDesc, &defaultTarget.targetView);
-
-		shaderResourceViewDesc.Format = textureDesc.Format;
-		shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
-		shaderResourceViewDesc.Texture2D.MipLevels = 1;
-		Core->zDevice->CreateShaderResourceView(defaultTarget.texture,
-			&shaderResourceViewDesc, &defaultTarget.shaderResource);
-
-		defaultTarget.sprite = new CSprite();
-		defaultTarget.sprite->zTexture = nullptr;
-		defaultTarget.sprite->PixelShader = Core->zDefaultPost;
-		defaultTarget.sprite->zShaderResource = defaultTarget.shaderResource;
-		zRenderTargets.push_back(defaultTarget);
+		zDefaultRenderTarget = AddRenderTarget();
 	}
 
 	//when adding drawable to drawmanager, its index should be -1
@@ -133,40 +100,54 @@ namespace dx2d
 		return false;
 	}
 
-	void CDrawManager::AddPoly(CPolygon* p)
+	void CDrawManager::AddPoly(CPolygon* p, CRenderTarget* target)
 	{
+		if (target == nullptr)
+			target = zDefaultRenderTarget;
 		if (zHasObject(p))
 			return;
-		zPolygons.push_back(p);
-		p->zIndex = (int)zPolygons.size() - 1;
+		target->zPolygons.push_back(p);
+		p->zRenderTarget = target;
+		p->zIndex = (int)target->zPolygons.size() - 1;
 	}
 
-	CPolygon* CDrawManager::AddPoly(XMFLOAT2 points[], int n)
+	CPolygon* CDrawManager::AddPoly(XMFLOAT2 points[], int n, CRenderTarget* target)
 	{
+		if (target == nullptr)
+			target = zDefaultRenderTarget;
 		CPolygon* newPoly = new CPolygon(points, n);
-		zPolygons.push_back(newPoly);
-		newPoly->zIndex = (int)zPolygons.size() - 1;
+		target->zPolygons.push_back(newPoly);
+		newPoly->zRenderTarget = target;
+		newPoly->zIndex = (int)target->zPolygons.size() - 1;
 		return newPoly;
 	}
 
-	CRectangle* CDrawManager::AddRect(float sizex, float sizey)
+	CRectangle* CDrawManager::AddRect(float sizex, float sizey, CRenderTarget* target)
 	{
+		if (target == nullptr)
+			target = zDefaultRenderTarget;
 		CRectangle* newRect = new CRectangle(sizex,sizey);
-		zPolygons.push_back(newRect);
-		newRect->zIndex = (int)zPolygons.size() - 1;
+		target->zPolygons.push_back(newRect);
+		newRect->zRenderTarget = target;
+		newRect->zIndex = (int)target->zPolygons.size() - 1;
 		return newRect;
 	}
 
-	CCircle* CDrawManager::AddCircle(float radius, unsigned char resolution)
+	CCircle* CDrawManager::AddCircle(float radius, unsigned char resolution, CRenderTarget* target)
 	{
+		if (target == nullptr)
+			target = zDefaultRenderTarget;
 		CCircle* newCircle = new CCircle(radius, resolution);
-		zPolygons.push_back(newCircle);
-		newCircle->zIndex = (int)zPolygons.size() - 1;
+		target->zPolygons.push_back(newCircle);
+		newCircle->zRenderTarget = target;
+		newCircle->zIndex = (int)target->zPolygons.size() - 1;
 		return newCircle;
 	}
 
-	CSprite* CDrawManager::AddSprite(LPCWSTR file)
+	CSprite* CDrawManager::AddSprite(LPCWSTR file, CRenderTarget* target)
 	{
+		if (target == nullptr)
+			target = zDefaultRenderTarget;
 		CSprite* newSprite;
 		try
 		{
@@ -176,21 +157,27 @@ namespace dx2d
 		{
 			return nullptr;
 		}
-		zSprites.push_back(newSprite);
-		newSprite->zIndex = (int)zSprites.size() - 1;
+		target->zSprites.push_back(newSprite);
+		newSprite->zRenderTarget = target;
+		newSprite->zIndex = (int)target->zSprites.size() - 1;
 		return newSprite;
 	}
 
-	void CDrawManager::AddSprite(CSprite* s)
+	void CDrawManager::AddSprite(CSprite* s, CRenderTarget* target)
 	{
+		if (target == nullptr)
+			target = zDefaultRenderTarget;
 		if (zHasObject(s))
 			return;
-		zSprites.push_back(s);
-		s->zIndex = (int)zSprites.size() - 1;
+		target->zSprites.push_back(s);
+		s->zRenderTarget = target;
+		s->zIndex = (int)target->zSprites.size() - 1;
 	}
 
-	CAnimation* CDrawManager::AddAnimation(LPCWSTR file, int x, int y)
+	CAnimation* CDrawManager::AddAnimation(LPCWSTR file, int x, int y, CRenderTarget* target)
 	{
+		if (target == nullptr)
+			target = zDefaultRenderTarget;
 		CAnimation* newAnimation;
 		try
 		{
@@ -200,104 +187,58 @@ namespace dx2d
 		{
 			return nullptr;
 		}
-		zSprites.push_back(newAnimation);
-		newAnimation->zIndex = (int)zSprites.size() - 1;
+		target->zSprites.push_back(newAnimation);
+		newAnimation->zRenderTarget = target;
+		newAnimation->zIndex = (int)target->zSprites.size() - 1;
 		return newAnimation;
 	}
 
-	void CDrawManager::AddAnimation(CAnimation* a)
+	void CDrawManager::AddAnimation(CAnimation* a, CRenderTarget* target)
 	{
-		AddSprite(a);
+		if (target == nullptr)
+			target = zDefaultRenderTarget;
+		AddSprite(a, target);
 	}
 
-	void CDrawManager::zRenderTargetTransform()
+	void CDrawManager::zRenderTargetTransform(int i)
 	{
-		XMMATRIX transform = XMMatrixTranspose(zRenderTargetMatrix);
-		Core->zContext->UpdateSubresource(zRenderTargets[0].sprite->zCbBufferVS, 0, NULL, &transform, 0, 0);
-		Core->zContext->VSSetConstantBuffers(0, 1, &zRenderTargets[0].sprite->zCbBufferVS);
+		float scalex = (20.0f - i*0.001f) * tan(Camera->zFovAngle / 2) * Camera->zAspectRatio;
+		float scaley = (20.0f - i*0.001f) * tan(Camera->zFovAngle / 2);
+		//move every target above previous one
+		XMMATRIX transform = XMMatrixScaling(scalex, scaley, 1) *
+			XMMatrixTranslation(0, 0, -i*0.001f) * Camera->zView * Camera->zProj;
+
+		transform = XMMatrixTranspose(transform);
+		Core->zContext->UpdateSubresource(zRenderTargets[0]->zSprite->zCbBufferVS, 0, NULL, &transform, 0, 0);
+		Core->zContext->VSSetConstantBuffers(0, 1, &zRenderTargets[0]->zSprite->zCbBufferVS);
 	}
 
 	void CDrawManager::zDrawAll()
 	{
-		Core->zContext->ClearDepthStencilView(Core->zDepthStencilView, 
-			D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-		//GetContext()->OMSetBlendState(Core->blendState, 0, 0xffffffff);
+		for (int i = 0; i < (int)zRenderTargets.size(); i++)
+			zRenderTargets[i]->zDraw();
 
-		Core->zContext->ClearRenderTargetView(zRenderTargets[0].targetView, Core->zBackBufferColor);
-		Core->zContext->OMSetRenderTargets(1, &zRenderTargets[0].targetView, Core->zDepthStencilView);
-
-		//polys
-		Core->zContext->PSSetShader(Core->zDefaultPS, 0, 0);
-		Core->zContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP);
-		Core->zContext->RSSetState(zWireframe);
-		for (CPolygon* p : zPolygons)
-		{
-			p->zUpdate();
-			if (p->Visible)
-			{
-				p->zTransform();
-				p->zDraw();
-			}
-		}
-		
-		//sprites, animations
-		Core->zContext->RSSetState(zSolid);
-		Core->zContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		UINT stride = sizeof(Vertex);
-		UINT offset = 0;
-		Core->zContext->IASetVertexBuffers(0, 1, &zVertexBufferSprite, &stride, &offset);
-		for (CSprite* s : zSprites)
-		{
-			s->zUpdate();
-			s->zPlay();
-			if (s->Visible)
-			{
-				if(s->TexFilter == TEX_FILTER::LINEAR)
-					Core->zContext->PSSetSamplers(0, 1, &zLineSampler);
-				else
-					Core->zContext->PSSetSamplers(0, 1, &zPointSampler);
-				s->zTransform();
-				s->zDraw();
-			}
-		}
-		//flush debug
-		DebugManager->Flush();
-		//bitmap text
-		for (CBitmapText* t : zTexts)
-		{
-			t->zUpdate();
-			if (t->Visible)
-			{
-				if (t->TexFilter == TEX_FILTER::LINEAR)
-					Core->zContext->PSSetSamplers(0, 1, &zLineSampler);
-				else
-					Core->zContext->PSSetSamplers(0, 1, &zPointSampler);
-				t->zDraw();
-			}
-		}
 		Core->zContext->ClearDepthStencilView(Core->zDepthStencilView,
 			D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 		Core->zContext->OMSetRenderTargets(1, &Core->zBackBuffer, Core->zDepthStencilView);
-		zRenderTargetTransform();
-		zRenderTargets[0].sprite->FlipVertically = true;
-		zRenderTargets[0].sprite->zDraw();
+		
+		for (int i = 0; i < (int)zRenderTargets.size(); i++)
+		{
+			zRenderTargetTransform(i);
+			//zRenderTargets[i]->zSprite->zDraw();
+		}
+
+		//debug text
+		DebugManager->Flush();
+		DebugManager->zDebugText->zDraw();
 	}
 
 	void CDrawManager::Destroy()
 	{
 		for (int i = (int)zRenderTargets.size() - 1; i >= 0; i--)
-		{
-			zRenderTargets[i].shaderResource->Release();
-			zRenderTargets[i].texture->Release();
-			zRenderTargets[i].targetView->Release();
-			zRenderTargets[i].sprite->Destroy();
-		}
+			zRenderTargets[i]->Destroy();
 		zLineSampler->Release();
-		zPointSampler->Release();
-		for (int i = (int)zPolygons.size() - 1; i >= 0; i--)
-			zPolygons[i]->Destroy();
-		for (int i = (int)zSprites.size() - 1; i >= 0; i--)
-			zSprites[i]->Destroy();
+		zPointSampler->Release();		
 		zIndexBufferSprite->Release();
 		zVertexBufferSprite->Release();
 		zWireframe->Release();
@@ -306,24 +247,25 @@ namespace dx2d
 	}
 
 	void CDrawManager::RemovePoly(CPolygon* p)
-	{
+	{		
 		if (p->zIndex == -1)
 			return;
-		if (zPolygons.size() == 0 || zPolygons[p->zIndex] != p)
+		auto polygons = p->zRenderTarget->zPolygons;
+		if (polygons.size() == 0 || polygons[p->zIndex] != p)
 		{
-			MessageBox(0, L"This polygon is not in CDrawManager.Polygons", L"Error", MB_ICONERROR);
+			MessageBox(0, L"This polygon is not in its target polygons collection", L"Error", MB_ICONERROR);
 			return;
 		}
-		else if (p->zIndex == zPolygons.size() - 1)
+		else if (p->zIndex == polygons.size() - 1)
 		{			
-			zPolygons.pop_back();
+			polygons.pop_back();
 		}
 		else
 		{
 			//move end to where p is and update index
-			zPolygons[p->zIndex] = zPolygons.back();
-			zPolygons[p->zIndex]->zIndex = p->zIndex;
-			zPolygons.pop_back();
+			polygons[p->zIndex] = polygons.back();
+			polygons[p->zIndex]->zIndex = p->zIndex;
+			polygons.pop_back();
 		}
 		p->zIndex = -1;
 	}
@@ -332,21 +274,22 @@ namespace dx2d
 	{
 		if (s->zIndex == -1)
 			return;
-		if (s->zIndex >= zSprites.size() || zSprites[s->zIndex] != s)
+		auto sprites = s->zRenderTarget->zSprites;
+		if (s->zIndex >= sprites.size() || sprites[s->zIndex] != s)
 		{
-			MessageBox(0, L"This sprite is not in CDrawManager.Sprites", L"Error", MB_ICONERROR);
+			MessageBox(0, L"This sprite is not in its target sprites collection", L"Error", MB_ICONERROR);
 			return;
 		}
-		else if (s->zIndex == zSprites.size() - 1)
+		else if (s->zIndex == sprites.size() - 1)
 		{
-			zSprites.pop_back();
+			sprites.pop_back();
 		}
 		else
 		{
 			//move end to where p is and update index
-			zSprites[s->zIndex] = zSprites.back();
-			zSprites[s->zIndex]->zIndex = s->zIndex;
-			zSprites.pop_back();
+			sprites[s->zIndex] = sprites.back();
+			sprites[s->zIndex]->zIndex = s->zIndex;
+			sprites.pop_back();
 		}
 		s->zIndex = -1;
 	}
@@ -381,22 +324,28 @@ namespace dx2d
 		ResourceManager->AddBitmapFont(font);
 	}
 
-	CBitmapText* CDrawManager::AddBitmapText(CBitmapFont* font)
+	CBitmapText* CDrawManager::AddBitmapText(CBitmapFont* font, CRenderTarget* target)
 	{
+		if (target == nullptr)
+			target = zDefaultRenderTarget;
 		if (font == nullptr)
 			return nullptr;
 		CBitmapText* newText = new CBitmapText(font);
-		zTexts.push_back(newText);
-		newText->zIndex = (int)zTexts.size() - 1;
+		target->zTexts.push_back(newText);
+		newText->zRenderTarget = target;
+		newText->zIndex = (int)target->zTexts.size() - 1;
 		return newText;
 	}
 
-	void CDrawManager::AddBitmapText(CBitmapText* text)
+	void CDrawManager::AddBitmapText(CBitmapText* text, CRenderTarget* target)
 	{
+		if (target == nullptr)
+			target = zDefaultRenderTarget;
 		if (zHasObject(text))
 			return;
-		zTexts.push_back(text);
-		text->zIndex = (int)zTexts.size() - 1;
+		target->zTexts.push_back(text);
+		text->zRenderTarget = target;
+		text->zIndex = (int)target->zTexts.size() - 1;
 	}
 
 	void CDrawManager::RemoveBitmapFont(CBitmapFont* font)
@@ -404,31 +353,174 @@ namespace dx2d
 		MessageBox(0, L"CDrawManager::RemoveBitmapFont(CBitmapFont* font)\nnot implemented", 0, 0);
 	}
 
-	void CDrawManager::RemoveBitmapText(CBitmapText* text)
+	void CDrawManager::RemoveBitmapText(CBitmapText* t)
 	{
-		if (text->zIndex == -1)
+		if (t->zIndex == -1)
 			return;
-		if (text->zIndex >= zTexts.size() || zTexts[text->zIndex] != text)
+		auto texts = t->zRenderTarget->zTexts;
+		if (t->zIndex >= texts.size() || texts[t->zIndex] != t)
 		{
 			MessageBox(0, L"This text is not in CDrawManager.Texts", L"Error", MB_ICONERROR);
 			return;
 		}
-		else if (text->zIndex == zTexts.size() - 1)
+		else if (t->zIndex == texts.size() - 1)
 		{
-			zTexts.pop_back();
+			texts.pop_back();
 		}
 		else
 		{
 			//move end to where p is and update index
-			zTexts[text->zIndex] = zTexts.back();
-			zTexts[text->zIndex]->zIndex = text->zIndex;
-			zTexts.pop_back();
+			texts[t->zIndex] = texts.back();
+			texts[t->zIndex]->zIndex = t->zIndex;
+			texts.pop_back();
 		}
-		text->zIndex = -1;
+		t->zIndex = -1;
 	}
 
 	CBitmapFont* CDrawManager::GetDefaultFont()
 	{
 		return zDefaultFont;
+	}
+
+	CRenderTarget* CDrawManager::AddRenderTarget()
+	{		
+		D3D11_TEXTURE2D_DESC textureDesc;
+		D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+
+		ID3D11Texture2D* tex;
+		ZeroMemory(&textureDesc, sizeof(textureDesc));
+		textureDesc.Width = (UINT)zRenderTargetSize.x;
+		textureDesc.Height = (UINT)zRenderTargetSize.y;
+		textureDesc.MipLevels = 1;
+		textureDesc.ArraySize = 1;
+		textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		textureDesc.SampleDesc.Count = 1;
+		textureDesc.Usage = D3D11_USAGE_DEFAULT;
+		textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+		textureDesc.CPUAccessFlags = 0;
+		textureDesc.MiscFlags = 0;
+		hr = Core->zDevice->CreateTexture2D(&textureDesc, NULL, &tex); CHECKHR();
+
+		ID3D11RenderTargetView* rtv;
+		renderTargetViewDesc.Format = textureDesc.Format;
+		renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		renderTargetViewDesc.Texture2D.MipSlice = 0;
+		hr = Core->zDevice->CreateRenderTargetView(tex,
+			&renderTargetViewDesc, &rtv); CHECKHR();
+
+		ID3D11ShaderResourceView* srv;
+		shaderResourceViewDesc.Format = textureDesc.Format;
+		shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
+		shaderResourceViewDesc.Texture2D.MipLevels = 1;		
+		hr = Core->zDevice->CreateShaderResourceView(tex,
+			&shaderResourceViewDesc, &srv); CHECKHR();
+
+		CRenderTarget* target = new CRenderTarget;
+		target->zTexture = tex;
+		target->zTargetView = rtv;
+		target->zSprite = new CSprite();
+		target->zSprite->zTexture = nullptr;
+		target->zSprite->PixelShader = Core->zDefaultPost;
+		target->zSprite->zShaderResource = srv;
+
+		zRenderTargets.push_back(target);
+		return target;
+	}
+
+	void CDrawManager::DestroyRenderTarget(CRenderTarget* target)
+	{
+		target->Destroy();
+		for (int i = 0; i < (int)zRenderTargets.size(); i++)
+		{
+			if (target == zRenderTargets[i])
+			{
+				zRenderTargets.erase(zRenderTargets.begin() + i);
+				return;
+			}
+		}
+	}
+
+	void CDrawManager::ClearRenderTargets()
+	{
+		for (int i = 0; i < (int)zRenderTargets.size(); i++)
+			if (zRenderTargets[i] != zDefaultRenderTarget)
+				zRenderTargets[i]->Destroy();
+		zRenderTargets.clear();
+		zRenderTargets.push_back(zDefaultRenderTarget);
+	}
+
+	void CRenderTarget::zDraw()
+	{
+		Core->zContext->ClearDepthStencilView(Core->zDepthStencilView,
+			D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		//GetContext()->OMSetBlendState(Core->blendState, 0, 0xffffffff);
+
+		Core->zContext->OMSetRenderTargets(1, &zTargetView, Core->zDepthStencilView);
+		Core->zContext->ClearRenderTargetView(zTargetView, Core->zBackBufferColor);
+
+		//polys
+		Core->zContext->PSSetShader(Core->zDefaultPS, 0, 0);
+		Core->zContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP);
+		Core->zContext->RSSetState(DrawManager->zWireframe);
+		for (CPolygon* p : zPolygons)
+		{
+			p->zUpdate();
+			if (p->Visible)
+			{
+				p->zTransform();
+				p->zDraw();
+			}
+		}
+
+		//sprites, animations
+		Core->zContext->RSSetState(DrawManager->zSolid);
+		Core->zContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		UINT stride = sizeof(Vertex);
+		UINT offset = 0;
+		Core->zContext->IASetVertexBuffers(0, 1, &DrawManager->zVertexBufferSprite, &stride, &offset);
+		for (CSprite* s : zSprites)
+		{
+			s->zUpdate();
+			s->zPlay();
+			if (s->Visible)
+			{
+				if (s->TexFilter == TEX_FILTER::LINEAR)
+					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zLineSampler);
+				else
+					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zPointSampler);
+				s->zTransform();
+				s->zDraw();
+			}
+		}
+		//bitmap text
+		for (CBitmapText* t : zTexts)
+		{
+			t->zUpdate();
+			if (t->Visible)
+			{
+				if (t->TexFilter == TEX_FILTER::LINEAR)
+					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zLineSampler);
+				else
+					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zPointSampler);
+				t->zDraw();
+			}
+		}
+	}
+
+	void CRenderTarget::Destroy()
+	{
+		for (int i = (int)zPolygons.size() - 1; i >= 0; i--)
+			zPolygons[i]->Destroy();
+		for (int i = (int)zSprites.size() - 1; i >= 0; i--)
+			zSprites[i]->Destroy();
+		for (int i = (int)zTexts.size() - 1; i >= 0; i--)
+			zSprites[i]->Destroy();
+		zSprite->zShaderResource->Release();
+		zTexture->Release();
+		zTargetView->Release();
+		zSprite->Destroy();
+		delete this;
 	}
 }

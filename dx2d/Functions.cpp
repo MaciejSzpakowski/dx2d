@@ -32,6 +32,7 @@ namespace dx2d
 		CCore* NewCore(int sizex, int sizey, std::function<void()> worker, int style)
 		{
 			CCore* core = new CCore(sizex, sizey, worker, style);
+			DrawManager->zInit();
 			return core;
 		}
 
