@@ -80,11 +80,6 @@ namespace dx2d
 
 	void CDrawManager::zInit()
 	{
-		//render target size
-		RECT rect;
-		GetWindowRect(Core->GetWindowHandle(), &rect);
-		zRenderTargetSize = { (float)rect.right - rect.left, (float)rect.bottom - rect.top };
-
 		zDefaultRenderTarget = AddRenderTarget();
 	}
 
@@ -206,7 +201,7 @@ namespace dx2d
 		float scaley = (20.0f - i*0.001f) * tan(Camera->zFovAngle / 2);
 		//move every target above previous one
 		XMMATRIX transform = XMMatrixScaling(scalex, scaley, 1) *
-			XMMatrixTranslation(0, 0, -i*0.001f) * Camera->zView * Camera->zProj;
+			XMMatrixTranslation(0, 0, -i*0.001f) *  zRenderTargetMatrix;
 
 		transform = XMMatrixTranspose(transform);
 		Core->zContext->UpdateSubresource(zRenderTargets[0]->zSprite->zCbBufferVS, 0, NULL, &transform, 0, 0);
@@ -218,6 +213,7 @@ namespace dx2d
 		for (int i = 0; i < (int)zRenderTargets.size(); i++)
 			zRenderTargets[i]->zDraw();
 
+		Core->zContext->ClearRenderTargetView(Core->zBackBuffer, Core->zBackBufferColor);
 		Core->zContext->ClearDepthStencilView(Core->zDepthStencilView,
 			D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 		Core->zContext->OMSetRenderTargets(1, &Core->zBackBuffer, Core->zDepthStencilView);
@@ -225,12 +221,15 @@ namespace dx2d
 		for (int i = 0; i < (int)zRenderTargets.size(); i++)
 		{
 			zRenderTargetTransform(i);
-			//zRenderTargets[i]->zSprite->zDraw();
+			zRenderTargets[i]->zSprite->zDraw();
 		}
 
 		//debug text
+		Core->zContext->PSSetShader(Core->zDefaultPS, 0, 0);
 		DebugManager->Flush();
 		DebugManager->zDebugText->zDraw();
+
+		Core->zSwapChain->Present(0, 0);
 	}
 
 	void CDrawManager::Destroy()
@@ -238,7 +237,7 @@ namespace dx2d
 		for (int i = (int)zRenderTargets.size() - 1; i >= 0; i--)
 			zRenderTargets[i]->Destroy();
 		zLineSampler->Release();
-		zPointSampler->Release();		
+		zPointSampler->Release();
 		zIndexBufferSprite->Release();
 		zVertexBufferSprite->Release();
 		zWireframe->Release();
@@ -390,8 +389,8 @@ namespace dx2d
 
 		ID3D11Texture2D* tex;
 		ZeroMemory(&textureDesc, sizeof(textureDesc));
-		textureDesc.Width = (UINT)zRenderTargetSize.x;
-		textureDesc.Height = (UINT)zRenderTargetSize.y;
+		textureDesc.Width = Core->zClientSize.x;
+		textureDesc.Height = Core->zClientSize.y;
 		textureDesc.MipLevels = 1;
 		textureDesc.ArraySize = 1;
 		textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -413,7 +412,7 @@ namespace dx2d
 		shaderResourceViewDesc.Format = textureDesc.Format;
 		shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
-		shaderResourceViewDesc.Texture2D.MipLevels = 1;		
+		shaderResourceViewDesc.Texture2D.MipLevels = 1;
 		hr = Core->zDevice->CreateShaderResourceView(tex,
 			&shaderResourceViewDesc, &srv); CHECKHR();
 
@@ -421,6 +420,7 @@ namespace dx2d
 		target->zTexture = tex;
 		target->zTargetView = rtv;
 		target->zSprite = new CSprite();
+		target->zSprite->FlipVertically = true;
 		target->zSprite->zTexture = nullptr;
 		target->zSprite->PixelShader = Core->zDefaultPost;
 		target->zSprite->zShaderResource = srv;
@@ -458,7 +458,8 @@ namespace dx2d
 		//GetContext()->OMSetBlendState(Core->blendState, 0, 0xffffffff);
 
 		Core->zContext->OMSetRenderTargets(1, &zTargetView, Core->zDepthStencilView);
-		Core->zContext->ClearRenderTargetView(zTargetView, Core->zBackBufferColor);
+		float four0[4] = { 0, 0, 0, 0 };
+		Core->zContext->ClearRenderTargetView(zTargetView, four0);
 
 		//polys
 		Core->zContext->PSSetShader(Core->zDefaultPS, 0, 0);
@@ -507,6 +508,78 @@ namespace dx2d
 				t->zDraw();
 			}
 		}
+	}
+
+	void CRenderTarget::MoveToTop()
+	{
+		int size = (int)DrawManager->zRenderTargets.size();
+		if (size < 2)
+			return;
+		int index = -1;
+		for (int i = 0; i<size; i++)
+			if (DrawManager->zRenderTargets[i] == this)
+			{
+				index = i;
+				break;
+			}
+		if (index == -1)
+			return;
+		DrawManager->zRenderTargets.erase(DrawManager->zRenderTargets.begin() + index);
+		DrawManager->zRenderTargets.insert(DrawManager->zRenderTargets.begin(), this);
+	}
+
+	void CRenderTarget::MoveToBottom()
+	{
+		int size = (int)DrawManager->zRenderTargets.size();
+		if (size < 2)
+			return;
+		int index = -1;
+		for (int i = 0; i<size; i++)
+			if (DrawManager->zRenderTargets[i] == this)
+			{
+				index = i;
+				break;
+			}
+		if (index == -1)
+			return;
+		DrawManager->zRenderTargets.erase(DrawManager->zRenderTargets.begin() + index);
+		DrawManager->zRenderTargets.push_back(this);
+	}
+
+	void CRenderTarget::MoveUp()
+	{
+		int size = (int)DrawManager->zRenderTargets.size();
+		if (size < 2)
+			return;
+		int index = -1;
+		for (int i = 0; i<size; i++)
+			if (DrawManager->zRenderTargets[i] == this)
+			{
+				index = i;
+				break;
+			}
+		if (index == -1 || index == size - 1)
+			return;
+		DrawManager->zRenderTargets[index] = DrawManager->zRenderTargets[index + 1];
+		DrawManager->zRenderTargets[index + 1] = this;
+	}
+
+	void CRenderTarget::MoveDown()
+	{
+		int size = (int)DrawManager->zRenderTargets.size();
+		if (size < 2)
+			return;
+		int index = -1;
+		for (int i = 0; i<size; i++)
+			if (DrawManager->zRenderTargets[i] == this)
+			{
+				index = i;
+				break;
+			}
+		if (index == -1 || index == 0)
+			return;
+		DrawManager->zRenderTargets[index] = DrawManager->zRenderTargets[index - 1];
+		DrawManager->zRenderTargets[index - 1] = this;
 	}
 
 	void CRenderTarget::Destroy()

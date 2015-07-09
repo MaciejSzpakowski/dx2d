@@ -75,9 +75,14 @@ namespace dx2d
 			else
 			{
 				zWorker();
-				zRender(Core);
+				zActivity();
 			}
 		}
 		return (int)zMsg.wParam;
+	}
+
+	void CWindow::Destroy()
+	{
+		delete this;
 	}
 }

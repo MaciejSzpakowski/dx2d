@@ -84,9 +84,10 @@ namespace dx2d
 		HWND zHandle;
 		MSG zMsg;
 		std::function<void()> zWorker;
-		std::function<void(CCore* d3d)> zRender;
+		std::function<void()> zActivity;
 		CWindow(int sizex, int sizey, int style);
 		int zRun();
+		void Destroy();
 	};
 
 	class CCore
@@ -129,6 +130,7 @@ namespace dx2d
 		bool GetFullscreen();
 		POINT GetCursorPos();
 		void Destroy();
+		void SaveScreenshot(LPCWSTR file);
 	};
 
 	class CResourceManager
@@ -281,6 +283,18 @@ namespace dx2d
 		//draw all objects that belong to the render target
 		void zDraw();
 
+		//reorder render target
+		void MoveToTop();
+
+		//reorder render target
+		void MoveToBottom();
+
+		//reorder render target
+		void MoveUp();
+
+		//reorder render target
+		void MoveDown();
+
 		void Destroy();
 	};
 
@@ -297,7 +311,7 @@ namespace dx2d
 		ID3D11Buffer* zVertexBufferSprite;		
 		ID3D11RasterizerState* zWireframe;
 		ID3D11RasterizerState* zSolid;
-		POINTF zRenderTargetSize;
+		XMMATRIX zRenderTargetMatrix;
 		void zDrawAll();
 		bool zHasObject(CDrawable* d);
 		void zRenderTargetTransform(int i);

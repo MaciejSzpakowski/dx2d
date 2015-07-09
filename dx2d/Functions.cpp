@@ -16,15 +16,13 @@ namespace dx2d
 
 	HRESULT hr;
 
-	void Render(CCore* d3d)
+	void IntActivity()
 	{
 		Input->zActivity();
 		EventManager->zActivity();
-		Camera->zCamTransform();
-		d3d->zContext->ClearRenderTargetView(d3d->zBackBuffer, d3d->zBackBufferColor);
-		DrawManager->zDrawAll();
-		d3d->zSwapChain->Present(0, 0);
-		d3d->zUpdateGameTime();
+		Camera->zCamTransform();		
+		DrawManager->zDrawAll();		
+		Core->zUpdateGameTime();
 	}	
 
 	namespace Functions

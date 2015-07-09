@@ -91,7 +91,7 @@ int main(int argc, char** argv)
 		//Functions::CreateTexture2DFromFile(L"sun_flower.png");
 	}
 	printf("%is\n", time(0) - t1);
-
+	
 	Core->Run();
 	Core->Destroy();
 	return 0;

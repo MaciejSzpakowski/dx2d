@@ -2,7 +2,7 @@
 
 namespace dx2d
 {
-	void Render(CCore* d3d);
+	void IntActivity();
 
 	CCore::CCore(int sizex, int sizey, std::function<void()> worker, int style)
 	{
@@ -16,7 +16,7 @@ namespace dx2d
 		//create window
 		zWindow = new CWindow(sizex, sizey, style);
 		zWindow->zWorker = worker;
-		zWindow->zRender = Render;
+		zWindow->zActivity = IntActivity;
 
 		zBackBufferColor[0] = 1.0f;
 		zBackBufferColor[1] = 1.0f;
@@ -39,12 +39,8 @@ namespace dx2d
 		////    DEVICE, DEVICE CONTEXT AND SWAP CHAIN    ////
 		hr = D3D11CreateDeviceAndSwapChain(NULL,
 			D3D_DRIVER_TYPE_HARDWARE, NULL, NULL, NULL, NULL,
-			D3D11_SDK_VERSION,
-			&scd,
-			&zSwapChain,
-			&zDevice, NULL,
-			&zContext);
-		CHECKHR();
+			D3D11_SDK_VERSION, &scd, &zSwapChain, &zDevice, NULL,
+			&zContext); CHECKHR();
 
 		////    BACK BUFFER AS RENDER TARGET, DEPTH STENCIL   ////
 		// get the address of the back buffer
@@ -86,7 +82,7 @@ namespace dx2d
 		////    VS and PS    ////
 		//default shaders
 		ID3D10Blob *vs; //release vs after CreateInputLayout()
-		//alternative method to loading shader from cso file
+		//alternative to loading shader from cso file
 		hr = D3DCompileFromFile(L"VertexShader.hlsl", 0, 0, "main", "vs_5_0", 0, 0, &vs, 0); CHECKHR();
 		hr = zDevice->CreateVertexShader(vs->GetBufferPointer(), vs->GetBufferSize(), 0,
 			&zDefaultVS); CHECKHR();
@@ -128,8 +124,6 @@ namespace dx2d
 		blendDesc.AlphaToCoverageEnable = false;
 		blendDesc.RenderTarget[0] = rtbd;
 		hr = zDevice->CreateBlendState(&blendDesc, &zBlendState); CHECKHR();
-		if (zBlendState == nullptr)
-			exit(0);
 
 		//// *********** PIPELINE SETUP ENDS HERE *********** ////
 
@@ -155,7 +149,7 @@ namespace dx2d
 		zGameTime = 0;
 		zFrameTime = 0;
 
-		//defalut font for drawmanager
+		//defalut font
 		//15x21 one char
 		//20x5 all chars
 		vector<Rect> chars1;
@@ -165,10 +159,15 @@ namespace dx2d
 				chars1.push_back(Rect(15.0f / 300.0f*j, 21.0f / 105.0f*i, 15.0f /
 					300.0f*(j + 1), 21 / 105.0f*(i + 1)));
 			}
-		CTexture* tex1 = Functions::GetCachedTextureFromFile(L"font.png");
-		DrawManager->zDefaultFont = new CBitmapFont(tex1, chars1);
-		DrawManager->AddBitmapFont(DrawManager->zDefaultFont);
-		DebugManager->Init(DrawManager->GetDefaultFont());
+		FILE* f = fopen("font.png","r");
+		if (f)
+		{
+			fclose(f);
+			CTexture* tex1 = Functions::GetCachedTextureFromFile(L"font.png");
+			DrawManager->zDefaultFont = new CBitmapFont(tex1, chars1);
+			DrawManager->AddBitmapFont(DrawManager->zDefaultFont);
+			DebugManager->Init(DrawManager->GetDefaultFont());
+		}
 	}
 
 	void CCore::zUpdateGameTime()
@@ -250,7 +249,12 @@ namespace dx2d
 		::GetCursorPos(&p);
 		ScreenToClient(zWindow->zHandle, &p);
 		return p;
-	}	
+	}
+
+	void CCore::SaveScreenshot(LPCWSTR file)
+	{
+		//ID3D11DeviceContext::CopyResource
+	}
 
 	void CCore::Destroy()
 	{
@@ -272,7 +276,7 @@ namespace dx2d
 		zBackBuffer->Release();
 		zDevice->Release();
 		zContext->Release();
-		delete zWindow;
+		zWindow->Destroy();
 		delete this;
 	}
 }
