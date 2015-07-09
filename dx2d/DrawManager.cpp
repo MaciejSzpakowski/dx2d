@@ -221,6 +221,7 @@ namespace dx2d
 		for (int i = 0; i < (int)zRenderTargets.size(); i++)
 		{
 			zRenderTargetTransform(i);
+			Core->zContext->PSSetShader(zRenderTargets[i]->PixelShader, 0, 0);
 			zRenderTargets[i]->zSprite->zDraw();
 		}
 
@@ -421,8 +422,9 @@ namespace dx2d
 		target->zTargetView = rtv;
 		target->zSprite = new CSprite();
 		target->zSprite->FlipVertically = true;
+		target->zSprite->Pickable = false;
 		target->zSprite->zTexture = nullptr;
-		target->zSprite->PixelShader = Core->zDefaultPost;
+		target->zSprite->PixelShader = nullptr;
 		target->zSprite->zShaderResource = srv;
 
 		zRenderTargets.push_back(target);

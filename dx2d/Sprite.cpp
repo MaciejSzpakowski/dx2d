@@ -11,11 +11,6 @@ pTextureInterface->GetDesc(&desc);
 
 namespace dx2d
 {
-	void debug1(CSprite* s, LPCWSTR name)
-	{
-		wprintf(L"s%x %s\n", (int)s, name);
-	}
-
 	CSprite::CSprite()
 	{
 		PixelShader = Core->zDefaultPS;
@@ -25,7 +20,6 @@ namespace dx2d
 		Scale = XMFLOAT2(1, 1);
 		Color = XMFLOAT4(1, 1, 1, 1);
 		TexFilter = DrawManager->TexFilterCreationMode;
-		debug1(this, L"default");
 	}
 
 	CSprite::CSprite(LPCWSTR file)
@@ -39,8 +33,6 @@ namespace dx2d
 		TexFilter = DrawManager->TexFilterCreationMode;
 		zTexture = Functions::GetCachedTextureFromFile(file);
 		zShaderResource = zTexture->zShaderResource;
-		LPCWSTR str = &zTexture->zName[0];
-		debug1(this, zTexture->zName.c_str());
 	}
 
 	CSprite::CSprite(CTexture* texture)
@@ -54,13 +46,13 @@ namespace dx2d
 		TexFilter = DrawManager->TexFilterCreationMode;
 		zTexture = texture;
 		zShaderResource = texture->zShaderResource;
-		debug1(this, zTexture->zName.c_str());
 	}
 
 	void CSprite::zDraw()
 	{
 		//ps
-		Core->zContext->PSSetShader(PixelShader, 0, 0);
+		if(PixelShader != nullptr)
+			Core->zContext->PSSetShader(PixelShader, 0, 0);
 		//color		
 		Core->zContext->UpdateSubresource(zCbBufferPS, 0, 0, &Color, 0, 0);
 		Core->zContext->PSSetConstantBuffers(0, 1, &zCbBufferPS);

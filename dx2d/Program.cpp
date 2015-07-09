@@ -57,7 +57,7 @@ int main(int argc, char** argv)
 
 	EventManager->AddEvent([]()	{
 		fps = (int)Core->GetFps();
-		return 1;	}, L"", 0, 0, 1);
+		return 1;	}, L"", 0, 0, 0.5f);
 	EventManager->AddEvent([]()	{
 		DebugManager->Debug(fps, L"FPS");
 		return 1;	}, L"", 0, 0, 0);

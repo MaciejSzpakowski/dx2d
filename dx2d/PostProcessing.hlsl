@@ -16,9 +16,6 @@ struct VS_OUTPUT
 
 float4 main(VS_OUTPUT input) : SV_TARGET
 {
-	float2 uv = float2(input.TexCoord[0], input.TexCoord[1]) * 200;
-	int2 iuv = trunc(uv);
-	uv = iuv / 200.0f;
-	float4 result = ObjTexture.Sample(ObjSamplerState,uv);
+	float4 result = ObjTexture.Sample(ObjSamplerState, input.TexCoord);
 	return result * color;
 }

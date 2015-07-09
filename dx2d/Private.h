@@ -278,7 +278,8 @@ namespace dx2d
 		CRenderTarget() :
 			zTexture(nullptr),
 			zTargetView(nullptr),
-			zSprite(nullptr){}
+			zSprite(nullptr),
+			PixelShader(Core->zDefaultPost){}
 
 		//draw all objects that belong to the render target
 		void zDraw();
@@ -296,6 +297,8 @@ namespace dx2d
 		void MoveDown();
 
 		void Destroy();
+
+		ID3D11PixelShader* PixelShader;
 	};
 
 	class CDrawManager
