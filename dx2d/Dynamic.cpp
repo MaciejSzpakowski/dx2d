@@ -6,13 +6,18 @@ namespace dx2d
 
 	CDynamic::CDynamic()
 	{
-		SetPosition(0, 0, 0);
-		SetRotation(0, 0, 0);
-		SetVelocity(0, 0, 0);
-		SetAcceleration(0, 0, 0);
-		SetAngularVel(0, 0, 0);
-		SetAngularAcc(0, 0, 0);
-		Parent = nullptr;
+		zPosition = XMVectorZero();
+		zRotation = XMVectorZero();
+		zVelocity = XMVectorZero();
+		zAcceleration = XMVectorZero();
+		zAngularAcc = XMVectorZero();
+		zAngularVel = XMVectorZero();
+		Origin = { 0, 0 };
+		SizeAcc = 0;
+		SizeVel = 0;
+		Size = 1;
+
+		zParent = nullptr;
 		Pickable = false;
 		zUnderCursor = false;
 
@@ -31,13 +36,15 @@ namespace dx2d
 	void CDynamic::zTransform()
 	{
 		XMMATRIX scale = zGetScaleMatrix();
-		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(zRotation);
+		XMMATRIX origin = XMMatrixTranslation(-Origin.x, -Origin.y, 0);
+		XMMATRIX norigin = XMMatrixTranslation(Origin.x, Origin.y, 0);
+		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(zRotation);		
 		XMMATRIX loc = XMMatrixTranslationFromVector(zPosition);
-		zWorld = scale * rot * loc;
-		if (Parent != nullptr)
+		zWorld = origin * scale * rot * loc * norigin;
+		if (zParent != nullptr)
 		{
-			XMMATRIX parentLoc = XMMatrixRotationRollPitchYawFromVector(Parent->zRotation);
-			XMMATRIX parentRot = XMMatrixTranslationFromVector(Parent->zPosition);
+			XMMATRIX parentLoc = XMMatrixRotationRollPitchYawFromVector(zParent->zRotation);
+			XMMATRIX parentRot = XMMatrixTranslationFromVector(zParent->zPosition);
 			zWorld = zWorld * parentLoc * parentRot;
 		}
 		XMMATRIX worldViewProj = zWorld * Camera->zView * Camera->zProj;
@@ -51,19 +58,58 @@ namespace dx2d
 
 	void CDynamic::zUpdate()
 	{
-		XMVECTOR a = XMVectorScale(zAcceleration, (float)Core->GetFrameTime());
-		XMVECTOR v = XMVectorScale(zVelocity, (float)Core->GetFrameTime());
-		zVelocity = XMVectorAdd(a,zVelocity);
-		zPosition = XMVectorAdd(v, zPosition);
-		XMVECTOR ra = XMVectorScale(zAngularAcc, (float)Core->GetFrameTime());
-		XMVECTOR rv = XMVectorScale(zAngularVel, (float)Core->GetFrameTime());
-		zAngularVel = XMVectorAdd(ra, zAngularVel);
-		zRotation = XMVectorAdd(rv, zRotation);
+		XMVECTOR a = zAcceleration * (float)Core->GetFrameTime();
+		XMVECTOR v = zVelocity * (float)Core->GetFrameTime();
+		zVelocity += a;
+		zPosition += v;
+		XMVECTOR ra = zAngularAcc * (float)Core->GetFrameTime();
+		XMVECTOR rv = zAngularVel * (float)Core->GetFrameTime();
+		zAngularVel += ra;
+		zRotation += rv;
+		float sa = SizeAcc * (float)Core->GetFrameTime();
+		SizeVel += sa;
 	}
 
 	bool CDynamic::IsUnderCursor()
 	{
 		return zUnderCursor;
+	}
+
+	CDynamic* CDynamic::GetParent()
+	{
+		return zParent;
+	}
+
+	void CDynamic::SetParent(CDynamic* parent)
+	{		
+		//add this to parent's children if applicable
+		if(parent != zParent && parent != nullptr)
+			parent->zChildren.push_back(this);
+
+		//remove this from parents children if applicable
+		else if (zParent != parent && zParent != nullptr)
+		{
+			for (int i = 0; i < (int)zParent->zChildren.size(); i++)
+			{
+				if (zParent->zChildren[i] == this)
+				{
+					zParent->zChildren.erase(zParent->zChildren.begin() + i);
+					break;
+				}
+			}
+		}
+
+		zParent = parent;
+	}
+
+	vector<CDynamic*> CDynamic::GetChildren()
+	{
+		return zChildren;
+	}
+
+	XMMATRIX CDynamic::GetWorldMatrix()
+	{
+		return zWorld;
 	}
 
 	CDynamic::~CDynamic()

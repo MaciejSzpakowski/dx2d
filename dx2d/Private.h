@@ -157,7 +157,9 @@ namespace dx2d
 		XMVECTOR zVelocity;
 		XMVECTOR zAcceleration;
 		XMVECTOR zAngularVel;
-		XMVECTOR zAngularAcc;
+		XMVECTOR zAngularAcc;		
+		CDynamic* zParent;
+		vector<CDynamic*> zChildren;
 		ID3D11Buffer* zCbBufferVS;
 		//matrix algebra for
 		//produces worldViewProj used by VS
@@ -168,12 +170,19 @@ namespace dx2d
 		virtual void zCheckForCursor(XMMATRIX transform){}
 		bool zUnderCursor;
 		
+		CDynamic* GetParent();		
+		void SetParent(CDynamic* parent);
+		vector<CDynamic*> GetChildren();
+		XMMATRIX GetWorldMatrix();
 		bool IsUnderCursor();		
 		CDynamic();
 		~CDynamic();
 
-		bool Pickable;
-		CDynamic* Parent;
+		bool Pickable;		
+		float SizeVel;
+		float SizeAcc;
+		float Size;
+		XMFLOAT2 Origin;
 
 		//repetitive code
 		void SetPosition(XMFLOAT3 v){zPosition = XMLoadFloat3(&v);}
@@ -222,11 +231,18 @@ namespace dx2d
 		int zVertexCount;
 		int zIndex;
 		ID3D11Buffer* zVertexBuffer;
-		ID3D11Buffer* zCbBufferPS;
+		ID3D11Buffer* zCbBufferPS;		
 		ID3D11Buffer* zCbBufferUV;
+		//extra buffer
+		ID3D11Buffer* zCbBufferPSExtra;
+		void* zExtraBufferData;
 		virtual void zDraw() = 0;
 
-		CDrawable();			
+		CDrawable();
+
+		//used to send custom data to PS
+		//size must be multiple of 16, always round up to nearest 16
+		void SetConstantBufferPS(void* data, UINT size);
 		~CDrawable();
 		CRenderTarget* GetRenderTarget(){ return zRenderTarget; }
 		void SetRenderTarget(CRenderTarget* target);
@@ -379,7 +395,7 @@ namespace dx2d
 
 		CCamera();
 		XMFLOAT3 GetCursorWorldPos(float z);
-		POINTF GetFrustumSize(float z);
+		XMFLOAT2 GetFrustumSize(float z);
 		XMMATRIX GetViewMatrix();
 		XMMATRIX GetProjMatrix();
 		void Destroy();
@@ -420,6 +436,7 @@ namespace dx2d
 		virtual void zPlay(){}
 		void zDraw() override;
 		void zCheckForCursor(XMMATRIX transform) override;
+		void zSpriteUpdate();
 		
 		CSprite();
 		CSprite(CTexture* texture);

@@ -470,9 +470,9 @@ namespace dx2d
 		for (CPolygon* p : zPolygons)
 		{
 			p->zUpdate();
+			p->zTransform();
 			if (p->Visible)
-			{
-				p->zTransform();
+			{				
 				p->zDraw();
 			}
 		}
@@ -486,14 +486,15 @@ namespace dx2d
 		for (CSprite* s : zSprites)
 		{
 			s->zUpdate();
+			s->zSpriteUpdate();
 			s->zPlay();
+			s->zTransform();
 			if (s->Visible)
 			{
 				if (s->TexFilter == TEX_FILTER::LINEAR)
 					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zLineSampler);
 				else
-					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zPointSampler);
-				s->zTransform();
+					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zPointSampler);				
 				s->zDraw();
 			}
 		}

@@ -70,12 +70,12 @@ namespace dx2d
 			(-row*(_Height+_VerticalSpacing) + verAlignOffset)*2, 0);
 		XMMATRIX loc = XMMatrixTranslationFromVector(zPosition);
 		XMMATRIX worldViewProj;
-		if (Parent == nullptr)
+		if (zParent == nullptr)
 			worldViewProj  = scale * origin * rot * loc * Camera->zView * Camera->zProj;
 		else
 		{
-			XMMATRIX parentLoc = XMMatrixRotationRollPitchYawFromVector(Parent->zRotation);
-			XMMATRIX parentRot = XMMatrixTranslationFromVector(Parent->zPosition);
+			XMMATRIX parentLoc = XMMatrixRotationRollPitchYawFromVector(zParent->zRotation);
+			XMMATRIX parentRot = XMMatrixTranslationFromVector(zParent->zPosition);
 			worldViewProj = scale * origin * rot * loc * parentLoc * parentRot *
 				Camera->zView * Camera->zProj;
 		}
@@ -86,12 +86,12 @@ namespace dx2d
 
 	void CBitmapText::SetPixelScale(int width, int height)
 	{		
-		POINTF frustum = Camera->GetFrustumSize(GetPosition().z);
+		XMFLOAT2 frustum = Camera->GetFrustumSize(GetPosition().z);
 		RECT client;
 		GetClientRect(Core->GetWindowHandle(), &client);
-		POINTF clientSize = { (float)client.right - client.left, 
+		XMFLOAT2 clientSize = { (float)client.right - client.left,
 			(float)client.bottom - client.top };
-		POINTF unitsPerPixel = { frustum.x / clientSize.x, frustum.y / clientSize.y };
+		XMFLOAT2 unitsPerPixel = { frustum.x / clientSize.x, frustum.y / clientSize.y };
 		Width = unitsPerPixel.x * width / 4;
 		Height = unitsPerPixel.y * height / 4;
 		Size = 1;

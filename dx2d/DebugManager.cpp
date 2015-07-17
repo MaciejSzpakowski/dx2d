@@ -19,7 +19,7 @@ namespace dx2d
 	{
 		zDebugText = new CBitmapText(DrawManager->zDefaultFont);
 		zDebugText->SetPosition(-9, 7, 10.3f);
-		zDebugText->Parent = Camera;
+		zDebugText->zParent = Camera;
 		zDebugText->SetPixelScale(10, 14);
 	}
 

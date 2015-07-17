@@ -65,9 +65,9 @@ namespace dx2d
 		return { f3t.x, f3t.y, z };
 	}
 
-	POINTF CCamera::GetFrustumSize(float z)
+	XMFLOAT2 CCamera::GetFrustumSize(float z)
 	{
-		POINTF res;
+		XMFLOAT2 res;
 		res.x = (20 + z) * tan(zFovAngle/2) * zAspectRatio * 2;
 		res.y = (20 + z) * tan(zFovAngle/2) * 2;
 		return res;

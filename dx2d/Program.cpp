@@ -14,7 +14,7 @@ int fps;
 
 void Activity()
 {
-	Sleep(1);	
+	Sleep(1);
 
 	Camera->SetVelocity(0, 0, 0);
 	Camera->SetAngularVelZ(0);
@@ -28,9 +28,6 @@ void Activity()
 	if (Input->IsKeyDown(Key.Right))
 		Camera->SetVelocityX(move);
 
-	a1->Color.r = 1;
-	if (a1->IsUnderCursor())
-		a1->Color.r = 3;
 	a1->SetVelocity(0, 0, 0);
 	a1->SetAngularVelZ(0);
 	if (Input->IsKeyDown('A'))

@@ -70,9 +70,14 @@ namespace dx2d
 		Core->zContext->DrawIndexed(6, 0, 0);
 	}
 
+	void CSprite::zSpriteUpdate()
+	{
+		Size += SizeVel * (float)Core->GetFrameTime();
+	}
+
 	XMMATRIX CSprite::zGetScaleMatrix()
 	{
-		return XMMatrixScaling(Scale.x, Scale.y, 1);
+		return XMMatrixScaling(Scale.x * Size, Scale.y * Size, 1);
 	}
 
 	void CSprite::SetNaturalScale()
@@ -83,12 +88,12 @@ namespace dx2d
 
 	void CSprite::SetPixelScale(int width, int height)
 	{
-		POINTF frustum = Camera->GetFrustumSize(GetPosition().z);
+		XMFLOAT2 frustum = Camera->GetFrustumSize(GetPosition().z);
 		RECT client;
 		GetClientRect(Core->GetWindowHandle(), &client);
-		POINTF clientSize = { (float)client.right - client.left,
+		XMFLOAT2 clientSize = { (float)client.right - client.left,
 			(float)client.bottom - client.top };
-		POINTF unitsPerPixel = { frustum.x / clientSize.x, frustum.y / clientSize.y };
+		XMFLOAT2 unitsPerPixel = { frustum.x / clientSize.x, frustum.y / clientSize.y };
 		Scale.x = unitsPerPixel.x * width / 2;
 		Scale.y = unitsPerPixel.y * height / 2;
 	}

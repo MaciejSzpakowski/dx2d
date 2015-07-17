@@ -17,10 +17,28 @@ namespace dx2d
 		cbbd.MiscFlags = 0;
 		Core->zDevice->CreateBuffer(&cbbd, NULL, &zCbBufferPS);
 		Core->zDevice->CreateBuffer(&cbbd, NULL, &zCbBufferUV); //has the same size
+		zCbBufferPSExtra = nullptr;
+		zExtraBufferData = nullptr;
+	}
+
+	void CDrawable::SetConstantBufferPS(void* data, UINT size)
+	{
+		D3D11_BUFFER_DESC cbbd;
+		ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
+		cbbd.Usage = D3D11_USAGE_DEFAULT;
+		cbbd.ByteWidth = size;
+		cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbbd.CPUAccessFlags = 0;
+		cbbd.MiscFlags = 0;
+		Core->zDevice->CreateBuffer(&cbbd, NULL, &zCbBufferPSExtra);
+
+		zExtraBufferData = data;
 	}
 
 	CDrawable::~CDrawable()
 	{
+		if (zCbBufferPSExtra != nullptr)
+			zCbBufferPSExtra->Release();
 		zCbBufferPS->Release();
 		zCbBufferUV->Release();
 	}
