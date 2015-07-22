@@ -123,8 +123,6 @@ namespace dx2d
 	void CSprite::Destroy()
 	{
 		DrawManager->RemoveSprite(this);
-		if (zTexture != nullptr && !zTexture->zCached)
-			zTexture->Destroy();
 		delete this;
 	}
 
@@ -167,7 +165,7 @@ namespace dx2d
 		UV = zUvTable[Frame];
 	}
 
-	void CAnimation::SetOrder(int* order)
+	void CAnimation::SetOrder(int order[])
 	{
 		vector<Rect> newUvtable;
 		newUvtable.reserve(zFrameCount);

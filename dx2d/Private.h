@@ -485,8 +485,8 @@ namespace dx2d
 		
 		CAnimation(LPCWSTR file, int x, int y);
 		bool FrameChanged(); //true if frame changed in prev game frame
-		//set frames order, size of int should be the same as frame count
-		void SetOrder(int* order);
+		//set frames order, size of the array should be the same as frame count
+		void SetOrder(int order[]);
 		int GetFrameCount();
 		//next frame and loop
 		void NextFrame();

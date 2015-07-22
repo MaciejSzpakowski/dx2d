@@ -1,6 +1,5 @@
 #include "Private.h"
 #include <ctime>
-#include <Windows.h>
 
 using namespace dx2d;
 
@@ -16,7 +15,7 @@ void Activity()
 {
 	Sleep(1);
 
-	Camera->SetVelocity(0, 0, 0);
+	/*Camera->SetVelocity(0, 0, 0);
 	Camera->SetAngularVelZ(0);
 	float move = 10;
 	if (Input->IsKeyDown(Key.Up))
@@ -41,18 +40,14 @@ void Activity()
 	if (Input->IsKeyDown('Q'))
 		a1->SetAngularVelZ(5);
 	if (Input->IsKeyDown('E'))
-		a1->SetAngularVelZ(-5);
-
-	s1->Color.b = 1;
-	/*if (Collision::IsColliding(a1, s1))
-		s1->Color.b = 3;*/
+		a1->SetAngularVelZ(-5);*/
 }
 
 int main(int argc, char** argv)
 {
-	Functions::NewCore(800, 600, Activity);
+	Functions::InitCore(400, 300, Activity);
 
-	EventManager->AddEvent([]()	{
+	/*EventManager->AddEvent([]()	{
 		fps = (int)Core->GetFps();
 		return 1;	}, L"", 0, 0, 0.5f);
 	EventManager->AddEvent([]()	{
@@ -62,9 +57,6 @@ int main(int argc, char** argv)
 	Core->SetWindowTitle(L"Hello");
 	Core->OpenConsole();
 	Core->SetBackgroundColor({ 0, 0, 0, 1 });
-	c1 = DrawManager->AddCircle(1, 10);
-	c2 = DrawManager->AddCircle(1, 10);
-	c2->SetPositionX(10);
 	brick = DrawManager->AddSprite(L"brick.jpg");
 	brick->SetPositionZ(0.03f);
 	brick->SetNaturalScale();
@@ -77,17 +69,18 @@ int main(int argc, char** argv)
 	a1->Pickable = true;
 	a1->Speed = 15;
 
-	s1 = DrawManager->AddSprite(L"ani.png");
-	s1->UV = Rect( 0, 0, 0.5f, 0.25f );
-	s1->SetRotationZ(0.2f);
-	s1->SetPositionX(6);
+	s1 = DrawManager->AddSprite(L"filter.png");
+	s1->TexFilter = TEX_FILTER::LINEAR;
+	s2 = DrawManager->AddSprite(L"filter.png");
+	s1->TexFilter = TEX_FILTER::POINT;
+	s2->SetPositionX(4);
+	s1->SetPositionX(12);
+	s1->Size = 4;
+	s2->Size = 4;*/
 
-	int t1 = (int)time(0);
-	for (int i = 0; i < 2000; i++)
-	{
-		//Functions::CreateTexture2DFromFile(L"sun_flower.png");
-	}
-	printf("%is\n", time(0) - t1);
+	CAnimation* a = DrawManager->AddAnimation(L"C:\\Users\\Maciej\\OneDrive\\Documents\\site\\images\\spritesheet.jpg",5,2);
+	a->Speed = 20;
+	a->Size = 10;
 	
 	Core->Run();
 	Core->Destroy();

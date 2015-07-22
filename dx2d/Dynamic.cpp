@@ -114,6 +114,9 @@ namespace dx2d
 
 	CDynamic::~CDynamic()
 	{
+		//set all childrens parent to nullptr
+		for (CDynamic* d : zChildren)
+			d->zParent = nullptr;
 		zCbBufferVS->Release();
 	}
 }

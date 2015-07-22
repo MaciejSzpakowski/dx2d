@@ -58,7 +58,7 @@ namespace dx2d
 	namespace Functions
 	{
 		//creates new CCore object so you dont have to use new operator
-		CCore* NewCore(int sizex, int sizey, std::function<void()> worker, int style = WS_OVERLAPPEDWINDOW);
+		CCore* InitCore(int sizex, int sizey, std::function<void()> worker, int style = WS_OVERLAPPEDWINDOW);
 		
 		//creates new ID3D11Texture2D object from bytes
 		//you probably dont want to use it unless you want to deal with directx directly

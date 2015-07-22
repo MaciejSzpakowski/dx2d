@@ -27,7 +27,7 @@ namespace dx2d
 
 	namespace Functions
 	{
-		CCore* NewCore(int sizex, int sizey, std::function<void()> worker, int style)
+		CCore* InitCore(int sizex, int sizey, std::function<void()> worker, int style)
 		{
 			CCore* core = new CCore(sizex, sizey, worker, style);
 			DrawManager->zInit();
