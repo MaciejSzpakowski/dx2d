@@ -78,9 +78,9 @@ int main(int argc, char** argv)
 	s1->Size = 4;
 	s2->Size = 4;*/
 
-	CAnimation* a = DrawManager->AddAnimation(L"C:\\Users\\Maciej\\OneDrive\\Documents\\site\\images\\spritesheet.jpg",5,2);
-	a->Speed = 20;
-	a->Size = 10;
+	CBitmapFont* f = DrawManager->AddBitmapFont(L"bitmapfont.jpg", 48, 48, 10);
+	CBitmapText* t = DrawManager->AddBitmapText(f);
+	t->Text = L"Awesome\ntext";
 	
 	Core->Run();
 	Core->Destroy();

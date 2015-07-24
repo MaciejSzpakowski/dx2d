@@ -363,6 +363,7 @@ namespace dx2d
 		void RemoveAnimation(CAnimation* a);		
 		CBitmapFont* AddBitmapFont(LPCWSTR file, vector<Rect> chars);
 		void AddBitmapFont(CBitmapFont* font);
+		CBitmapFont* AddBitmapFont(LPCWSTR file, int width, int height, int charsPerRow);
 		CBitmapText* AddBitmapText(CBitmapFont* font,
 			CRenderTarget* target = nullptr);
 		void AddBitmapText(CBitmapText* text,
@@ -507,6 +508,7 @@ namespace dx2d
 		ID3D11ShaderResourceView* zShaderResource;
 
 		CBitmapFont(LPCWSTR file, vector<Rect> _chars);
+		CBitmapFont(const WCHAR* file, int width, int height, int charsPerRow);
 		CBitmapFont(CTexture* texture, vector<Rect> _chars);
 		CTexture* GetTexture(){ return zTexture; }
 		void Destroy();

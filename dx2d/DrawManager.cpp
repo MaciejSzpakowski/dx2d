@@ -315,6 +315,23 @@ namespace dx2d
 		ResourceManager->AddBitmapFont(newFont);
 		return newFont;
 	}
+
+	CBitmapFont* CDrawManager::AddBitmapFont(LPCWSTR file, int width, int height, int charsPerRow)
+	{
+		CBitmapFont* newFont = ResourceManager->GetBitmapFont(file);
+		if (newFont != nullptr)
+			return newFont;
+		try
+		{
+			newFont = new CBitmapFont(file, width, height, charsPerRow);
+		}
+		catch (int)
+		{
+			return nullptr;
+		}
+		ResourceManager->AddBitmapFont(newFont);
+		return newFont;
+	}
 	
 	void CDrawManager::AddBitmapFont(CBitmapFont* font)
 	{
