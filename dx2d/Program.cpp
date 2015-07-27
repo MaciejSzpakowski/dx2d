@@ -41,8 +41,6 @@ void Activity()
 		a1->SetAngularVelZ(5);
 	if (Input->IsKeyDown('E'))
 		a1->SetAngularVelZ(-5);*/
-
-	Input->zTest();
 }
 
 int main(int argc, char** argv)
@@ -79,8 +77,24 @@ int main(int argc, char** argv)
 	s1->SetPositionX(12);
 	s1->Size = 4;
 	s2->Size = 4;*/
-	Core->OpenConsole();
-	Input->AcceptGamepads = 1;
+	EventManager->AddEvent([]()
+	{
+		if (Input->IsKeyPressed(Key.Enter))
+		{
+			CSprite* s = DrawManager->AddSprite(L"leaf.png");
+			s->SetVelocityX(-1);
+			EventManager->AddEvent([s]()
+			{
+				if (s->GetPosition().x < -3)
+				{
+					DrawManager->RemoveSprite(s);
+					return 0;
+				}
+				return 1;
+			},L"", 0, 0, 0);
+		}
+		return 1;
+	}, L"", 0, 0, 0);
 
 	Core->Run();
 	Core->Destroy();

@@ -170,7 +170,7 @@ namespace dx2d
 		virtual void zCheckForCursor(XMMATRIX transform){}
 		bool zUnderCursor;
 		
-		CDynamic* GetParent();		
+		CDynamic* GetParent();
 		void SetParent(CDynamic* parent);
 		vector<CDynamic*> GetChildren();
 		XMMATRIX GetWorldMatrix();
