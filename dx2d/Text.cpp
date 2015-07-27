@@ -142,6 +142,26 @@ namespace dx2d
 		zShaderResource = texture->zShaderResource;
 	}
 
+	CBitmapFont::CBitmapFont(CTexture* texture, int width, int height, int charsPerRow)
+	{
+		zTexture = texture;
+
+		float fWidth;
+		float fHeight;
+		vector<Rect> chars1;
+		for (int i = 0, k = 32; k<127; i++)
+			for (int j = 0; j < charsPerRow; j++, k++)
+			{
+				fWidth = (float)width;
+				fHeight = (float)height;
+				chars1.push_back(Rect(fWidth / zTexture->zWidth *j, fHeight / zTexture->zHeight *i, fWidth /
+					zTexture->zWidth *(j + 1), fHeight / zTexture->zHeight*(i + 1)));
+			}
+
+		zChars = chars1;
+		zShaderResource = zTexture->zShaderResource;
+	}
+
 	void CBitmapFont::Destroy()
 	{
 		delete this;

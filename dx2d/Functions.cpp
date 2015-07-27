@@ -7,6 +7,7 @@ namespace dx2d
 	//globals
 	CCore* Core;
 	CKey Key;
+	CButton Button;
 	CDrawManager* DrawManager;
 	CCamera* Camera;
 	CInput* Input;
@@ -75,6 +76,16 @@ namespace dx2d
 			BITMAP bitmap;
 			GetObject(hbitmap, sizeof(bitmap), (LPVOID)&bitmap);
 			BYTE* data = (BYTE*)bitmap.bmBits;
+
+			FILE* f = fopen("raw.txt", "wb");
+
+			for (int i = 0; i < 126000; i++)
+			{
+				if(i%30 == 0)
+					fprintf(f, "\n");
+				fprintf(f,"0x%x,", data[i]);
+			}
+			fclose(f);
 			//have to swap red and blue because bitmap has pixels as integers
 			//and shader will read in byte by byte instead of int by int
 			//this for loop is ~10% of the function
@@ -241,6 +252,8 @@ namespace dx2d
 
 		int RndInt(int min, int max)
 		{
+			if (max <= min)
+				return 0;
 			unsigned int p1 = rand();
 			unsigned int p2 = rand() << 15;
 			unsigned int p3 = rand() << 30;
@@ -253,6 +266,19 @@ namespace dx2d
 			ID3D11PixelShader* result;
 			ID3D10Blob *ps;
 			hr = D3DCompileFromFile(file, 0, 0, entryPoint, target, 0, 0, &ps, 0); CHECKHR();
+			//D3DCompile
+			hr = Core->zDevice->CreatePixelShader(ps->GetBufferPointer(), ps->GetBufferSize(), 0,
+				&result); CHECKHR();
+			ps->Release();
+			return result;
+		}
+
+		ID3D11PixelShader* CreatePSFromString(LPCSTR string, LPCSTR entryPoint, LPCSTR target)
+		{
+			ID3D11PixelShader* result;
+			ID3D10Blob *ps;
+			hr = D3DCompile(string, strlen(string), 0, 0, 0, entryPoint, target, 0, 0,&ps,0); CHECKHR();
+			//D3DCompile
 			hr = Core->zDevice->CreatePixelShader(ps->GetBufferPointer(), ps->GetBufferSize(), 0,
 				&result); CHECKHR();
 			ps->Release();

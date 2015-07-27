@@ -373,6 +373,7 @@ namespace dx2d
 		CBitmapFont* GetDefaultFont();
 		CRenderTarget* AddRenderTarget();
 		void DestroyRenderTarget(CRenderTarget* target);
+		void InitDefaultFont();
 
 		//destroys all but default render target
 		void ClearRenderTargets();
@@ -411,8 +412,15 @@ namespace dx2d
 		POINT* zCurMouse;
 		POINT* zPrevMouse;
 		int zMouseWheel;
+		bool zActiveGamepads[XUSER_MAX_COUNT];
+		XINPUT_STATE* zGamepadStatePrev;
+		XINPUT_STATE* zGamepadStateCur;
+		bool zGamepadConnected;
+		bool zGamepadDisconnected;
+		void zCheckGamepads();
 		void zActivity();
-
+		void zTest();
+		
 		CInput();
 		int GetMouseWheel();
 		bool IsKeyDown(int vkey);
@@ -424,7 +432,37 @@ namespace dx2d
 		//offset, where to start looking
 		bool IsCapslockActive();
 		char GetKey(int offset);
-		void ResetKey(int vkey);		
+		void ResetKey(int vkey);
+
+		//how many gamepads listen to
+		//keeps this at minimum for efficiency
+		//max count is XUSER_MAX_COUNT (currently 4)
+		UINT AcceptGamepads;
+		bool IsButtonDown(UINT gamepad, int button);
+		bool IsButtonPressed(UINT gamepad, int button);
+		bool IsButtonReleased(UINT gamepad, int button);
+		BYTE GetLeftTrigger(UINT gamepad);
+		BYTE GetRightTrigger(UINT gamepad);
+		SHORT GetLeftStickX(UINT gamepad);
+		SHORT GetLeftStickY(UINT gamepad);
+		SHORT GetRightStickX(UINT gamepad);
+		SHORT GetRightStickY(UINT gamepad);
+		BYTE GetLeftTriggerDelta(UINT gamepad);
+		BYTE GetRightTriggerDelta(UINT gamepad);
+		SHORT GetLeftStickXDelta(UINT gamepad);
+		SHORT GetLeftStickYDelta(UINT gamepad);
+		SHORT GetRightStickXDelta(UINT gamepad);
+		SHORT GetRightStickYDelta(UINT gamepad);
+		void SetMotorSpeed(UINT gamepad, USHORT speedLeft, USHORT speedRight);
+		
+		//was gamepad connected during last read
+		bool IsGamepadActive(UINT gamepad);
+
+		//was a new gamepad detected between last and current read
+		bool GamepadConnected();
+
+		//was a gamepad lost between last and current read
+		bool GamepadDisconnected();
 		void Destroy();
 	};
 
@@ -510,6 +548,7 @@ namespace dx2d
 		CBitmapFont(LPCWSTR file, vector<Rect> _chars);
 		CBitmapFont(const WCHAR* file, int width, int height, int charsPerRow);
 		CBitmapFont(CTexture* texture, vector<Rect> _chars);
+		CBitmapFont(CTexture* texture, int width, int height, int charsPerRow);
 		CTexture* GetTexture(){ return zTexture; }
 		void Destroy();
 	};

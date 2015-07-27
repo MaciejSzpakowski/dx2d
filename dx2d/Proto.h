@@ -11,10 +11,17 @@
 #include <gdiplus.h>
 #include <ctime>
 #include <d3dcompiler.h>
+#include <Xinput.h>
 #include "Keys.h"
+
 #pragma comment(lib,"Gdiplus.lib")
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "D3DCompiler.lib")
+#ifdef XINPUT_14
+#pragma comment(lib, "Xinput.lib")
+#else
+#pragma comment(lib, "Xinput9_1_0.lib")
+#endif
 #pragma comment(linker, "/subsystem:windows /ENTRY:mainCRTStartup")
 
 namespace dx2d
@@ -47,6 +54,7 @@ namespace dx2d
 	//externals
 	extern CCore* Core;
 	extern CKey Key;
+	extern CButton Button;
 	extern CDrawManager* DrawManager;
 	extern CCamera* Camera;
 	extern CInput* Input;
@@ -104,6 +112,11 @@ namespace dx2d
 		//entryPoint: main of the ps
 		//target: ps version, ps_5_0 by default
 		ID3D11PixelShader* CreatePSFromFile(LPCWSTR file, LPCSTR entryPoint, LPCSTR target = "ps_5_0");
+		
+		//ps from string
+		//entryPoint: main of the ps
+		//target: ps version, ps_5_0 by default
+		ID3D11PixelShader* CreatePSFromString(LPCSTR string, LPCSTR entryPoint, LPCSTR target = "ps_5_0");
 	}
 
 	namespace Collision

@@ -228,7 +228,8 @@ namespace dx2d
 		//debug text
 		Core->zContext->PSSetShader(Core->zDefaultPS, 0, 0);
 		DebugManager->Flush();
-		DebugManager->zDebugText->zDraw();
+		if(DebugManager->zDebugText->Text != L"")
+			DebugManager->zDebugText->zDraw();
 
 		Core->zSwapChain->Present(0, 0);
 	}
@@ -470,6 +471,26 @@ namespace dx2d
 		zRenderTargets.push_back(zDefaultRenderTarget);
 	}
 
+	extern const unsigned char rc_font[];
+	void CDrawManager::InitDefaultFont()
+	{
+		//defalut font
+		//15x21 one char
+		//20x5 all chars
+		vector<Rect> chars1;
+		for (int i = 0; i<5; i++)
+			for (int j = 0; j < 20; j++)
+			{
+				chars1.push_back(Rect(15.0f / 300.0f*j, 21.0f / 105.0f*i, 15.0f /
+					300.0f*(j + 1), 21 / 105.0f*(i + 1)));
+			}
+		
+		CTexture* tex1 = Functions::GetUncachedTextureFromBytes((BYTE*)rc_font, 300, 105);
+		DrawManager->zDefaultFont = new CBitmapFont(tex1,15,21,20);
+		DrawManager->AddBitmapFont(DrawManager->zDefaultFont);
+		DebugManager->Init(DrawManager->GetDefaultFont());
+	}
+
 	void CRenderTarget::zDraw()
 	{
 		Core->zContext->ClearDepthStencilView(Core->zDepthStencilView,
@@ -609,7 +630,7 @@ namespace dx2d
 		for (int i = (int)zSprites.size() - 1; i >= 0; i--)
 			zSprites[i]->Destroy();
 		for (int i = (int)zTexts.size() - 1; i >= 0; i--)
-			zSprites[i]->Destroy();
+			zTexts[i]->Destroy();
 		zSprite->zShaderResource->Release();
 		zTexture->Release();
 		zTargetView->Release();

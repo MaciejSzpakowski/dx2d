@@ -41,6 +41,8 @@ void Activity()
 		a1->SetAngularVelZ(5);
 	if (Input->IsKeyDown('E'))
 		a1->SetAngularVelZ(-5);*/
+
+	Input->zTest();
 }
 
 int main(int argc, char** argv)
@@ -77,11 +79,9 @@ int main(int argc, char** argv)
 	s1->SetPositionX(12);
 	s1->Size = 4;
 	s2->Size = 4;*/
+	Core->OpenConsole();
+	Input->AcceptGamepads = 1;
 
-	CBitmapFont* f = DrawManager->AddBitmapFont(L"bitmapfont.jpg", 48, 48, 10);
-	CBitmapText* t = DrawManager->AddBitmapText(f);
-	t->Text = L"Awesome\ntext";
-	
 	Core->Run();
 	Core->Destroy();
 	return 0;

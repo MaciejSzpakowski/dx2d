@@ -3,6 +3,9 @@
 namespace dx2d
 {
 	void IntActivity();
+	extern const char rc_PixelShader[];
+	extern const char rc_PostProcessing[];
+	extern const char rc_VertexShader[];
 
 	CCore::CCore(int sizex, int sizey, std::function<void()> worker, int style)
 	{
@@ -83,12 +86,14 @@ namespace dx2d
 		//default shaders
 		ID3D10Blob *vs; //release vs after CreateInputLayout()
 		//alternative to loading shader from cso file
-		hr = D3DCompileFromFile(L"VertexShader.hlsl", 0, 0, "main", "vs_5_0", 0, 0, &vs, 0); CHECKHR();
+		//hr = D3DCompileFromFile(L"VertexShader.hlsl", 0, 0, "main", "vs_5_0", 0, 0, &vs, 0); CHECKHR();
+		hr = D3DCompile(rc_VertexShader, strlen(rc_VertexShader), 
+			0, 0, 0, "main", "vs_5_0", 0, 0, &vs, 0); CHECKHR();
 		hr = zDevice->CreateVertexShader(vs->GetBufferPointer(), vs->GetBufferSize(), 0,
 			&zDefaultVS); CHECKHR();
 		zContext->VSSetShader(zDefaultVS, 0, 0);
-		zDefaultPS = Functions::CreatePSFromFile(L"PixelShader.hlsl", "main");
-		zDefaultPost = Functions::CreatePSFromFile(L"PostProcessing.hlsl", "main");
+		zDefaultPS = Functions::CreatePSFromString(rc_PixelShader, "main");
+		zDefaultPost = Functions::CreatePSFromString(rc_PostProcessing, "main");
 
 		////    INPUT LAYOUT    ////
 		//defaul input layout
@@ -134,6 +139,7 @@ namespace dx2d
 		EventManager = new CEventManager;
 		ResourceManager = new CResourceManager;
 		DebugManager = new CDebugManager;
+		DrawManager->InitDefaultFont();
 
 		//timer
 		LARGE_INTEGER li;
@@ -147,27 +153,7 @@ namespace dx2d
 		zStartTime = li.QuadPart;
 		zPrevFrameTime = zStartTime;
 		zGameTime = 0;
-		zFrameTime = 0;
-
-		//defalut font
-		//15x21 one char
-		//20x5 all chars
-		vector<Rect> chars1;
-		for (int i = 0; i<5; i++)
-			for (int j = 0; j < 20; j++)
-			{
-				chars1.push_back(Rect(15.0f / 300.0f*j, 21.0f / 105.0f*i, 15.0f /
-					300.0f*(j + 1), 21 / 105.0f*(i + 1)));
-			}
-		FILE* f = fopen("font.png","r");
-		if (f)
-		{
-			fclose(f);
-			CTexture* tex1 = Functions::GetCachedTextureFromFile(L"font.png");
-			DrawManager->zDefaultFont = new CBitmapFont(tex1, chars1);
-			DrawManager->AddBitmapFont(DrawManager->zDefaultFont);
-			DebugManager->Init(DrawManager->GetDefaultFont());
-		}
+		zFrameTime = 0;		
 	}
 
 	void CCore::zUpdateGameTime()

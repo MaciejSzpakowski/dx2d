@@ -202,4 +202,24 @@ namespace dx2d
 		const int _VK_PA1 = 0xFD;
 		const int _VK_OEM_CLEAR = 0xFE;
 	};
+
+	struct CButton
+	{
+		const int Up = 1;
+		const int Down = 2;
+		const int Left = 4;
+		const int Right = 8;
+		const int Start = 16;
+		const int Back = 32;
+		const int LeftStick = 64;
+		const int RightStick = 128;
+		const int LB = 256;
+		const int RB = 512;
+		const int _1024 = 1024;
+		const int _2048 = 2048;
+		const int A = 4096;
+		const int B = 8192;
+		const int X = 16384;
+		const int Y = 32768;
+	};
 }
