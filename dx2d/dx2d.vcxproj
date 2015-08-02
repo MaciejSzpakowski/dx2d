@@ -164,6 +164,7 @@
     <Image Include="..\..\..\..\..\..\..\bajery\blender.png" />
     <Image Include="..\..\..\..\..\..\..\bajery\bLeNdEr\tekstury\bricks.jpeg" />
     <Image Include="ani.png" />
+    <Image Include="leaf.png" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="default_font.txt" />

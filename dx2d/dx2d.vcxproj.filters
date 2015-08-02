@@ -82,6 +82,9 @@
     <Image Include="ani.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="leaf.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Text Include="default_font.txt">
