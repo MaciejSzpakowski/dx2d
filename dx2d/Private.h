@@ -128,7 +128,6 @@ namespace dx2d
 		double GetFps();
 		void SetFullscreen(bool state);
 		bool GetFullscreen();
-		POINT GetCursorPos();
 		void Destroy();
 		void SaveScreenshot(LPCWSTR file);
 	};
@@ -422,12 +421,17 @@ namespace dx2d
 		void zTest();
 		
 		CInput();
+
+		// MOUSE
 		int GetMouseWheel();
+		POINT GetCursorDelta();
+		POINT GetCursorClientPos();
+
+		// KEYS (aslo mouse buttons) and KEYBOARD
 		bool IsKeyDown(int vkey);
 		bool IsKeyPressed(int vkey);
 		bool IsKeyReleased(int vkey);
-		bool IsAnyKeyDown();
-		POINT GetCursorDelta();
+		bool IsAnyKeyDown();		
 		char GetChar(bool enableShift = true, bool enableCapslock = true);
 		//offset, where to start looking
 		bool IsCapslockActive();
@@ -438,6 +442,7 @@ namespace dx2d
 		//keeps this at minimum for efficiency
 		//max count is XUSER_MAX_COUNT (currently 4)
 		UINT AcceptGamepads;
+		bool IsAnyButtonDown(UINT gamepad);
 		bool IsButtonDown(UINT gamepad, int button);
 		bool IsButtonPressed(UINT gamepad, int button);
 		bool IsButtonReleased(UINT gamepad, int button);
@@ -455,7 +460,8 @@ namespace dx2d
 		SHORT GetRightStickYDelta(UINT gamepad);
 		void SetMotorSpeed(UINT gamepad, USHORT speedLeft, USHORT speedRight);
 		
-		//was gamepad connected during last read
+		//technically: was gamepad connected during last read
+		//generally: is that gamepad connected
 		bool IsGamepadActive(UINT gamepad);
 
 		//was a new gamepad detected between last and current read

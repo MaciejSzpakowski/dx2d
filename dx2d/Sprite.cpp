@@ -20,6 +20,7 @@ namespace dx2d
 		Scale = XMFLOAT2(1, 1);
 		Color = XMFLOAT4(1, 1, 1, 1);
 		TexFilter = DrawManager->TexFilterCreationMode;
+		zRenderTarget = nullptr;
 	}
 
 	CSprite::CSprite(LPCWSTR file)
@@ -33,6 +34,7 @@ namespace dx2d
 		TexFilter = DrawManager->TexFilterCreationMode;
 		zTexture = Functions::GetCachedTextureFromFile(file);
 		zShaderResource = zTexture->zShaderResource;
+		zRenderTarget = nullptr;
 	}
 
 	CSprite::CSprite(CTexture* texture)
@@ -46,6 +48,7 @@ namespace dx2d
 		TexFilter = DrawManager->TexFilterCreationMode;
 		zTexture = texture;
 		zShaderResource = texture->zShaderResource;
+		zRenderTarget = nullptr;
 	}
 
 	void CSprite::zDraw()

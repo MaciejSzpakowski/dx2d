@@ -227,15 +227,7 @@ namespace dx2d
 	bool CCore::GetFullscreen()
 	{
 		return zFullscreen;
-	}
-
-	POINT CCore::GetCursorPos()
-	{
-		POINT p;
-		::GetCursorPos(&p);
-		ScreenToClient(zWindow->zHandle, &p);
-		return p;
-	}
+	}	
 
 	void CCore::SaveScreenshot(LPCWSTR file)
 	{

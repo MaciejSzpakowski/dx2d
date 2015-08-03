@@ -49,6 +49,14 @@ namespace dx2d
 		GetCursorPos(zCurMouse);
 	}
 
+	POINT CInput::GetCursorClientPos()
+	{
+		POINT p;
+		::GetCursorPos(&p);
+		ScreenToClient(Core->zWindow->zHandle, &p);
+		return p;
+	}
+
 	bool CInput::IsKeyDown(int vKey)
 	{
 		return zCurState[vKey];
@@ -162,6 +170,13 @@ namespace dx2d
 				zActiveGamepads[i] = false;
 			}
 		}
+	}
+
+	bool CInput::IsAnyButtonDown(UINT gamepad)
+	{
+		if (gamepad > XUSER_MAX_COUNT - 1)
+			return false;
+		return (zGamepadStateCur[gamepad].Gamepad.wButtons) && true;
 	}
 
 	bool CInput::IsButtonDown(UINT gamepad, int button)

@@ -41,6 +41,11 @@ void Activity()
 		a1->SetAngularVelZ(5);
 	if (Input->IsKeyDown('E'))
 		a1->SetAngularVelZ(-5);*/
+
+	
+	POINT p = Input->GetCursorClientPos();
+	DebugManager->Debug(p.x, L"x");
+	DebugManager->Debug(p.y, L"y");
 }
 
 int main(int argc, char** argv)
@@ -85,16 +90,15 @@ int main(int argc, char** argv)
 			s->SetVelocityX(-1);
 			EventManager->AddEvent([s]()
 			{
-				if (s->GetPosition().x < -3)
-				{
-					DrawManager->RemoveSprite(s);
-					return 0;
-				}
-				return 1;
-			},L"", 0, 0, 0);
+				s->Destroy();
+				return 0;
+			},L"", 3, 0, 0);
 		}
 		return 1;
 	}, L"", 0, 0, 0);
+	Input->IsKeyDown(Key.LeftControl);
+
+	s1 = DrawManager->AddSprite(L"brick.jpg");
 
 	Core->Run();
 	Core->Destroy();

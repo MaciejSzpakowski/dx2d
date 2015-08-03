@@ -73,16 +73,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\..\..\..\..\bajery\blender.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\..\..\..\..\..\..\bajery\bLeNdEr\tekstury\bricks.jpeg">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="ani.png">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="leaf.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="brick.jpg">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

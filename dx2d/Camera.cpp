@@ -48,7 +48,7 @@ namespace dx2d
 
 	XMFLOAT3 CCamera::GetCursorWorldPos(float z)
 	{
-		POINT p = Core->GetCursorPos();
+		POINT p = Input->GetCursorClientPos();
 		//formula to convert z distance from camera to z in z-buffer
 		//(20.0f + z) because by default camera is 20 from point (0,0,0)
 		float zbuffer = ((zFarPlane + zNearPlane) / (zFarPlane - zNearPlane) + 

@@ -251,23 +251,24 @@ namespace dx2d
 	{		
 		if (p->zIndex == -1)
 			return;
-		auto polygons = p->zRenderTarget->zPolygons;
-		if (polygons.size() == 0 || polygons[p->zIndex] != p)
+		auto polygons = &(p->zRenderTarget->zPolygons);
+		if (polygons->size() == 0 || (*polygons)[p->zIndex] != p)
 		{
 			MessageBox(0, L"This polygon is not in its target polygons collection", L"Error", MB_ICONERROR);
 			return;
 		}
-		else if (p->zIndex == polygons.size() - 1)
+		else if (p->zIndex == polygons->size() - 1)
 		{			
-			polygons.pop_back();
+			polygons->pop_back();
 		}
 		else
 		{
 			//move end to where p is and update index
-			polygons[p->zIndex] = polygons.back();
-			polygons[p->zIndex]->zIndex = p->zIndex;
-			polygons.pop_back();
+			(*polygons)[p->zIndex] = polygons->back();
+			(*polygons)[p->zIndex]->zIndex = p->zIndex;
+			polygons->pop_back();
 		}
+		p->zRenderTarget = nullptr;
 		p->zIndex = -1;
 	}
 
@@ -275,23 +276,24 @@ namespace dx2d
 	{
 		if (s->zIndex == -1)
 			return;
-		auto sprites = s->zRenderTarget->zSprites;
-		if (s->zIndex >= sprites.size() || sprites[s->zIndex] != s)
+		auto sprites = &(s->zRenderTarget->zSprites);
+		if (s->zIndex >= sprites->size() || (*sprites)[s->zIndex] != s)
 		{
 			MessageBox(0, L"This sprite is not in its target sprites collection", L"Error", MB_ICONERROR);
 			return;
 		}
-		else if (s->zIndex == sprites.size() - 1)
+		else if (s->zIndex == sprites->size() - 1)
 		{
-			sprites.pop_back();
+			sprites->pop_back();
 		}
 		else
 		{
 			//move end to where p is and update index
-			sprites[s->zIndex] = sprites.back();
-			sprites[s->zIndex]->zIndex = s->zIndex;
-			sprites.pop_back();
+			(*sprites)[s->zIndex] = sprites->back();
+			(*sprites)[s->zIndex]->zIndex = s->zIndex;
+			sprites->pop_back();
 		}
+		s->zRenderTarget = nullptr;
 		s->zIndex = -1;
 	}
 
@@ -375,23 +377,24 @@ namespace dx2d
 	{
 		if (t->zIndex == -1)
 			return;
-		auto texts = t->zRenderTarget->zTexts;
-		if (t->zIndex >= texts.size() || texts[t->zIndex] != t)
+		auto texts = &(t->zRenderTarget->zTexts);
+		if (t->zIndex >= texts->size() || (*texts)[t->zIndex] != t)
 		{
-			MessageBox(0, L"This text is not in CDrawManager.Texts", L"Error", MB_ICONERROR);
+			MessageBox(0, L"This text is not in target texts", L"Error", MB_ICONERROR);
 			return;
 		}
-		else if (t->zIndex == texts.size() - 1)
+		else if (t->zIndex == texts->size() - 1)
 		{
-			texts.pop_back();
+			texts->pop_back();
 		}
 		else
 		{
 			//move end to where p is and update index
-			texts[t->zIndex] = texts.back();
-			texts[t->zIndex]->zIndex = t->zIndex;
-			texts.pop_back();
+			(*texts)[t->zIndex] = texts->back();
+			(*texts)[t->zIndex]->zIndex = t->zIndex;
+			texts->pop_back();
 		}
+		t->zRenderTarget = nullptr;
 		t->zIndex = -1;
 	}
 
