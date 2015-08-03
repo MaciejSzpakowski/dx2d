@@ -228,6 +228,7 @@ namespace dx2d
 	public:
 		CRenderTarget* zRenderTarget;
 		int zVertexCount;
+		vector<XMVECTOR> zVertices;
 		int zIndex;
 		ID3D11Buffer* zVertexBuffer;
 		ID3D11Buffer* zCbBufferPS;		

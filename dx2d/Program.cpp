@@ -4,10 +4,10 @@
 using namespace dx2d;
 
 CCircle* c1,*c2,*c3;
-CSprite* brick;
+vector<CPolygon*> vp;
 CSprite* s1, *s2;
 CAnimation* a1;
-CBitmapText* bmtext;
+CBitmapText* t1;
 std::vector<CSprite*> sprites;
 int fps;
 
@@ -25,32 +25,36 @@ void Activity()
 	if (Input->IsKeyDown(Key.Left))
 		Camera->SetVelocityX(-move);
 	if (Input->IsKeyDown(Key.Right))
-		Camera->SetVelocityX(move);
+		Camera->SetVelocityX(move);*/
 
-	a1->SetVelocity(0, 0, 0);
-	a1->SetAngularVelZ(0);
+	p1->SetVelocity(0, 0, 0);
+	p1->SetAngularVelZ(0);
 	if (Input->IsKeyDown('A'))
-		a1->SetVelocityX(-10);
+		p1->SetVelocityX(-10);
 	if (Input->IsKeyDown('D'))
-		a1->SetVelocityX(10);
+		p1->SetVelocityX(10);
 	if (Input->IsKeyDown('W'))
-		a1->SetVelocityY(10);
+		p1->SetVelocityY(10);
 	if (Input->IsKeyDown('S'))
-		a1->SetVelocityY(-10);
+		p1->SetVelocityY(-10);
 	if (Input->IsKeyDown('Q'))
-		a1->SetAngularVelZ(5);
+		p1->SetAngularVelZ(5);
 	if (Input->IsKeyDown('E'))
-		a1->SetAngularVelZ(-5);*/
+		p1->SetAngularVelZ(-5);/**/
 
-	
-	POINT p = Input->GetCursorClientPos();
-	DebugManager->Debug(p.x, L"x");
-	DebugManager->Debug(p.y, L"y");
+	p1->Color = XMFLOAT4(1, 1, 1, 1);
+	p2->Color = XMFLOAT4(1, 1, 1, 1);
+	if (Collision::IsColliding(p1, p2))
+	{
+		p1->Color = XMFLOAT4(1, 0, 0, 1);
+		p2->Color = XMFLOAT4(1, 0, 0, 1);
+	}
+
 }
 
 int main(int argc, char** argv)
 {
-	Functions::InitCore(400, 300, Activity);
+	Functions::InitCore(800, 600, Activity);
 
 	/*EventManager->AddEvent([]()	{
 		fps = (int)Core->GetFps();
@@ -82,23 +86,14 @@ int main(int argc, char** argv)
 	s1->SetPositionX(12);
 	s1->Size = 4;
 	s2->Size = 4;*/
-	EventManager->AddEvent([]()
-	{
-		if (Input->IsKeyPressed(Key.Enter))
-		{
-			CSprite* s = DrawManager->AddSprite(L"leaf.png");
-			s->SetVelocityX(-1);
-			EventManager->AddEvent([s]()
-			{
-				s->Destroy();
-				return 0;
-			},L"", 3, 0, 0);
-		}
-		return 1;
-	}, L"", 0, 0, 0);
-	Input->IsKeyDown(Key.LeftControl);
 
-	s1 = DrawManager->AddSprite(L"brick.jpg");
+	XMFLOAT2 f1[] = { { 0, 0 }, { 0, 1 }, { 1, 1 } };
+	p1 = DrawManager->AddPoly(f1, 3);
+	p1->Color = XMFLOAT4(1, 1, 1, 1);
+
+	XMFLOAT2 f2[] = { { -1, 1 }, { 0, 0 }, { 1, 1 } };
+	p2 = DrawManager->AddPoly(f2, 3);
+	p2->Color = XMFLOAT4(1, 1, 1, 1);
 
 	Core->Run();
 	Core->Destroy();

@@ -288,6 +288,39 @@ namespace dx2d
 
 	namespace Collision
 	{
+		// checks if line segments |AB| and |CD| intersect
+		bool DoLinesIntersect(XMVECTOR A, XMVECTOR B, XMVECTOR C, XMVECTOR D)
+		{
+			//P is intersection point of lines (not line segments)
+			XMVECTOR P = XMVector2IntersectLine(A, B, C, D);
+
+			XMVECTOR AP = XMVectorSubtract(A, P);
+			XMVECTOR BP = XMVectorSubtract(B, P);
+			XMVECTOR AB = XMVectorSubtract(A, B);
+			XMVECTOR CP = XMVectorSubtract(C, P);
+			XMVECTOR DP = XMVectorSubtract(D, P);
+			XMVECTOR CD = XMVectorSubtract(C, D);
+
+			//mag
+			XMVECTOR vlenAP = XMVector2Length(AP);
+			XMVECTOR vlenBP = XMVector2Length(BP);
+			XMVECTOR vlenAB = XMVector2Length(AB);
+			XMVECTOR vlenCP = XMVector2Length(CP);
+			XMVECTOR vlenDP = XMVector2Length(DP);
+			XMVECTOR vlenCD = XMVector2Length(CD);
+
+			//store mag
+			float lenAP, lenBP, lenAB, lenCP, lenDP, lenCD;
+			XMStoreFloat(&lenAP, vlenAP);
+			XMStoreFloat(&lenBP, vlenBP);
+			XMStoreFloat(&lenAB, vlenAB);
+			XMStoreFloat(&lenCP, vlenCP);
+			XMStoreFloat(&lenDP, vlenDP);
+			XMStoreFloat(&lenCD, vlenCD);
+
+			return lenAP <= lenAB && lenBP <= lenAB && lenCP <= lenCD && lenDP <= lenCD;
+		}
+
 		bool IsColliding(CCircle* c1, CCircle* c2)
 		{
 			XMVECTOR v = XMVectorSubtract(c1->GetPositionVector(), c2->GetPositionVector());
@@ -295,30 +328,38 @@ namespace dx2d
 			return XMVectorGetX(len) < (c1->Radius + c2->Radius);
 		}
 
-		bool IsColliding(CSprite* s1, CSprite* s2)
+		bool IsColliding(CCircle* c, CRectangle* r)
 		{
-			XMVECTOR A = XMVectorSet(-1.0f, -1.0f, 0, 1);
-			XMVECTOR B = XMVectorSet(1.0f, -1.0f, 0, 1);
-			XMVECTOR C = XMVectorSet(1.0f, 1.0f, 0, 1);
-			XMVECTOR D = XMVectorSet(-1.0f, 1.0f, 0, 1);
-			XMVECTOR A1 = XMVector3Transform(A, s1->zWorld);
-			XMVECTOR B1 = XMVector3Transform(B, s1->zWorld);
-			XMVECTOR C1 = XMVector3Transform(C, s1->zWorld);
-			XMVECTOR D1 = XMVector3Transform(D, s1->zWorld);
-			XMVECTOR A2 = XMVector3Transform(A, s2->zWorld);
-			XMVECTOR B2 = XMVector3Transform(B, s2->zWorld);
-			XMVECTOR C2 = XMVector3Transform(C, s2->zWorld);
-			XMVECTOR D2 = XMVector3Transform(D, s2->zWorld);
-			bool result;
-			//check all possibilities and return as soon as collision detected
-			result = TriangleTests::Intersects(A1, B1, C1, A2, B2, C2);
-			if (result) return true;
-			result = TriangleTests::Intersects(A1, B1, C1, A2, C2, D2);
-			if (result) return true;
-			result = TriangleTests::Intersects(A1, C1, D1, A2, B2, C2);
-			if (result) return true;
-			result = TriangleTests::Intersects(A1, C1, D1, A2, C2, D2);
-			if (result) return true;
+			return false;
+		}
+
+		bool IsColliding(CCircle* c, CPolygon* p)
+		{
+			return false;
+		}
+
+		bool IsColliding(CRectangle* r1, CRectangle* r2)
+		{
+			return false;
+		}
+
+		bool IsColliding(CRectangle* r, CPolygon* p)
+		{
+			return false;
+		}
+
+		bool IsColliding(CPolygon* p1, CPolygon* p2)
+		{
+			for(int i=0;i<p1->zVertexCount-1;i++)
+				for (int j = 0; j < p2->zVertexCount - 1; j++)
+				{
+					XMVECTOR A = XMVector2Transform(p1->zVertices[i], p1->zWorld);
+					XMVECTOR B = XMVector2Transform(p1->zVertices[i+1], p1->zWorld);
+					XMVECTOR C = XMVector2Transform(p2->zVertices[j], p2->zWorld);
+					XMVECTOR D = XMVector2Transform(p2->zVertices[j+1], p2->zWorld);
+					if (DoLinesIntersect(A, B, C, D))
+						return true;
+				}
 			return false;
 		}
 	}

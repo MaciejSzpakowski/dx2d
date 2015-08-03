@@ -121,7 +121,14 @@ namespace dx2d
 
 	namespace Collision
 	{
-		bool IsColliding(CCircle* c1, CCircle* c2);
-		bool IsColliding(CSprite* s1, CSprite* s2);
+		bool IsColliding(CCircle* c, CRectangle* r);
+
+		bool IsColliding(CCircle* c, CPolygon* p);
+
+		bool IsColliding(CRectangle* r1, CRectangle* r2);
+
+		bool IsColliding(CRectangle* r, CPolygon* p);
+
+		bool IsColliding(CPolygon* p1, CPolygon* p2);
 	}
 }
