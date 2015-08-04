@@ -55,6 +55,7 @@ namespace dx2d
 		//so far the only indexed buffer in the engine
 		Core->zContext->IASetIndexBuffer(zIndexBufferSprite, DXGI_FORMAT_R32_UINT, 0);
 
+		//shared sprite vertex buffer
 		D3D11_BUFFER_DESC vertexBufferDesc;
 		ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
 		vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -62,7 +63,6 @@ namespace dx2d
 		vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		vertexBufferDesc.CPUAccessFlags = 0;
 		vertexBufferDesc.MiscFlags = 0;
-
 		D3D11_SUBRESOURCE_DATA vertexBufferData;
 		ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
 		vertexBufferData.pSysMem = v;
