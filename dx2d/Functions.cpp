@@ -258,7 +258,7 @@ namespace dx2d
 			unsigned int p2 = rand() << 15;
 			unsigned int p3 = rand() << 30;
 			unsigned int t = p1 | p2 | p3;
-			return t % (max - min) + min;
+			return (int)t % (max - min) + min;
 		}
 
 		ID3D11PixelShader* CreatePSFromFile(LPCWSTR file, LPCSTR entryPoint, LPCSTR target)
@@ -276,6 +276,7 @@ namespace dx2d
 		ID3D11PixelShader* CreatePSFromString(LPCSTR string, LPCSTR entryPoint, LPCSTR target)
 		{
 			ID3D11PixelShader* result;
+			
 			ID3D10Blob *ps;
 			hr = D3DCompile(string, strlen(string), 0, 0, 0, entryPoint, target, 0, 0,&ps,0); CHECKHR();
 			//D3DCompile
@@ -287,38 +288,37 @@ namespace dx2d
 	}
 
 	namespace Collision
-	{
+	{		
 		// checks if line segments |AB| and |CD| intersect
-		bool DoLinesIntersect(XMVECTOR A, XMVECTOR B, XMVECTOR C, XMVECTOR D)
+		bool DoLinesIntersect(XMVECTOR A, XMVECTOR B, XMVECTOR C, XMVECTOR D, XMFLOAT3* intersection)
 		{
 			//P is intersection point of lines (not line segments)
 			XMVECTOR P = XMVector2IntersectLine(A, B, C, D);
 
-			XMVECTOR AP = XMVectorSubtract(A, P);
-			XMVECTOR BP = XMVectorSubtract(B, P);
-			XMVECTOR AB = XMVectorSubtract(A, B);
-			XMVECTOR CP = XMVectorSubtract(C, P);
-			XMVECTOR DP = XMVectorSubtract(D, P);
-			XMVECTOR CD = XMVectorSubtract(C, D);
+			//store points
+			XMFLOAT2 a, b, c, d, p;
+			XMStoreFloat2(&a, A);
+			XMStoreFloat2(&b, B);
+			XMStoreFloat2(&c, C);
+			XMStoreFloat2(&d, D);
+			XMStoreFloat2(&p, P);
 
-			//mag
-			XMVECTOR vlenAP = XMVector2Length(AP);
-			XMVECTOR vlenBP = XMVector2Length(BP);
-			XMVECTOR vlenAB = XMVector2Length(AB);
-			XMVECTOR vlenCP = XMVector2Length(CP);
-			XMVECTOR vlenDP = XMVector2Length(DP);
-			XMVECTOR vlenCD = XMVector2Length(CD);
+			//is p on segments
+			bool isOnAB, isOnCD;
+			if (a.x == b.x)
+				isOnAB = p.y >= min(a.y, b.y) && p.y <= max(a.y, b.y);
+			else
+				isOnAB = p.x >= min(a.x, b.x) && p.x <= max(a.x, b.x);
+			if (c.x == d.x)
+				isOnCD = p.y >= min(c.y, d.y) && p.y <= max(c.y, d.y);
+			else
+				isOnCD = p.x >= min(c.x, d.x) && p.x <= max(c.x, d.x);
 
-			//store mag
-			float lenAP, lenBP, lenAB, lenCP, lenDP, lenCD;
-			XMStoreFloat(&lenAP, vlenAP);
-			XMStoreFloat(&lenBP, vlenBP);
-			XMStoreFloat(&lenAB, vlenAB);
-			XMStoreFloat(&lenCP, vlenCP);
-			XMStoreFloat(&lenDP, vlenDP);
-			XMStoreFloat(&lenCD, vlenCD);
-
-			return lenAP <= lenAB && lenBP <= lenAB && lenCP <= lenCD && lenDP <= lenCD;
+			//check if P is on both line segments
+			bool result = isOnAB && isOnCD;
+			if (result && intersection != nullptr)
+				XMStoreFloat3(intersection, P);
+			return result;
 		}
 
 		bool IsColliding(CCircle* c1, CCircle* c2)
@@ -343,12 +343,7 @@ namespace dx2d
 			return false;
 		}
 
-		bool IsColliding(CRectangle* r, CPolygon* p)
-		{
-			return false;
-		}
-
-		bool IsColliding(CPolygon* p1, CPolygon* p2)
+		bool IsColliding(CPolygon* p1, CPolygon* p2, XMFLOAT3* pointOfCollision)
 		{
 			for(int i=0;i<p1->zVertexCount-1;i++)
 				for (int j = 0; j < p2->zVertexCount - 1; j++)
@@ -357,7 +352,7 @@ namespace dx2d
 					XMVECTOR B = XMVector2Transform(p1->zVertices[i+1], p1->zWorld);
 					XMVECTOR C = XMVector2Transform(p2->zVertices[j], p2->zWorld);
 					XMVECTOR D = XMVector2Transform(p2->zVertices[j+1], p2->zWorld);
-					if (DoLinesIntersect(A, B, C, D))
+					if (DoLinesIntersect(A, B, C, D, pointOfCollision))
 						return true;
 				}
 			return false;

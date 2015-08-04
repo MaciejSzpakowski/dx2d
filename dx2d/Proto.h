@@ -127,8 +127,12 @@ namespace dx2d
 
 		bool IsColliding(CRectangle* r1, CRectangle* r2);
 
-		bool IsColliding(CRectangle* r, CPolygon* p);
-
-		bool IsColliding(CPolygon* p1, CPolygon* p2);
+		//the most powerful (and inefficient) collision check
+		//pointOfCollision can be used to get the first point of collision
+		//this one checks collision line by line, if any of the two polygons
+		//lines intersects it counts as collision
+		//otherwise it's not a collision even if one poly is inside the another
+		//polygons dont have to be closed
+		bool IsColliding(CPolygon* p1, CPolygon* p2, XMFLOAT3* pointOfCollision);
 	}
 }

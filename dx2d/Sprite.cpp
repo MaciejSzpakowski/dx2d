@@ -75,7 +75,7 @@ namespace dx2d
 
 	void CSprite::zSpriteUpdate()
 	{
-		Size += SizeVel * (float)Core->GetFrameTime();
+		Size += SizeVelocity * (float)Core->GetFrameTime();
 	}
 
 	XMMATRIX CSprite::zGetScaleMatrix()

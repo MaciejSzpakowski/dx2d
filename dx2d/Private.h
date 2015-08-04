@@ -178,8 +178,8 @@ namespace dx2d
 		~CDynamic();
 
 		bool Pickable;		
-		float SizeVel;
-		float SizeAcc;
+		float SizeVelocity;
+		float SizeAcceleration;
 		float Size;
 		XMFLOAT2 Origin;
 
@@ -231,7 +231,7 @@ namespace dx2d
 		vector<XMVECTOR> zVertices;
 		int zIndex;
 		ID3D11Buffer* zVertexBuffer;
-		ID3D11Buffer* zCbBufferPS;		
+		ID3D11Buffer* zCbBufferPS;
 		ID3D11Buffer* zCbBufferUV;
 		//extra buffer
 		ID3D11Buffer* zCbBufferPSExtra;
@@ -259,7 +259,11 @@ namespace dx2d
 		void zDraw() override;
 
 		CPolygon();
-		CPolygon(XMFLOAT2 points[], int n);		
+		CPolygon(XMFLOAT2 points[], int n);
+		
+		//make exact copy and add to draw manager
+		//stuff that is not copied: children (since they can have only one parent)
+		virtual CPolygon* Clone();
 		void Destroy();
 	};
 

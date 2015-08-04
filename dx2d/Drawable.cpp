@@ -4,9 +4,12 @@ namespace dx2d
 {
 	CDrawable::CDrawable()
 	{
+		zVertexCount = 0;
+		zVertexBuffer = nullptr;
 		zRenderTarget = nullptr;
 		Visible = true;
 		UV = Rect(0, 0, 1, 1);
+		Color = XMFLOAT4(0, 0, 0, 0);
 		zIndex = -1;
 		D3D11_BUFFER_DESC cbbd;
 		ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
@@ -44,7 +47,7 @@ namespace dx2d
 	}
 
 	CPolygon::CPolygon()
-	{}
+	{	}
 
 	CPolygon::CPolygon(XMFLOAT2 points[], int n)
 	{
@@ -91,6 +94,15 @@ namespace dx2d
 
 		Core->zDevice->CreateBuffer(&bd, &sd, &zVertexBuffer);
 		delete[] vertices;//*/
+	}
+
+	CPolygon* CPolygon::Clone()
+	{
+		CPolygon* newPoly = new CPolygon(*this);
+		newPoly->zIndex = -1;
+		newPoly->zChildren.clear();
+		DrawManager->AddPoly(newPoly, newPoly->zRenderTarget);
+		return newPoly;
 	}
 
 	XMMATRIX CPolygon::zGetScaleMatrix()

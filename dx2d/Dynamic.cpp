@@ -13,8 +13,8 @@ namespace dx2d
 		zAngularAcc = XMVectorZero();
 		zAngularVel = XMVectorZero();
 		Origin = { 0, 0 };
-		SizeAcc = 0;
-		SizeVel = 0;
+		SizeAcceleration = 0;
+		SizeVelocity = 0;
 		Size = 1;
 
 		zParent = nullptr;
@@ -66,8 +66,8 @@ namespace dx2d
 		XMVECTOR rv = zAngularVel * (float)Core->GetFrameTime();
 		zAngularVel += ra;
 		zRotation += rv;
-		float sa = SizeAcc * (float)Core->GetFrameTime();
-		SizeVel += sa;
+		float sa = SizeAcceleration * (float)Core->GetFrameTime();
+		SizeVelocity += sa;
 	}
 
 	bool CDynamic::IsUnderCursor()
