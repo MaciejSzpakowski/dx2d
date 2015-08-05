@@ -78,11 +78,12 @@ namespace dx2d
 				zActivity();
 			}
 		}
+		UnregisterClass(L"myWindowClass", GetModuleHandle(0));
 		return (int)zMsg.wParam;
 	}
 
 	void CWindow::Destroy()
-	{
+	{		
 		delete this;
 	}
 }

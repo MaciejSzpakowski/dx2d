@@ -21,8 +21,7 @@ namespace dx2d
 		if (Text.length() == 0)
 			return;
 		//color
-		Core->zContext->UpdateSubresource(zCbBufferPS, 0, NULL, &Color, 0, 0);
-		Core->zContext->PSSetConstantBuffers(0, 1, &zCbBufferPS);
+		Core->zContext->UpdateSubresource(DrawManager->zCbBufferPS, 0, NULL, &Color, 0, 0);
 		//tex
 		Core->zContext->PSSetShaderResources(0, 1, &zFont->zShaderResource);
 		int len = (int)Text.length();
@@ -41,8 +40,7 @@ namespace dx2d
 			int index = Text[i] - ' ';
 			if (index < 0 || index > zFont->zChars.size())
 				continue;
-			Core->zContext->UpdateSubresource(zCbBufferUV, 0, NULL, &(zFont->zChars[index]), 0, 0);
-			Core->zContext->VSSetConstantBuffers(1, 1, &zCbBufferUV);
+			Core->zContext->UpdateSubresource(DrawManager->zCbBufferUV, 0, NULL, &(zFont->zChars[index]), 0, 0);
 			//transform letter and draw
 			zTextTransform(col,row, len);
 			Core->zContext->DrawIndexed(6, 0, 0);
@@ -80,8 +78,7 @@ namespace dx2d
 				Camera->zView * Camera->zProj;
 		}
 		worldViewProj = XMMatrixTranspose(worldViewProj);
-		Core->zContext->UpdateSubresource(zCbBufferVS, 0, NULL, &worldViewProj, 0, 0);
-		Core->zContext->VSSetConstantBuffers(0, 1, &zCbBufferVS);
+		Core->zContext->UpdateSubresource(DrawManager->zCbBufferVS, 0, NULL, &worldViewProj, 0, 0);
 	}
 
 	void CBitmapText::SetPixelScale(int width, int height)

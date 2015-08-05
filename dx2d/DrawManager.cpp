@@ -66,7 +66,32 @@ namespace dx2d
 		D3D11_SUBRESOURCE_DATA vertexBufferData;
 		ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
 		vertexBufferData.pSysMem = v;
-		Core->zDevice->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &zVertexBufferSprite);
+		Core->zDevice->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &zVertexBufferSprite);		
+
+		//shared vertex shader buffer
+		D3D11_BUFFER_DESC cbbd;
+		ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
+		cbbd.Usage = D3D11_USAGE_DEFAULT;
+		cbbd.ByteWidth = sizeof(XMMATRIX);
+		cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbbd.CPUAccessFlags = 0;
+		cbbd.MiscFlags = 0;
+		Core->zDevice->CreateBuffer(&cbbd, NULL, &zCbBufferVS);
+		Core->zContext->VSSetConstantBuffers(0, 1, &zCbBufferVS);
+
+		//shared vertex shader 2nd buffer and pixel shader buffer
+		ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
+		cbbd.Usage = D3D11_USAGE_DEFAULT;
+		cbbd.ByteWidth = sizeof(Color);
+		cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbbd.CPUAccessFlags = 0;
+		cbbd.MiscFlags = 0;
+		Core->zDevice->CreateBuffer(&cbbd, NULL, &zCbBufferPS);
+		Core->zDevice->CreateBuffer(&cbbd, NULL, &zCbBufferUV); //has the same size
+		Core->zContext->PSSetConstantBuffers(0, 1, &zCbBufferPS);
+		Core->zContext->VSSetConstantBuffers(1, 1, &zCbBufferUV);
+
+		zCbBufferPSExtra = nullptr;
 
 		//default white texture used by non textured objects
 		BYTE fourOnes[4] = { 1, 1, 1, 1 };
@@ -195,6 +220,19 @@ namespace dx2d
 		AddSprite(a, target);
 	}
 
+	void CDrawManager::CreateExtraBuffer(UINT size)
+	{
+		D3D11_BUFFER_DESC cbbd;
+		ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
+		cbbd.Usage = D3D11_USAGE_DEFAULT;
+		cbbd.ByteWidth = size;
+		cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbbd.CPUAccessFlags = 0;
+		cbbd.MiscFlags = 0;
+		Core->zDevice->CreateBuffer(&cbbd, NULL, &zCbBufferPSExtra);
+		Core->zContext->PSSetConstantBuffers(1, 1, &zCbBufferPSExtra);
+	}
+
 	void CDrawManager::zRenderTargetTransform(int i)
 	{
 		float scalex = (20.0f - i*0.001f) * tan(Camera->zFovAngle / 2) * Camera->zAspectRatio;
@@ -204,8 +242,7 @@ namespace dx2d
 			XMMatrixTranslation(0, 0, -i*0.001f) *  zRenderTargetMatrix;
 
 		transform = XMMatrixTranspose(transform);
-		Core->zContext->UpdateSubresource(zRenderTargets[0]->zSprite->zCbBufferVS, 0, NULL, &transform, 0, 0);
-		Core->zContext->VSSetConstantBuffers(0, 1, &zRenderTargets[0]->zSprite->zCbBufferVS);
+		Core->zContext->UpdateSubresource(zCbBufferVS, 0, NULL, &transform, 0, 0);
 	}
 
 	void CDrawManager::zDrawAll()
@@ -238,6 +275,11 @@ namespace dx2d
 	{
 		for (int i = (int)zRenderTargets.size() - 1; i >= 0; i--)
 			zRenderTargets[i]->Destroy();
+		if (zCbBufferPSExtra != nullptr)
+			zCbBufferPSExtra->Release();
+		zCbBufferPS->Release();
+		zCbBufferUV->Release();
+		zCbBufferVS->Release();
 		zLineSampler->Release();
 		zPointSampler->Release();
 		zIndexBufferSprite->Release();

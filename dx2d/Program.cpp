@@ -9,8 +9,8 @@ vector<CPolygon*> vp;
 CSprite* s1, *s2;
 CAnimation* a1;
 CBitmapText* t1;
-std::vector<CSprite*> sprites;
 int fps;
+float gt;
 
 void Activity()
 {
@@ -56,61 +56,52 @@ void Activity()
 		else
 			p->Color = XMFLOAT4(1, 1,1, 1);
 	}
+	gt = (float)Core->GetGameTime();	
 }
 
 int main(int argc, char** argv)
 {
-	Functions::InitCore(800, 600, Activity);
-
-	EventManager->AddEvent([]()	{
-		fps = (int)Core->GetFps();
-		return 1;	}, L"", 0, 0, 0.5f);
-	EventManager->AddEvent([]()	{
-		DebugManager->Debug(fps, L"FPS");
-		return 1;	}, L"", 0, 0, 0);
-
-	/*Core->SetWindowTitle(L"Hello");
-	Core->OpenConsole();
-	Core->SetBackgroundColor({ 0, 0, 0, 1 });
-	brick = DrawManager->AddSprite(L"brick.jpg");
-	brick->SetPositionZ(0.03f);
-	brick->SetNaturalScale();
-	brick->Color.a = 1;
-	a1 = DrawManager->AddAnimation(L"ani.png", 2, 4);
-	a1->Speed = 15;
-	a1->SetPixelScale(512, 256);
-	a1->Scale.x /= 3.0f;
-	a1->Scale.y /= 3.0f;
-	a1->Pickable = true;
-	a1->Speed = 15;
-
-	s1 = DrawManager->AddSprite(L"filter.png");
-	s1->TexFilter = TEX_FILTER::LINEAR;
-	s2 = DrawManager->AddSprite(L"filter.png");
-	s1->TexFilter = TEX_FILTER::POINT;
-	s2->SetPositionX(4);
-	s1->SetPositionX(12);
-	s1->Size = 4;
-	s2->Size = 4;*/
-
-	XMFLOAT2 f1[] = { { 0, 0 }, { 0, 1 }, { 1, 1 } };
-	p1 = DrawManager->AddPoly(f1, 3);
-	p1->Color = XMFLOAT4(1, 1, 1, 1);
-
-	for (int i = 0; i < 1000; i++)
+	for(int i=0;i<1;i++)
 	{
-		XMFLOAT2 f2[] = { { -1, 1 }, { 0, 0 }, { 1, 1 } };
-		auto p2 = DrawManager->AddPoly(f2, 3);
-		p2->Color = XMFLOAT4(1, 1, 1, 1);
-		float x = (float)Functions::RndDouble() * 200.0f - 100.0f;
-		float y = (float)Functions::RndDouble() * 105.0f - 75.0f;
-		float rot = (float)Functions::RndDouble() * XM_PI;
-		p2->SetPosition(x, y, 0);
-		p2->SetRotationZ(rot);
-		vp.push_back(p2);
-	}
+		Functions::InitCore(800, 600, Activity);
 
-	Core->Run();
-	Core->Destroy();
+		EventManager->AddEvent([]()	{
+			fps = (int)Core->GetFps();
+			return 1;	}, L"", 0, 0, 0.5f);
+		EventManager->AddEvent([]()	{
+			DebugManager->Debug(fps, L"FPS");
+			return 1;	}, L"", 0, 0, 0);
+
+		XMFLOAT2 f1[] = { { 0, 0 }, { 0, 1 }, { 1, 1 } };
+		p1 = DrawManager->AddPoly(f1, 3);
+		p1->Color = XMFLOAT4(1, 1, 1, 1);
+
+		for (int i = 0; i < 10; i++)
+		{
+			XMFLOAT2 f2[] = { { -1, 1 }, { 0, 0 }, { 1, 1 } };
+			auto p2 = DrawManager->AddPoly(f2, 3);
+			p2->Color = XMFLOAT4(1, 1, 1, 1);
+			float x = (float)Functions::RndDouble() * 200.0f - 100.0f;
+			float y = (float)Functions::RndDouble() * 105.0f - 75.0f;
+			float rot = (float)Functions::RndDouble() * XM_PI;
+			p2->SetPosition(x, y, 0);
+			p2->SetRotationZ(rot);
+			vp.push_back(p2);
+		}
+
+		s1 = DrawManager->AddSprite(L"brick.jpg");
+		s1->SetNaturalScale();
+		DrawManager->CreateExtraBuffer(16);		
+		auto ps = Functions::CreatePSFromFile(L"ps.hlsl", "main");
+		s1->PixelShader = ps;
+		s1->SetExtraBufferPS(&gt);
+		a1 = DrawManager->AddAnimation(L"ani.png", 2, 4);
+		a1->Speed = 15;
+		a1->SetPositionZ(-0.1f);
+
+		Core->Run();
+		vp.clear();
+		Core->Destroy();
+	}
 	return 0;
 }

@@ -234,6 +234,11 @@ namespace dx2d
 		//ID3D11DeviceContext::CopyResource
 	}
 
+	void CCore::Exit()
+	{
+		PostMessage(zWindow->zHandle, WM_CLOSE, 0, 0);
+	}
+
 	void CCore::Destroy()
 	{
 		//engine objects

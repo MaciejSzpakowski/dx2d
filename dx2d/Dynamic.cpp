@@ -20,17 +20,6 @@ namespace dx2d
 		zParent = nullptr;
 		Pickable = false;
 		zUnderCursor = false;
-
-		//Create the buffer to send to the cbuffer in effect file
-		D3D11_BUFFER_DESC cbbd;
-		ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
-		cbbd.Usage = D3D11_USAGE_DEFAULT;
-		cbbd.ByteWidth = sizeof(XMMATRIX);
-		cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbbd.CPUAccessFlags = 0;
-		cbbd.MiscFlags = 0;
-
-		Core->zDevice->CreateBuffer(&cbbd, NULL, &zCbBufferVS);
 	}
 
 	void CDynamic::zTransform()
@@ -52,8 +41,7 @@ namespace dx2d
 		if (Pickable)
 			zCheckForCursor(zWorld);
 		worldViewProj = XMMatrixTranspose(worldViewProj);
-		Core->zContext->UpdateSubresource(zCbBufferVS, 0, NULL, &worldViewProj, 0, 0);
-		Core->zContext->VSSetConstantBuffers(0, 1, &zCbBufferVS);
+		Core->zContext->UpdateSubresource(DrawManager->zCbBufferVS, 0, NULL, &worldViewProj, 0, 0);
 	}
 
 	void CDynamic::zUpdate()
@@ -116,7 +104,6 @@ namespace dx2d
 	{
 		//set all childrens parent to nullptr
 		for (CDynamic* d : zChildren)
-			d->zParent = nullptr;
-		zCbBufferVS->Release();
+			d->zParent = nullptr;		
 	}
 }

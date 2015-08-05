@@ -11,39 +11,16 @@ namespace dx2d
 		UV = Rect(0, 0, 1, 1);
 		Color = XMFLOAT4(0, 0, 0, 0);
 		zIndex = -1;
-		D3D11_BUFFER_DESC cbbd;
-		ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
-		cbbd.Usage = D3D11_USAGE_DEFAULT;
-		cbbd.ByteWidth = sizeof(Color);
-		cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbbd.CPUAccessFlags = 0;
-		cbbd.MiscFlags = 0;
-		Core->zDevice->CreateBuffer(&cbbd, NULL, &zCbBufferPS);
-		Core->zDevice->CreateBuffer(&cbbd, NULL, &zCbBufferUV); //has the same size
-		zCbBufferPSExtra = nullptr;
-		zExtraBufferData = nullptr;
+		zExtraBufferPSdata = nullptr;
 	}
 
-	void CDrawable::SetConstantBufferPS(void* data, UINT size)
+	void CDrawable::SetExtraBufferPS(void* data)
 	{
-		D3D11_BUFFER_DESC cbbd;
-		ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
-		cbbd.Usage = D3D11_USAGE_DEFAULT;
-		cbbd.ByteWidth = size;
-		cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbbd.CPUAccessFlags = 0;
-		cbbd.MiscFlags = 0;
-		Core->zDevice->CreateBuffer(&cbbd, NULL, &zCbBufferPSExtra);
-
-		zExtraBufferData = data;
+		zExtraBufferPSdata = data;
 	}
 
 	CDrawable::~CDrawable()
 	{
-		if (zCbBufferPSExtra != nullptr)
-			zCbBufferPSExtra->Release();
-		zCbBufferPS->Release();
-		zCbBufferUV->Release();
 	}
 
 	CPolygon::CPolygon()
@@ -185,8 +162,7 @@ namespace dx2d
 
 	void CPolygon::zDraw()
 	{		
-		Core->zContext->UpdateSubresource(zCbBufferPS, 0, NULL, &Color, 0, 0);
-		Core->zContext->PSSetConstantBuffers(0, 1, &zCbBufferPS);
+		Core->zContext->UpdateSubresource(DrawManager->zCbBufferPS, 0, NULL, &Color, 0, 0);		
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 		Core->zContext->IASetVertexBuffers(0, 1, &zVertexBuffer, &stride, &offset);

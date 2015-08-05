@@ -130,6 +130,7 @@ namespace dx2d
 		bool GetFullscreen();
 		void Destroy();
 		void SaveScreenshot(LPCWSTR file);
+		void Exit();
 	};
 
 	class CResourceManager
@@ -158,8 +159,7 @@ namespace dx2d
 		XMVECTOR zAngularVel;
 		XMVECTOR zAngularAcc;		
 		CDynamic* zParent;
-		vector<CDynamic*> zChildren;
-		ID3D11Buffer* zCbBufferVS;
+		vector<CDynamic*> zChildren;		
 		//matrix algebra for
 		//produces worldViewProj used by VS
 		void zTransform();
@@ -231,20 +231,19 @@ namespace dx2d
 		vector<XMVECTOR> zVertices;
 		int zIndex;
 		ID3D11Buffer* zVertexBuffer;
-		ID3D11Buffer* zCbBufferPS;
-		ID3D11Buffer* zCbBufferUV;
-		//extra buffer
-		ID3D11Buffer* zCbBufferPSExtra;
-		void* zExtraBufferData;
+		void* zExtraBufferPSdata;
+
+
 		virtual void zDraw() = 0;
 
 		CDrawable();
-
-		//used to send custom data to PS
-		//size must be multiple of 16, always round up to nearest 16
-		void SetConstantBufferPS(void* data, UINT size);
 		~CDrawable();
+
+		//used to send custom data to PS		
+		void SetExtraBufferPS(void* data);
+		
 		CRenderTarget* GetRenderTarget(){ return zRenderTarget; }
+
 		void SetRenderTarget(CRenderTarget* target);
 
 		bool Visible;
@@ -335,6 +334,10 @@ namespace dx2d
 		ID3D11RasterizerState* zWireframe;
 		ID3D11RasterizerState* zSolid;
 		XMMATRIX zRenderTargetMatrix;
+		ID3D11Buffer* zCbBufferVS;
+		ID3D11Buffer* zCbBufferPS;
+		ID3D11Buffer* zCbBufferUV;
+		ID3D11Buffer* zCbBufferPSExtra;
 		void zDrawAll();
 		bool zHasObject(CDrawable* d);
 		void zRenderTargetTransform(int i);
@@ -378,6 +381,10 @@ namespace dx2d
 		CRenderTarget* AddRenderTarget();
 		void DestroyRenderTarget(CRenderTarget* target);
 		void InitDefaultFont();
+
+		//create extra buffer for PS
+		//size in bytes must be multiple of 16
+		void CreateExtraBuffer(UINT size);
 
 		//destroys all but default render target
 		void ClearRenderTargets();

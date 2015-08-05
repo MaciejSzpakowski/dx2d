@@ -57,16 +57,18 @@ namespace dx2d
 		if(PixelShader != nullptr)
 			Core->zContext->PSSetShader(PixelShader, 0, 0);
 		//color		
-		Core->zContext->UpdateSubresource(zCbBufferPS, 0, 0, &Color, 0, 0);
-		Core->zContext->PSSetConstantBuffers(0, 1, &zCbBufferPS);
+		Core->zContext->UpdateSubresource(DrawManager->zCbBufferPS, 0, 0, &Color, 0, 0);
 		//uv
 		Rect uv;
 		uv.left = FlipHorizontally ? UV.right : UV.left;
 		uv.right = FlipHorizontally ? UV.left : UV.right;
 		uv.top = FlipVertically ? UV.bottom : UV.top;
 		uv.bottom = FlipVertically ? UV.top : UV.bottom;
-		Core->zContext->UpdateSubresource(zCbBufferUV, 0, 0, &uv, 0, 0);
-		Core->zContext->VSSetConstantBuffers(1, 1, &zCbBufferUV);
+		Core->zContext->UpdateSubresource(DrawManager->zCbBufferUV, 0, 0, &uv, 0, 0);
+		//extra buffer
+		if(zExtraBufferPSdata != nullptr)
+			Core->zContext->UpdateSubresource(DrawManager->zCbBufferPSExtra, 0, 0, zExtraBufferPSdata, 0, 0);
+		
 		//tex
 		Core->zContext->PSSetShaderResources(0, 1, &zShaderResource);
 		//draw
