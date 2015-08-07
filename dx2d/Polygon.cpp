@@ -2,33 +2,6 @@
 
 namespace dx2d
 {
-	CDrawable::CDrawable()
-	{
-		zVertexCount = 0;
-		zVertexBuffer = nullptr;
-		zRenderTarget = nullptr;
-		Visible = true;
-		UV = Rect(0, 0, 1, 1);
-		Color = XMFLOAT4(0, 0, 0, 0);
-		zIndex = -1;
-		zExtraBufferPSdata = nullptr;
-		TransformVertices = false;
-	}
-
-	void CDrawable::SetExtraBufferPS(void* data)
-	{
-		zExtraBufferPSdata = data;
-	}
-
-	void CDrawable::SetRenderTarget(CRenderTarget * target)
-	{
-		zRenderTarget = target;
-	}
-
-	CDrawable::~CDrawable()
-	{
-	}
-
 	CPolygon::CPolygon()
 	{
 	}
@@ -75,6 +48,7 @@ namespace dx2d
 			zVertices.push_back(XMVectorSet(points[i].x, points[i].y,0,0));
 			vertices[i] = { points[i].x, points[i].y, 0, 1, 1, 1, 0, 0 };
 		}
+		zTransformedVertices = zVertices;
 
 		D3D11_SUBRESOURCE_DATA sd;
 		ZeroMemory(&sd, sizeof(sd));
@@ -124,6 +98,7 @@ namespace dx2d
 		zVertices.push_back(XMVectorSet(0.5f, 0.5f, 0, 0));
 		zVertices.push_back(XMVectorSet(-0.5f, 0.5f, 0, 0));
 		zVertices.push_back(XMVectorSet(-0.5f, -0.5f, 0, 0));
+		zTransformedVertices = zVertices;
 
 		D3D11_SUBRESOURCE_DATA sd;
 		ZeroMemory(&sd, sizeof(sd));
@@ -155,8 +130,10 @@ namespace dx2d
 		for (int i = 0; i < zVertexCount; i++)
 		{
 			vertices[i] = { cos(angle)*radius, sin(angle)*radius, 0, 1, 1, 1, 0, 0 };
+			zVertices.push_back(XMVectorSet(vertices[i].X, vertices[i].Y, 0, 0));
 			angle += delta;
 		}
+		zTransformedVertices = zVertices;
 
 		D3D11_SUBRESOURCE_DATA sd;
 		ZeroMemory(&sd, sizeof(sd));

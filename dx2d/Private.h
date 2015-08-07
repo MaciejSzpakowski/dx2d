@@ -3,7 +3,7 @@
 
 namespace dx2d
 {
-#define CHECKHR() Functions::Checkhr(__FILE__,__LINE__)	
+#define CHECKHR() Functions::Checkhr(__FILE__,__LINE__)
 
 	struct Vertex
 	{
@@ -151,6 +151,13 @@ namespace dx2d
 	class CDynamic
 	{
 	public:
+		CRenderTarget* zRenderTarget;
+		int zVertexCount;
+		vector<XMVECTOR> zVertices;
+		vector<XMVECTOR> zTransformedVertices;
+		int zIndex;
+		ID3D11Buffer* zVertexBuffer;
+		void* zExtraBufferPSdata;
 		XMMATRIX zWorld;
 		XMVECTOR zPosition;
 		XMVECTOR zRotation;
@@ -167,13 +174,19 @@ namespace dx2d
 		void zUpdate();
 		virtual XMMATRIX zGetScaleMatrix() = 0;
 		virtual void zCheckForCursor(XMMATRIX transform){}
-		bool zUnderCursor;		
+		bool zUnderCursor;
+		virtual void zTransformVertices();
+		virtual void zDraw() = 0;
 		
 		CDynamic* GetParent();
 		void SetParent(CDynamic* parent);
 		vector<CDynamic*> GetChildren();
 		XMMATRIX GetWorldMatrix();
-		bool IsUnderCursor();		
+		bool IsUnderCursor();
+		//used to send custom data to PS		
+		void SetExtraBufferPS(void* data);
+		CRenderTarget* GetRenderTarget() { return zRenderTarget; }
+		void SetRenderTarget(CRenderTarget* target);
 		CDynamic();
 		~CDynamic();
 
@@ -182,6 +195,10 @@ namespace dx2d
 		float SizeAcceleration;
 		float Size;
 		XMFLOAT2 Origin;
+		bool Visible;
+		Color Color;
+		Rect UV;
+		bool TransformVertices;
 
 		//repetitive code
 		void SetPosition(XMFLOAT3 v){zPosition = XMLoadFloat3(&v);}
@@ -220,40 +237,10 @@ namespace dx2d
 		void SetAngularAccX(float x){ zAngularAcc = XMVectorSetX(zAngularAcc, x); }
 		void SetAngularAccY(float y){ zAngularAcc = XMVectorSetY(zAngularAcc, y); }
 		void SetAngularAccZ(float z){ zAngularAcc = XMVectorSetZ(zAngularAcc, z); }
-		XMFLOAT3 GetAngularAcc(){ XMFLOAT3 v; XMStoreFloat3(&v, zAngularAcc); return v; }		
+		XMFLOAT3 GetAngularAcc(){ XMFLOAT3 v; XMStoreFloat3(&v, zAngularAcc); return v; }
 	};
 
-	class CDrawable
-	{
-	public:
-		CRenderTarget* zRenderTarget;
-		int zVertexCount;
-		vector<XMVECTOR> zVertices;
-		vector<XMVECTOR> zTransformedVertices;
-		int zIndex;
-		ID3D11Buffer* zVertexBuffer;
-		void* zExtraBufferPSdata;
-
-		virtual void zTransformVertices() = 0;
-		virtual void zDraw() = 0;
-
-		CDrawable();
-		~CDrawable();
-
-		//used to send custom data to PS		
-		void SetExtraBufferPS(void* data);
-		
-		CRenderTarget* GetRenderTarget(){ return zRenderTarget; }
-
-		void SetRenderTarget(CRenderTarget* target);
-
-		bool Visible;
-		Color Color;
-		Rect UV;
-		bool TransformVertices;
-	};
-
-	class CPolygon : public CDrawable, public CDynamic
+	class CPolygon : public CDynamic
 	{
 	public:
 		float zRadius; //distance from origin to the furthest vertex
@@ -342,7 +329,7 @@ namespace dx2d
 		ID3D11Buffer* zCbBufferUV;
 		ID3D11Buffer* zCbBufferPSExtra;
 		void zDrawAll();
-		bool zHasObject(CDrawable* d);
+		bool zHasObject(CDynamic* d);
 		void zRenderTargetTransform(int i);
 		void zInit();
 
@@ -404,6 +391,7 @@ namespace dx2d
 		XMVECTOR zUp;
 		XMMATRIX zGetScaleMatrix() override;
 		void zCamTransform();
+		void zDraw() override {};
 		float zNearPlane;
 		float zFarPlane;
 		float zFovAngle;
@@ -487,7 +475,7 @@ namespace dx2d
 		void Destroy();
 	};
 
-	class CSprite : public CDrawable, public CDynamic
+	class CSprite : public CDynamic
 	{
 	public:		
 		CTexture* zTexture;
@@ -577,7 +565,7 @@ namespace dx2d
 	enum class TextHorAlign { Left, Center, Right };
 	enum class TextVerAlign { Top, Center, Bottom };
 
-	class CBitmapText : public CDrawable, public CDynamic
+	class CBitmapText : public CDynamic
 	{
 	public:
 		CBitmapFont* zFont;

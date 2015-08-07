@@ -110,7 +110,7 @@ namespace dx2d
 
 	//when adding drawable to drawmanager, its index should be -1
 	//if it's not it probably means that it's there already
-	bool CDrawManager::zHasObject(CDrawable* d)
+	bool CDrawManager::zHasObject(CDynamic* d)
 	{
 		if ( !SupressDuplicateWarning && d->zIndex != -1)
 		{

@@ -70,6 +70,7 @@ void Activity()
 
 int main(int argc, char** argv)
 {
+	auto si = sizeof(CDynamic);
 	for(int i=0;i<1;i++)
 	{
 		Functions::InitCore(800, 600, Activity);
@@ -83,10 +84,11 @@ int main(int argc, char** argv)
 
 		XMFLOAT2 f2[] = { { 0,0 },{ 0,1 },{ 0.5f,2 },{ 1,1 },{ 1,0 },{ 0,0 } };
 		
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < 200; i++)
 		{
 			
 			auto p2 = DrawManager->AddPoly(f2, 6);
+			p2->TransformVertices = true;
 			p2->Color = XMFLOAT4(1, 1, 1, 1);
 			float x = (float)Functions::RndDouble() * 40.0f - 20.0f;
 			float y = (float)Functions::RndDouble() * 30.0f - 15.0f;

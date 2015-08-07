@@ -288,7 +288,30 @@ namespace dx2d
 	}
 
 	namespace Collision
-	{		
+	{
+		//the fastest possible collision check,
+		//make aligned square region from zRadius
+		//check if difference between x or y (position)
+		//is more than the sum od radii
+		bool CheckRegion(CPolygon* p1, CPolygon* p2)
+		{
+			float radi = p1->zRadius + p2->zRadius;
+			XMFLOAT3 pos1 = p1->GetPosition();
+			XMFLOAT3 pos2 = p2->GetPosition();
+			return !(abs(pos1.x - pos2.x) > radi ||
+				abs(pos1.y - pos2.y) > radi);
+		}
+
+		//another fast collision check
+		//circle collision
+		bool CheckCircle(CPolygon* p1, CPolygon* p2)
+		{
+			float radi = p1->zRadius + p2->zRadius;
+			XMVECTOR dist = p1->zPosition - p2->zPosition;
+			XMVECTOR len = XMVector2Length(dist);
+			return !(XMVectorGetX(len) > radi);
+		}
+
 		// checks if line segments |AB| and |CD| intersect
 		bool DoLinesIntersect(XMVECTOR A, XMVECTOR B, XMVECTOR C, XMVECTOR D, XMFLOAT3* intersection)
 		{
@@ -338,6 +361,11 @@ namespace dx2d
 			return false;
 		}
 
+		bool IsColliding(CRectangle* c, CRectangle* r)
+		{
+			return false;
+		}
+
 		bool IsColliding(CCircle* c, CPolygon* p)
 		{
 			return false;
@@ -345,11 +373,11 @@ namespace dx2d
 
 		XMFLOAT2 GetProj(XMVECTOR edgeNormal, CPolygon* p)
 		{
-			double min = XMVectorGetX(XMVector2Dot(edgeNormal, p->zVertices[0]));
-			double max = min;
+			float min = XMVectorGetX(XMVector2Dot(edgeNormal, p->zTransformedVertices[0]));
+			float max = min;
 			for (int i = 1; i < p->zVertexCount; i++) 
 			{
-				double dot = XMVectorGetX(XMVector2Dot(edgeNormal, p->zVertices[i]));
+				float dot = XMVectorGetX(XMVector2Dot(edgeNormal, p->zTransformedVertices[i]));
 				if (dot < min)
 					min = dot;
 				else if (dot > max)
@@ -360,31 +388,30 @@ namespace dx2d
 
 		bool DoProjsOverlap(XMFLOAT2 proj1, XMFLOAT2 proj2)
 		{
-			if (proj1.x <= proj2.x && proj1.y >= proj2.y)
+			if (proj1.x <= proj2.y && proj1.y >= proj2.x)
 				return true;
-			if (proj2.x <= proj1.x && proj2.y >= proj1.y)
+			if (proj2.x <= proj1.y && proj2.y >= proj1.x)
 				return true;
 			return false;
 		}
 
 		bool IsCollidingSat(CPolygon* p1, CPolygon* p2)
 		{
+			if (!CheckRegion(p1, p2))
+				return false;
+
+			if (!CheckCircle(p1, p2))
+				return false;
+
 			//proj onto all edges normals of p1
 			XMVECTOR edgeNormal;
 			for (int i = 0; i < p1->zVertexCount; i++)
-			{
-				XMFLOAT2 v1,v2;
-				XMStoreFloat2(&v1, p1->zVertices[i]);
-				XMStoreFloat2(&v2, p1->zVertices[i+1]);
+			{		
 				if (i == p1->zVertexCount - 1)
-					edgeNormal = p1->zVertices[0] - p1->zVertices[i];
+					edgeNormal = p1->zTransformedVertices[0] - p1->zTransformedVertices[i];
 				else
-					edgeNormal = p1->zVertices[i + 1] - p1->zVertices[i];
-				XMFLOAT2 _edge;
-				XMStoreFloat2(&_edge, edgeNormal);
+					edgeNormal = p1->zTransformedVertices[i + 1] - p1->zTransformedVertices[i];
 				edgeNormal = XMVector2Orthogonal(edgeNormal);
-				XMFLOAT2 _edgeNorm;
-				XMStoreFloat2(&_edgeNorm, edgeNormal);
 				XMFLOAT2 proj1 = GetProj(edgeNormal, p1);
 				XMFLOAT2 proj2 = GetProj(edgeNormal, p2);
 				if (!DoProjsOverlap(proj1,proj2))
@@ -394,9 +421,9 @@ namespace dx2d
 			for (int i = 0; i < p2->zVertexCount; i++)
 			{
 				if (i == p2->zVertexCount - 1)
-					edgeNormal = p2->zVertices[0] - p2->zVertices[i];
+					edgeNormal = p2->zTransformedVertices[0] - p2->zTransformedVertices[i];
 				else
-					edgeNormal = p2->zVertices[i + 1] - p2->zVertices[i];
+					edgeNormal = p2->zTransformedVertices[i + 1] - p2->zTransformedVertices[i];
 				edgeNormal = XMVector2Orthogonal(edgeNormal);
 				XMFLOAT2 proj1 = GetProj(edgeNormal, p1);
 				XMFLOAT2 proj2 = GetProj(edgeNormal, p2);
@@ -409,16 +436,10 @@ namespace dx2d
 
 		bool IsColliding(CPolygon* p1, CPolygon* p2, XMFLOAT3* pointOfCollision)
 		{
-			float radi = p1->zRadius + p2->zRadius;
-			XMFLOAT3 pos1 = p1->GetPosition();
-			XMFLOAT3 pos2 = p2->GetPosition();
-			if (abs(pos1.x - pos2.x) > radi ||
-				abs(pos1.y - pos2.y) > radi)
+			if (!CheckRegion(p1, p2))
 				return false;
 
-			XMVECTOR dist = p1->zPosition - p2->zPosition;
-			XMVECTOR len = XMVector2Length(dist);
-			if (XMVectorGetX(len) > radi)
+			if (!CheckCircle(p1, p2))
 				return false;
 
 			for(int i=0;i<p1->zVertexCount-1;i++)

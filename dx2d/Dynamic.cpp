@@ -2,10 +2,17 @@
 
 namespace dx2d
 {
-	void AddFloat3(XMFLOAT3* src, XMFLOAT3* dst);
-
 	CDynamic::CDynamic()
 	{
+		zVertexCount = 0;
+		zVertexBuffer = nullptr;
+		zRenderTarget = nullptr;
+		Visible = true;
+		UV = Rect(0, 0, 1, 1);
+		Color = XMFLOAT4(0, 0, 0, 0);
+		zIndex = -1;
+		zExtraBufferPSdata = nullptr;
+		TransformVertices = false;
 		zPosition = XMVectorZero();
 		zRotation = XMVectorZero();
 		zVelocity = XMVectorZero();
@@ -16,14 +23,26 @@ namespace dx2d
 		SizeAcceleration = 0;
 		SizeVelocity = 0;
 		Size = 1;
-
 		zParent = nullptr;
 		Pickable = false;		
 		zUnderCursor = false;
 	}
 
+	void CDynamic::SetExtraBufferPS(void* data)
+	{
+		zExtraBufferPSdata = data;
+	}
+
+	void CDynamic::SetRenderTarget(CRenderTarget * target)
+	{
+		zRenderTarget = target;
+	}
+
 	void CDynamic::zTransform()
 	{
+		if (TransformVertices)
+			zTransformVertices();
+
 		XMMATRIX scale = zGetScaleMatrix();
 		XMMATRIX origin = XMMatrixTranslation(-Origin.x, -Origin.y, 0);
 		XMMATRIX norigin = XMMatrixTranslation(Origin.x, Origin.y, 0);
@@ -61,6 +80,14 @@ namespace dx2d
 	bool CDynamic::IsUnderCursor()
 	{
 		return zUnderCursor;
+	}
+
+	void CDynamic::zTransformVertices()
+	{
+		if (!TransformVertices)
+			return;
+		for (int i = 0; i < zVertexCount; i++)
+			zTransformedVertices[i] = XMVector2Transform(zVertices[i], zWorld);
 	}
 
 	CDynamic* CDynamic::GetParent()

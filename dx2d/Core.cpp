@@ -172,11 +172,6 @@ namespace dx2d
 		return zWindow->zHandle;
 	}
 
-	void CCore::SetWindowTitle(LPCWSTR title)
-	{
-		SetWindowText(zWindow->zHandle, title);
-	}
-
 	int CCore::Run()
 	{
 		return zWindow->zRun();
