@@ -45,16 +45,25 @@ void Activity()
 	if (Input->IsKeyDown('E'))
 		p1->SetAngularVelZ(-5);/**/
 
-	p1->Color = XMFLOAT4(1, 1, 1, 1);
 	for (CPolygon* p : vp)
+		p->Color = XMFLOAT4(1, 1, 1, 1);
+
+	for (int i = 0; i < vp.size() - 1;i++)
+		for (int j = i+1; j < vp.size(); j++)
 	{
-		if (Collision::IsColliding(p1, p, nullptr))
+		if (Collision::IsColliding(vp[i], vp[j], nullptr))
 		{
-			p1->Color = XMFLOAT4(1, 0, 0, 1);
-			p->Color = XMFLOAT4(1, 0, 0, 1);
+			if (i == 0)
+			{
+				vp[i]->Color = XMFLOAT4(1, 0, 0, 1);
+				vp[j]->Color = XMFLOAT4(1, 0, 0, 1);
+			}
+			else
+			{
+				vp[i]->Color = XMFLOAT4(0, 0, 1, 1);
+				vp[j]->Color = XMFLOAT4(0, 0, 1, 1);
+			}
 		}
-		else
-			p->Color = XMFLOAT4(1, 1,1, 1);
 	}
 	gt = (float)Core->GetGameTime();	
 }
@@ -72,22 +81,23 @@ int main(int argc, char** argv)
 			DebugManager->Debug(fps, L"FPS");
 			return 1;	}, L"", 0, 0, 0);
 
-		XMFLOAT2 f1[] = { { 0, 0 }, { 0, 1 }, { 1, 1 } };
-		p1 = DrawManager->AddPoly(f1, 3);
-		p1->Color = XMFLOAT4(1, 1, 1, 1);
-
-		for (int i = 0; i < 10; i++)
+		XMFLOAT2 f2[] = { { 0,0 },{ 0,1 },{ 0.5f,2 },{ 1,1 },{ 1,0 },{ 0,0 } };
+		
+		for (int i = 0; i < 200; i++)
 		{
-			XMFLOAT2 f2[] = { { -1, 1 }, { 0, 0 }, { 1, 1 } };
-			auto p2 = DrawManager->AddPoly(f2, 3);
+			
+			auto p2 = DrawManager->AddPoly(f2, 6);
 			p2->Color = XMFLOAT4(1, 1, 1, 1);
-			float x = (float)Functions::RndDouble() * 200.0f - 100.0f;
-			float y = (float)Functions::RndDouble() * 105.0f - 75.0f;
+			float x = (float)Functions::RndDouble() * 40.0f - 20.0f;
+			float y = (float)Functions::RndDouble() * 30.0f - 15.0f;
 			float rot = (float)Functions::RndDouble() * XM_PI;
 			p2->SetPosition(x, y, 0);
 			p2->SetRotationZ(rot);
 			vp.push_back(p2);
 		}
+
+		vp[0]->SetPosition(0, 0, 0);
+		p1 = vp[0];
 
 		s1 = DrawManager->AddSprite(L"brick.jpg");
 		s1->SetNaturalScale();

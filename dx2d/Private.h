@@ -254,13 +254,14 @@ namespace dx2d
 	class CPolygon : public CDrawable, public CDynamic
 	{
 	public:
+		float zRadius; //distance from origin to the furthest vertex
 		XMMATRIX zGetScaleMatrix() override;
 		void zDraw() override;
 
 		CPolygon();
 		CPolygon(XMFLOAT2 points[], int n);
 		
-		//make exact copy and add to draw manager
+		//make exact (but independent) copy and add to draw manager
 		//stuff that is not copied: children (since they can have only one parent)
 		virtual CPolygon* Clone();
 		void Destroy();

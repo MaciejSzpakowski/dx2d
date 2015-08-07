@@ -323,7 +323,7 @@ namespace dx2d
 
 		bool IsColliding(CCircle* c1, CCircle* c2)
 		{
-			XMVECTOR v = XMVectorSubtract(c1->GetPositionVector(), c2->GetPositionVector());
+			XMVECTOR v = XMVectorSubtract(c1->zPosition, c2->zPosition);
 			XMVECTOR len = XMVector2Length(v);
 			return XMVectorGetX(len) < (c1->Radius + c2->Radius);
 		}
@@ -338,13 +338,45 @@ namespace dx2d
 			return false;
 		}
 
-		bool IsColliding(CRectangle* r1, CRectangle* r2)
+		bool IsCollidingSat(CPolygon* p1, CPolygon* p2)
 		{
+			//proj onto all edges normals of p1
+			XMVECTOR edgeNormal;
+			for (int i = 0; i < p1->zVertexCount; i++)
+			{			
+				if (i == p1->zVertexCount - 1)
+					edgeNormal = p1->zVertices[0] - p1->zVertices[i];
+				else
+					edgeNormal = p1->zVertices[i+1] - p1->zVertices[i];
+				edgeNormal = XMVector2Orthogonal(edgeNormal);
+			}
+			//proj onto all edges normals of p2
+			for (int i = 0; i < p2->zVertexCount; i++)
+			{
+				if (i == p2->zVertexCount - 1)
+					edgeNormal = p2->zVertices[0] - p2->zVertices[i];
+				else
+					edgeNormal = p2->zVertices[i + 1] - p2->zVertices[i];
+				edgeNormal = XMVector2Orthogonal(edgeNormal);
+			}
+			
 			return false;
 		}
 
 		bool IsColliding(CPolygon* p1, CPolygon* p2, XMFLOAT3* pointOfCollision)
 		{
+			float radi = p1->zRadius + p2->zRadius;
+			XMFLOAT3 pos1 = p1->GetPosition();
+			XMFLOAT3 pos2 = p2->GetPosition();
+			if (abs(pos1.x - pos2.x) > radi ||
+				abs(pos1.y - pos2.y) > radi)
+				return false;
+
+			XMVECTOR dist = p1->zPosition - p2->zPosition;
+			XMVECTOR len = XMVector2Length(dist);
+			if (XMVectorGetX(len) > radi)
+				return false;
+
 			for(int i=0;i<p1->zVertexCount-1;i++)
 				for (int j = 0; j < p2->zVertexCount - 1; j++)
 				{

@@ -134,5 +134,9 @@ namespace dx2d
 		//otherwise it's not a collision even if one poly is inside the another
 		//polygons dont have to be closed
 		bool IsColliding(CPolygon* p1, CPolygon* p2, XMFLOAT3* pointOfCollision);
+
+		//uses separated axis theorem to check for collision
+		//faster than line by line check but polyons must be convex !
+		bool IsCollidingSat(CPolygon* p1, CPolygon* p2);
 	}
 }

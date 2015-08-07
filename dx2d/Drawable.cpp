@@ -24,12 +24,14 @@ namespace dx2d
 	}
 
 	CPolygon::CPolygon()
-	{	}
+	{
+	}
 
 	CPolygon::CPolygon(XMFLOAT2 points[], int n)
 	{
 		Color = XMFLOAT4(0, 0, 0, 0);
 		zVertexCount = n;
+		zRadius = 0;
 
 		/*/method 1
 		D3D11_BUFFER_DESC bd;
@@ -61,6 +63,9 @@ namespace dx2d
 		Vertex* vertices = new Vertex[n];
 		for (int i = 0; i < n; i++)
 		{
+			float distFromOrigin = sqrtf(points[i].x*points[i].x + points[i].y*points[i].y);
+			if (distFromOrigin > zRadius)
+				zRadius = distFromOrigin;
 			zVertices.push_back(XMVectorSet(points[i].x, points[i].y,0,0));
 			vertices[i] = { points[i].x, points[i].y, 0, 1, 1, 1, 0, 0 };
 		}
