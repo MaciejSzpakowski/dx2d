@@ -51,7 +51,7 @@ void Activity()
 	for (int i = 0; i < vp.size() - 1;i++)
 		for (int j = i+1; j < vp.size(); j++)
 	{
-		if (Collision::IsColliding(vp[i], vp[j], nullptr))
+		if (Collision::IsCollidingSat(vp[i], vp[j]))
 		{
 			if (i == 0)
 			{
@@ -65,7 +65,7 @@ void Activity()
 			}
 		}
 	}
-	gt = (float)Core->GetGameTime();	
+	gt = sinf((float)Core->GetGameTime()*30)/100;
 }
 
 int main(int argc, char** argv)
@@ -83,7 +83,7 @@ int main(int argc, char** argv)
 
 		XMFLOAT2 f2[] = { { 0,0 },{ 0,1 },{ 0.5f,2 },{ 1,1 },{ 1,0 },{ 0,0 } };
 		
-		for (int i = 0; i < 200; i++)
+		for (int i = 0; i < 2; i++)
 		{
 			
 			auto p2 = DrawManager->AddPoly(f2, 6);

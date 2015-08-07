@@ -12,11 +12,17 @@ namespace dx2d
 		Color = XMFLOAT4(0, 0, 0, 0);
 		zIndex = -1;
 		zExtraBufferPSdata = nullptr;
+		TransformVertices = false;
 	}
 
 	void CDrawable::SetExtraBufferPS(void* data)
 	{
 		zExtraBufferPSdata = data;
+	}
+
+	void CDrawable::SetRenderTarget(CRenderTarget * target)
+	{
+		zRenderTarget = target;
 	}
 
 	CDrawable::~CDrawable()

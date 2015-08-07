@@ -167,7 +167,7 @@ namespace dx2d
 		void zUpdate();
 		virtual XMMATRIX zGetScaleMatrix() = 0;
 		virtual void zCheckForCursor(XMMATRIX transform){}
-		bool zUnderCursor;
+		bool zUnderCursor;		
 		
 		CDynamic* GetParent();
 		void SetParent(CDynamic* parent);
@@ -229,11 +229,12 @@ namespace dx2d
 		CRenderTarget* zRenderTarget;
 		int zVertexCount;
 		vector<XMVECTOR> zVertices;
+		vector<XMVECTOR> zTransformedVertices;
 		int zIndex;
 		ID3D11Buffer* zVertexBuffer;
 		void* zExtraBufferPSdata;
 
-
+		virtual void zTransformVertices() = 0;
 		virtual void zDraw() = 0;
 
 		CDrawable();
@@ -249,6 +250,7 @@ namespace dx2d
 		bool Visible;
 		Color Color;
 		Rect UV;
+		bool TransformVertices;
 	};
 
 	class CPolygon : public CDrawable, public CDynamic
@@ -565,7 +567,7 @@ namespace dx2d
 		ID3D11ShaderResourceView* zShaderResource;
 
 		CBitmapFont(LPCWSTR file, vector<Rect> _chars);
-		CBitmapFont(const WCHAR* file, int width, int height, int charsPerRow);
+		CBitmapFont(LPCWSTR file, int width, int height, int charsPerRow);
 		CBitmapFont(CTexture* texture, vector<Rect> _chars);
 		CBitmapFont(CTexture* texture, int width, int height, int charsPerRow);
 		CTexture* GetTexture(){ return zTexture; }

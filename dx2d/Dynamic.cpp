@@ -18,7 +18,7 @@ namespace dx2d
 		Size = 1;
 
 		zParent = nullptr;
-		Pickable = false;
+		Pickable = false;		
 		zUnderCursor = false;
 	}
 

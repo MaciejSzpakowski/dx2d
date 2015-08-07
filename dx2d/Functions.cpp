@@ -297,11 +297,16 @@ namespace dx2d
 
 			//store points
 			XMFLOAT2 a, b, c, d, p;
+			XMStoreFloat2(&p, P);
+			//special cases (parallel and coincide)
+			if (p.x == INFINITY)
+				return true;
+			else if (isnan(p.x))
+				return false;
 			XMStoreFloat2(&a, A);
 			XMStoreFloat2(&b, B);
 			XMStoreFloat2(&c, C);
-			XMStoreFloat2(&d, D);
-			XMStoreFloat2(&p, P);
+			XMStoreFloat2(&d, D);			
 
 			//is p on segments
 			bool isOnAB, isOnCD;
@@ -338,17 +343,52 @@ namespace dx2d
 			return false;
 		}
 
+		XMFLOAT2 GetProj(XMVECTOR edgeNormal, CPolygon* p)
+		{
+			double min = XMVectorGetX(XMVector2Dot(edgeNormal, p->zVertices[0]));
+			double max = min;
+			for (int i = 1; i < p->zVertexCount; i++) 
+			{
+				double dot = XMVectorGetX(XMVector2Dot(edgeNormal, p->zVertices[i]));
+				if (dot < min)
+					min = dot;
+				else if (dot > max)
+					max = dot;
+			}
+			return XMFLOAT2(min, max);
+		}
+
+		bool DoProjsOverlap(XMFLOAT2 proj1, XMFLOAT2 proj2)
+		{
+			if (proj1.x <= proj2.x && proj1.y >= proj2.y)
+				return true;
+			if (proj2.x <= proj1.x && proj2.y >= proj1.y)
+				return true;
+			return false;
+		}
+
 		bool IsCollidingSat(CPolygon* p1, CPolygon* p2)
 		{
 			//proj onto all edges normals of p1
 			XMVECTOR edgeNormal;
 			for (int i = 0; i < p1->zVertexCount; i++)
-			{			
+			{
+				XMFLOAT2 v1,v2;
+				XMStoreFloat2(&v1, p1->zVertices[i]);
+				XMStoreFloat2(&v2, p1->zVertices[i+1]);
 				if (i == p1->zVertexCount - 1)
 					edgeNormal = p1->zVertices[0] - p1->zVertices[i];
 				else
-					edgeNormal = p1->zVertices[i+1] - p1->zVertices[i];
+					edgeNormal = p1->zVertices[i + 1] - p1->zVertices[i];
+				XMFLOAT2 _edge;
+				XMStoreFloat2(&_edge, edgeNormal);
 				edgeNormal = XMVector2Orthogonal(edgeNormal);
+				XMFLOAT2 _edgeNorm;
+				XMStoreFloat2(&_edgeNorm, edgeNormal);
+				XMFLOAT2 proj1 = GetProj(edgeNormal, p1);
+				XMFLOAT2 proj2 = GetProj(edgeNormal, p2);
+				if (!DoProjsOverlap(proj1,proj2))
+					return false;
 			}
 			//proj onto all edges normals of p2
 			for (int i = 0; i < p2->zVertexCount; i++)
@@ -358,9 +398,13 @@ namespace dx2d
 				else
 					edgeNormal = p2->zVertices[i + 1] - p2->zVertices[i];
 				edgeNormal = XMVector2Orthogonal(edgeNormal);
+				XMFLOAT2 proj1 = GetProj(edgeNormal, p1);
+				XMFLOAT2 proj2 = GetProj(edgeNormal, p2);
+				if (!DoProjsOverlap(proj1, proj2))
+					return false;
 			}
 			
-			return false;
+			return true;
 		}
 
 		bool IsColliding(CPolygon* p1, CPolygon* p2, XMFLOAT3* pointOfCollision)
