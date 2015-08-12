@@ -13,8 +13,8 @@ namespace dx2d
 		zIndex = -1;
 		zExtraBufferPSdata = nullptr;
 		TransformVertices = false;
-		zPosition = XMVectorZero();
-		zRotation = XMVectorZero();
+		zPosition = zAbsolutePosition = XMVectorZero();
+		zRotation = zAbsoluteRotation = XMVectorZero();
 		zVelocity = XMVectorZero();
 		zAcceleration = XMVectorZero();
 		zAngularAcc = XMVectorZero();
@@ -43,16 +43,24 @@ namespace dx2d
 		if (TransformVertices)
 			zTransformVertices();
 
+		zAbsolutePosition = zPosition;
+		zAbsoluteRotation = zRotation;
 		XMMATRIX scale = zGetScaleMatrix();
 		XMMATRIX origin = XMMatrixTranslation(-Origin.x, -Origin.y, 0);
 		XMMATRIX norigin = XMMatrixTranslation(Origin.x, Origin.y, 0);
-		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(zRotation);		
-		XMMATRIX loc = XMMatrixTranslationFromVector(zPosition);
-		zWorld = origin * scale * rot * loc * norigin;
-		if (zParent != nullptr)
+		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(zAbsoluteRotation);
+		XMMATRIX loc = XMMatrixTranslationFromVector(zAbsolutePosition);
+		//move to origin first, transform and move back
+		if (zParent == nullptr)
 		{
-			XMMATRIX parentLoc = XMMatrixRotationRollPitchYawFromVector(zParent->zRotation);
-			XMMATRIX parentRot = XMMatrixTranslationFromVector(zParent->zPosition);
+			zWorld = origin * scale * rot * loc * norigin;
+		}
+		else
+		{
+			zAbsolutePosition += zParent->zAbsolutePosition;
+			zAbsoluteRotation += zParent->zAbsoluteRotation;
+			XMMATRIX parentLoc = XMMatrixRotationRollPitchYawFromVector(zParent->zAbsoluteRotation);
+			XMMATRIX parentRot = XMMatrixTranslationFromVector(zParent->zAbsolutePosition);
 			zWorld = zWorld * parentLoc * parentRot;
 		}
 		XMMATRIX worldViewProj = zWorld * Camera->zView * Camera->zProj;
@@ -132,5 +140,10 @@ namespace dx2d
 		//set all childrens parent to nullptr
 		for (CDynamic* d : zChildren)
 			d->zParent = nullptr;		
+	}
+
+	void CDynamic::SetColor(float r, float g, float b, float a)
+	{
+		Color = XMFLOAT4(r, g, b, a);
 	}
 }

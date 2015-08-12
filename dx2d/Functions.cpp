@@ -285,6 +285,8 @@ namespace dx2d
 			ps->Release();
 			return result;
 		}
+
+
 	}
 
 	namespace Collision

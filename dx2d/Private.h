@@ -164,7 +164,9 @@ namespace dx2d
 		XMVECTOR zVelocity;
 		XMVECTOR zAcceleration;
 		XMVECTOR zAngularVel;
-		XMVECTOR zAngularAcc;		
+		XMVECTOR zAngularAcc;
+		XMVECTOR zAbsolutePosition;
+		XMVECTOR zAbsoluteRotation;
 		CDynamic* zParent;
 		vector<CDynamic*> zChildren;		
 		//matrix algebra for
@@ -199,6 +201,8 @@ namespace dx2d
 		Color Color;
 		Rect UV;
 		bool TransformVertices;
+
+		void SetColor(float r, float g, float b, float a);
 
 		//repetitive code
 		void SetPosition(XMFLOAT3 v){zPosition = XMLoadFloat3(&v);}
