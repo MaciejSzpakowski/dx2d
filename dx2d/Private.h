@@ -242,6 +242,8 @@ namespace dx2d
 		void SetAngularAccY(float y){ zAngularAcc = XMVectorSetY(zAngularAcc, y); }
 		void SetAngularAccZ(float z){ zAngularAcc = XMVectorSetZ(zAngularAcc, z); }
 		XMFLOAT3 GetAngularAcc(){ XMFLOAT3 v; XMStoreFloat3(&v, zAngularAcc); return v; }
+		//It's different from position if object has a parent
+		XMFLOAT3 GetAbsolutePosition() { XMFLOAT3 v; XMStoreFloat3(&v, zAbsolutePosition); return v; }
 	};
 
 	class CPolygon : public CDynamic

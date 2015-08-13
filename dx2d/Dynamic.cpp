@@ -47,20 +47,15 @@ namespace dx2d
 		zAbsoluteRotation = zRotation;
 		XMMATRIX scale = zGetScaleMatrix();
 		XMMATRIX origin = XMMatrixTranslation(-Origin.x, -Origin.y, 0);
-		XMMATRIX norigin = XMMatrixTranslation(Origin.x, Origin.y, 0);
 		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(zAbsoluteRotation);
 		XMMATRIX loc = XMMatrixTranslationFromVector(zAbsolutePosition);
-		//move to origin first, transform and move back
-		if (zParent == nullptr)
-		{
-			zWorld = origin * scale * rot * loc * norigin;
-		}
-		else
+		zWorld = origin * scale * rot * loc;
+		if (zParent != nullptr)
 		{
 			zAbsolutePosition += zParent->zAbsolutePosition;
 			zAbsoluteRotation += zParent->zAbsoluteRotation;
-			XMMATRIX parentLoc = XMMatrixRotationRollPitchYawFromVector(zParent->zAbsoluteRotation);
-			XMMATRIX parentRot = XMMatrixTranslationFromVector(zParent->zAbsolutePosition);
+			XMMATRIX parentRot = XMMatrixRotationRollPitchYawFromVector(zParent->zAbsoluteRotation);
+			XMMATRIX parentLoc = XMMatrixTranslationFromVector(zParent->zAbsolutePosition);
 			zWorld = zWorld * parentLoc * parentRot;
 		}
 		XMMATRIX worldViewProj = zWorld * Camera->zView * Camera->zProj;

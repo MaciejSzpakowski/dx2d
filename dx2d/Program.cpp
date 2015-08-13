@@ -10,7 +10,7 @@ CAnimation* a1, *a2, *a3;
 CBitmapText* t1, *t2, *t3;
 
 int fps;
-CPolygon* pa;
+CDynamic* pa;
 
 void Activity()
 {
@@ -38,6 +38,8 @@ void Activity()
 	p2->SetAngularVelZ(0);
 	p3->SetVelocity(0, 0, 0);
 	p3->SetAngularVelZ(0);
+	pa->SetVelocity(0, 0, 0);
+	pa->SetAngularVelZ(0);
 	if (Input->IsKeyDown('A'))
 		pa->SetVelocityX(-10);
 	if (Input->IsKeyDown('D'))
@@ -57,6 +59,15 @@ void Activity()
 		pa = p2;
 	if (Input->IsKeyPressed('3'))
 		pa = p3;
+
+	wstringstream ws;
+	auto pos = p1->GetAbsolutePosition();
+	ws << pos.x << " " << pos.y;
+	DebugManager->Debug(ws.str(), L"p1 absolute position");
+	auto cur = Camera->GetCursorWorldPos(0);
+	wstringstream ws1;
+	ws1 << cur.x << " " << cur.y;
+	DebugManager->Debug(ws1.str(), L"cur position");
 }
 
 int main(int argc, char** argv)
