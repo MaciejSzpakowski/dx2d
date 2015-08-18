@@ -33,12 +33,16 @@ namespace dx2d
 		{
 			//pop if last event is empty
 			if (zEvents[i] == nullptr && i == zEvents.size() - 1)
+			{
 				zEvents.pop_back();
+				continue;
+			}
 			//if its empty but not last
 			else if (zEvents[i] == nullptr)
 			{
 				zEvents[i] = zEvents.back();
 				zEvents.pop_back();
+				continue;
 			}			
 			int ret = 1;
 			

@@ -114,6 +114,7 @@ namespace dx2d
 		void zUpdateGameTime();
 		bool zFullscreen;
 		POINT zClientSize;
+		bool EnableAlpha;
 
 		CCore(int sizex, int sizey, std::function<void()> worker, int style);
 		HWND GetWindowHandle();

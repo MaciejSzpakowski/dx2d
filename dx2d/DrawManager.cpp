@@ -1,4 +1,5 @@
 #include "Private.h"
+#include <algorithm>
 
 namespace dx2d
 {
@@ -536,11 +537,17 @@ namespace dx2d
 		DebugManager->Init(DrawManager->GetDefaultFont());
 	}
 
+	int myfunc(CSprite* s1, CSprite* s2)
+	{
+		return s1->GetPosition().z > s2->GetPosition().z;
+	}
+
 	void CRenderTarget::zDraw()
 	{
 		Core->zContext->ClearDepthStencilView(Core->zDepthStencilView,
 			D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-		//GetContext()->OMSetBlendState(Core->blendState, 0, 0xffffffff);
+		if(Core->EnableAlpha)
+			Core->zContext->OMSetBlendState(Core->zBlendState, 0, 0xffffffff);
 
 		Core->zContext->OMSetRenderTargets(1, &zTargetView, Core->zDepthStencilView);
 		float four0[4] = { 0, 0, 0, 0 };
@@ -555,7 +562,7 @@ namespace dx2d
 			p->zUpdate();
 			p->zTransform();
 			if (p->Visible)
-			{				
+			{
 				p->zDraw();
 			}
 		}
@@ -566,6 +573,8 @@ namespace dx2d
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 		Core->zContext->IASetVertexBuffers(0, 1, &DrawManager->zVertexBufferSprite, &stride, &offset);
+		if(Core->EnableAlpha)
+			std::sort(zSprites.begin(), zSprites.end(), myfunc);
 		for (CSprite* s : zSprites)
 		{
 			s->zUpdate();

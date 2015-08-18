@@ -44,19 +44,20 @@ namespace dx2d
 			zTransformVertices();
 
 		zAbsolutePosition = zPosition;
-		zAbsoluteRotation = zRotation;
-		XMMATRIX scale = zGetScaleMatrix();
+		zAbsoluteRotation = zRotation;		
 		XMMATRIX origin = XMMatrixTranslation(-Origin.x, -Origin.y, 0);
+		XMMATRIX scale = zGetScaleMatrix();
 		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(zAbsoluteRotation);
 		XMMATRIX loc = XMMatrixTranslationFromVector(zAbsolutePosition);
 		zWorld = origin * scale * rot * loc;
 		if (zParent != nullptr)
 		{
-			zAbsolutePosition += zParent->zAbsolutePosition;
-			zAbsoluteRotation += zParent->zAbsoluteRotation;
 			XMMATRIX parentRot = XMMatrixRotationRollPitchYawFromVector(zParent->zAbsoluteRotation);
 			XMMATRIX parentLoc = XMMatrixTranslationFromVector(zParent->zAbsolutePosition);
-			zWorld = zWorld * parentLoc * parentRot;
+			zAbsolutePosition += zParent->zAbsolutePosition;
+			zAbsoluteRotation += zParent->zAbsoluteRotation;
+			zAbsolutePosition = XMVector2Transform(zAbsolutePosition, parentRot);
+			zWorld = zWorld * parentRot * parentLoc;
 		}
 		XMMATRIX worldViewProj = zWorld * Camera->zView * Camera->zProj;
 		//check for cursor
@@ -87,8 +88,6 @@ namespace dx2d
 
 	void CDynamic::zTransformVertices()
 	{
-		if (!TransformVertices)
-			return;
 		for (int i = 0; i < zVertexCount; i++)
 			zTransformedVertices[i] = XMVector2Transform(zVertices[i], zWorld);
 	}

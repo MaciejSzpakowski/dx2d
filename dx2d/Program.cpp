@@ -16,28 +16,6 @@ void Activity()
 {
 	Sleep(10);
 
-	/*Camera->SetVelocity(0, 0, 0);
-	Camera->SetAngularVelZ(0);
-	float move = 10;
-	if (Input->IsKeyDown(Key.Up))
-		Camera->SetVelocityY(move);
-	if (Input->IsKeyDown(Key.Down))
-		Camera->SetVelocityY(-move);
-	if (Input->IsKeyDown(Key.Left))
-		Camera->SetVelocityX(-move);
-	if (Input->IsKeyDown(Key.Right))
-		Camera->SetVelocityX(move);*/
-	/*Camera->SetPosition(p1->GetPosition());
-	Camera->SetPositionZ(-20);*/
-
-	p1->Color = p2->Color = p3->Color = XMFLOAT4(1, 1, 1, 1);
-	pa->SetColor(1, 0, 0, 1);
-	p1->SetVelocity(0, 0, 0);
-	p1->SetAngularVelZ(0);
-	p2->SetVelocity(0, 0, 0);
-	p2->SetAngularVelZ(0);
-	p3->SetVelocity(0, 0, 0);
-	p3->SetAngularVelZ(0);
 	pa->SetVelocity(0, 0, 0);
 	pa->SetAngularVelZ(0);
 	if (Input->IsKeyDown('A'))
@@ -49,30 +27,24 @@ void Activity()
 	if (Input->IsKeyDown('S'))
 		pa->SetVelocityY(-10);
 	if (Input->IsKeyDown('Q'))
-		pa->SetAngularVelZ(5);
+		pa->SetVelocityZ(1);
 	if (Input->IsKeyDown('E'))
-		pa->SetAngularVelZ(-5);/**/
+		pa->SetVelocityZ(-1);/**/
 
 	if (Input->IsKeyPressed('1'))
-		pa = p1;
+		pa = s1;
 	if (Input->IsKeyPressed('2'))
-		pa = p2;
+		pa = s2;
 	if (Input->IsKeyPressed('3'))
-		pa = p3;
+		pa = s3;
 
-	wstringstream ws;
-	auto pos = p1->GetAbsolutePosition();
-	ws << pos.x << " " << pos.y;
-	DebugManager->Debug(ws.str(), L"p1 absolute position");
-	auto cur = Camera->GetCursorWorldPos(0);
-	wstringstream ws1;
-	ws1 << cur.x << " " << cur.y;
-	DebugManager->Debug(ws1.str(), L"cur position");
 }
 
 int main(int argc, char** argv)
 {
 	Functions::InitCore(800, 600, Activity);
+
+	Core->SetBackgroundColor(Color(0,0,0,0));
 
 	EventManager->AddEvent([]()	{
 		fps = (int)Core->GetFps();
@@ -81,13 +53,19 @@ int main(int argc, char** argv)
 		DebugManager->Debug(fps, L"FPS");
 		return 1;	}, L"", 0, 0, 0);
 
-	XMFLOAT2 f2[] = { { 0,0 },{ 0,1 },{ 0.5f,2 },{ 1,1 },{ 1,0 },{ 0,0 } };
-	p1 = DrawManager->AddPoly(f2, 6);
-	p2 = DrawManager->AddPoly(f2, 6);
-	p3 = DrawManager->AddPoly(f2, 6);
-	pa = p1;
-	p1->SetParent(p2);
-	p2->SetParent(p3);
+	s1 = DrawManager->AddSprite(L"brick.jpg");
+	s1->SetNaturalScale();
+	s1->Size = 0.5f;
+
+	s2 = DrawManager->AddSprite(L"brick.jpg");
+	s2->SetNaturalScale();
+	s2->Size = 0.5f;
+	s2->Color.a = 0.5f;
+	
+	s3 = DrawManager->AddSprite(L"leaf.png");
+	s3->SetNaturalScale();
+	s3->Size = 0.5f;
+	pa = s1;
 
 	Core->Run();
 	Core->Destroy();

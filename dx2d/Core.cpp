@@ -9,6 +9,7 @@ namespace dx2d
 
 	CCore::CCore(int sizex, int sizey, std::function<void()> worker, int style)
 	{
+		EnableAlpha = false;
 		srand((int)time(0));
 		hr = 0;
 		zFullscreen = false;
@@ -39,9 +40,11 @@ namespace dx2d
 		scd.Windowed = TRUE;                                    // windowed/full-screen mode
 		//scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;     // alternative fullscreen mode
 
+		UINT creationFlags = D3D11_CREATE_DEVICE_SINGLETHREADED;
+
 		////    DEVICE, DEVICE CONTEXT AND SWAP CHAIN    ////
 		hr = D3D11CreateDeviceAndSwapChain(NULL,
-			D3D_DRIVER_TYPE_HARDWARE, NULL, NULL, NULL, NULL,
+			D3D_DRIVER_TYPE_HARDWARE, NULL, creationFlags, NULL, NULL,
 			D3D11_SDK_VERSION, &scd, &zSwapChain, &zDevice, NULL,
 			&zContext); CHECKHR();
 
@@ -52,8 +55,8 @@ namespace dx2d
 		// use the back buffer address to create the render target
 		hr = zDevice->CreateRenderTargetView(buf, NULL, &zBackBuffer); CHECKHR();
 		buf->Release();
-
-		//Describe our Depth/Stencil Buffer
+		
+		//Describe our Depth/Stencil Buffer and View
 		D3D11_TEXTURE2D_DESC depthStencilDesc;
 		depthStencilDesc.Width = sizex;
 		depthStencilDesc.Height = sizey;
@@ -66,7 +69,7 @@ namespace dx2d
 		depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 		depthStencilDesc.CPUAccessFlags = 0;
 		depthStencilDesc.MiscFlags = 0;
-		//Create the Depth/Stencil View
+
 		hr = zDevice->CreateTexture2D(&depthStencilDesc, NULL, &zDepthStencilBuffer); CHECKHR();
 		hr = zDevice->CreateDepthStencilView(zDepthStencilBuffer, NULL, &zDepthStencilView); CHECKHR();
 
@@ -122,8 +125,8 @@ namespace dx2d
 		rtbd.SrcBlend = D3D11_BLEND_SRC_ALPHA;
 		rtbd.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
 		rtbd.BlendOp = D3D11_BLEND_OP_ADD;
-		rtbd.SrcBlendAlpha = D3D11_BLEND_ONE;
-		rtbd.DestBlendAlpha = D3D11_BLEND_ZERO;
+		rtbd.SrcBlendAlpha = D3D11_BLEND_INV_DEST_ALPHA;// D3D11_BLEND_ONE;
+		rtbd.DestBlendAlpha = D3D11_BLEND_ONE;//D3D11_BLEND_ZERO;
 		rtbd.BlendOpAlpha = D3D11_BLEND_OP_ADD;
 		rtbd.RenderTargetWriteMask = D3D10_COLOR_WRITE_ENABLE_ALL;
 		blendDesc.AlphaToCoverageEnable = false;
