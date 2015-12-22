@@ -52,6 +52,7 @@ struct VS_OUTPUT
 float4 main(VS_OUTPUT input) : SV_TARGET
 {
 	float4 result = ObjTexture.Sample(ObjSamplerState, input.TexCoord);
+	clip(result.a - 0.001f);
 	return result * color;
 }
 )";
