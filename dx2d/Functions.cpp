@@ -1,13 +1,11 @@
 #include "Private.h"
-#include <ctime>
+#include <random>
 #include <sstream>
 
 namespace dx2d
 {
 	//globals
 	CCore* Core;
-	CKey Key;
-	CButton Button;
 	CDrawManager* DrawManager;
 	CCamera* Camera;
 	CInput* Input;
@@ -21,10 +19,10 @@ namespace dx2d
 	{
 		Input->zActivity();
 		EventManager->zActivity();
-		Camera->zCamTransform();		
-		DrawManager->zDrawAll();		
+		Camera->zCamTransform();
+		DrawManager->zDrawAll();
 		Core->zUpdateGameTime();
-	}	
+	}
 
 	namespace Functions
 	{
@@ -81,9 +79,9 @@ namespace dx2d
 
 			for (int i = 0; i < 126000; i++)
 			{
-				if(i%30 == 0)
+				if (i % 30 == 0)
 					fprintf(f, "\n");
-				fprintf(f,"0x%x,", data[i]);
+				fprintf(f, "0x%x,", data[i]);
 			}
 			fclose(f);
 			//have to swap red and blue because bitmap has pixels as integers
@@ -99,16 +97,16 @@ namespace dx2d
 			ID3D11Texture2D* tex = CreateTexture2DFromBytes(data, w, h);
 			DeleteObject(hbitmap);
 			return tex;
-			
+
 			/*Gdiplus::BitmapData* bitmapData = new Gdiplus::BitmapData;
 			Gdiplus::Rect rect(0, 0, w, h);
 
 			// Lock a 5x3 rectangular portion of the bitmap for reading.
 			gdibitmap->LockBits(
-				&rect,
-				Gdiplus::ImageLockModeRead,
-				PixelFormat32bppARGB,
-				bitmapData);
+			&rect,
+			Gdiplus::ImageLockModeRead,
+			PixelFormat32bppARGB,
+			bitmapData);
 
 			// Display the hexadecimal value of each pixel in the 5x3 rectangle.
 			UINT* pixels = (UINT*)bitmapData->Scan0;
@@ -172,7 +170,7 @@ namespace dx2d
 			if (res != nullptr)
 				return res;
 			else
-			{				
+			{
 				D3D11_TEXTURE2D_DESC desc;
 				auto tex = Functions::CreateTexture2DFromFile(file);
 				if (tex == nullptr)
@@ -194,7 +192,7 @@ namespace dx2d
 			if (res != nullptr)
 				return res;
 			else
-			{				
+			{
 				D3D11_TEXTURE2D_DESC desc;
 				auto tex = Functions::CreateTexture2DFromResource(resource);
 				if (tex == nullptr)
@@ -226,7 +224,7 @@ namespace dx2d
 			return newRes;
 		}
 
-		void Checkhr(const char* file, int line)
+		void Checkhr(LPCSTR file, int line)
 		{
 			if (hr == 0)
 				return;
@@ -236,29 +234,9 @@ namespace dx2d
 				str, 128, 0);
 			std::wstringstream message;
 			message << file << L" line: " << line << L"\n" << str;
-			
+
 			MessageBox(0, message.str().c_str(), L"HRESULT error", MB_ICONERROR);
 			exit(1);
-		}
-
-		double RndDouble()
-		{
-			unsigned int p1 = rand();
-			unsigned int p2 = rand() << 15;
-			unsigned int p3 = rand() << 30;
-			unsigned int t = p1 | p2 | p3;
-			return (double)t / 0xffffffff;
-		}
-
-		int RndInt(int min, int max)
-		{
-			if (max <= min)
-				return 0;
-			unsigned int p1 = rand();
-			unsigned int p2 = rand() << 15;
-			unsigned int p3 = rand() << 30;
-			unsigned int t = p1 | p2 | p3;
-			return (int)t % (max - min) + min;
 		}
 
 		ID3D11PixelShader* CreatePSFromFile(LPCWSTR file, LPCSTR entryPoint, LPCSTR target)
@@ -276,9 +254,9 @@ namespace dx2d
 		ID3D11PixelShader* CreatePSFromString(LPCSTR string, LPCSTR entryPoint, LPCSTR target)
 		{
 			ID3D11PixelShader* result;
-			
+
 			ID3D10Blob *ps;
-			hr = D3DCompile(string, strlen(string), 0, 0, 0, entryPoint, target, 0, 0,&ps,0); CHECKHR();
+			hr = D3DCompile(string, strlen(string), 0, 0, 0, entryPoint, target, 0, 0, &ps, 0); CHECKHR();
 			//D3DCompile
 			hr = Core->zDevice->CreatePixelShader(ps->GetBufferPointer(), ps->GetBufferSize(), 0,
 				&result); CHECKHR();
@@ -287,6 +265,25 @@ namespace dx2d
 		}
 
 
+	}
+
+	namespace Random
+	{
+		double RndDouble()
+		{
+			static std::random_device rd;
+			static std::mt19937 gen(rd());
+			static std::uniform_real_distribution<> dis(0, 1);
+			return dis(gen);
+		}
+
+		int RndInt(int min, int max)
+		{
+			static std::random_device rd;
+			static std::mt19937 gen(rd());
+			std::uniform_int_distribution<> dis(min, max);
+			return dis(gen);
+		}
 	}
 
 	namespace Collision
@@ -331,7 +328,7 @@ namespace dx2d
 			XMStoreFloat2(&a, A);
 			XMStoreFloat2(&b, B);
 			XMStoreFloat2(&c, C);
-			XMStoreFloat2(&d, D);			
+			XMStoreFloat2(&d, D);
 
 			//is p on segments
 			bool isOnAB, isOnCD;
@@ -377,7 +374,7 @@ namespace dx2d
 		{
 			float min = XMVectorGetX(XMVector2Dot(edgeNormal, p->zTransformedVertices[0]));
 			float max = min;
-			for (int i = 1; i < p->zVertexCount; i++) 
+			for (int i = 1; i < p->zVertexCount; i++)
 			{
 				float dot = XMVectorGetX(XMVector2Dot(edgeNormal, p->zTransformedVertices[i]));
 				if (dot < min)
@@ -408,7 +405,7 @@ namespace dx2d
 			//proj onto all edges normals of p1
 			XMVECTOR edgeNormal;
 			for (int i = 0; i < p1->zVertexCount; i++)
-			{		
+			{
 				if (i == p1->zVertexCount - 1)
 					edgeNormal = p1->zTransformedVertices[0] - p1->zTransformedVertices[i];
 				else
@@ -416,7 +413,7 @@ namespace dx2d
 				edgeNormal = XMVector2Orthogonal(edgeNormal);
 				XMFLOAT2 proj1 = GetProj(edgeNormal, p1);
 				XMFLOAT2 proj2 = GetProj(edgeNormal, p2);
-				if (!DoProjsOverlap(proj1,proj2))
+				if (!DoProjsOverlap(proj1, proj2))
 					return false;
 			}
 			//proj onto all edges normals of p2
@@ -432,7 +429,7 @@ namespace dx2d
 				if (!DoProjsOverlap(proj1, proj2))
 					return false;
 			}
-			
+
 			return true;
 		}
 
@@ -444,13 +441,13 @@ namespace dx2d
 			if (!CheckCircle(p1, p2))
 				return false;
 
-			for(int i=0;i<p1->zVertexCount-1;i++)
+			for (int i = 0; i<p1->zVertexCount - 1; i++)
 				for (int j = 0; j < p2->zVertexCount - 1; j++)
 				{
 					XMVECTOR A = XMVector2Transform(p1->zVertices[i], p1->zWorld);
-					XMVECTOR B = XMVector2Transform(p1->zVertices[i+1], p1->zWorld);
+					XMVECTOR B = XMVector2Transform(p1->zVertices[i + 1], p1->zWorld);
 					XMVECTOR C = XMVector2Transform(p2->zVertices[j], p2->zWorld);
-					XMVECTOR D = XMVector2Transform(p2->zVertices[j+1], p2->zWorld);
+					XMVECTOR D = XMVector2Transform(p2->zVertices[j + 1], p2->zWorld);
 					if (DoLinesIntersect(A, B, C, D, pointOfCollision))
 						return true;
 				}

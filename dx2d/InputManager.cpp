@@ -57,19 +57,19 @@ namespace dx2d
 		return p;
 	}
 
-	bool CInput::IsKeyDown(int vKey)
+	bool CInput::IsKeyDown(Keys vKey)
 	{
-		return zCurState[vKey];
+		return zCurState[(int)vKey];
 	}
 
-	bool CInput::IsKeyPressed(int vKey)
+	bool CInput::IsKeyPressed(Keys vKey)
 	{
-		return zCurState[vKey] && !zPrevState[vKey];
+		return zCurState[(int)vKey] && !zPrevState[(int)vKey];
 	}
 
-	bool CInput::IsKeyReleased(int vKey)
+	bool CInput::IsKeyReleased(Keys vKey)
 	{
-		return !zCurState[vKey] && zPrevState[vKey];
+		return !zCurState[(int)vKey] && zPrevState[(int)vKey];
 	}
 
 	bool CInput::IsAnyKeyDown()
@@ -90,14 +90,14 @@ namespace dx2d
 
 	bool CInput::IsCapslockActive()
 	{
-		return GetKeyState(Key.CapsLock) & 1;
+		return GetKeyState((int)Keys::CapsLock) & 1;
 	}
 
 	char CInput::GetChar(bool enableShift, bool enableCapslock)
 	{
 		BYTE input[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Q', 'W', 'E', 'R', 'T',
 			'Y', 'U', 'I', 'O', 'P', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L',
-			'Z', 'X', 'C', 'V', 'B', 'N', 'M', 0xc0, 0xbd, 0xbb, 0xdc, 0xdb, 
+			'Z', 'X', 'C', 'V', 'B', 'N', 'M', 0xc0, 0xbd, 0xbb, 0xdc, 0xdb,
 			0xdd, 0xba, 0xde, 0xbc, 0xbe, 0xbf,
 			' ', 0x0d, '\t', '\b' };
 		BYTE output[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'q', 'w', 'e', 'r', 't',
@@ -108,10 +108,11 @@ namespace dx2d
 			'Y', 'U', 'I', 'O', 'P', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L',
 			'Z', 'X', 'C', 'V', 'B', 'N', 'M', '~', '_', '+', '|', '{', '}', ':', '\"', '<', '>', '?',
 			' ', '\n', '\t', '\b' };
-		char mod = (enableShift && IsKeyDown(Key.Shift)) + (enableCapslock && IsCapslockActive());
+		// from combination of capslock and shit, figure out what is the case
+		char mod = (enableShift && IsKeyDown(Keys::Shift)) + (enableCapslock && IsCapslockActive());
 		for (int i = 0; i < sizeof(input); i++)
 		{
-			if (IsKeyPressed(input[i]))
+			if (IsKeyPressed((Keys)input[i]))
 			{
 				if (mod == 1)
 					return output2[i];
@@ -179,27 +180,27 @@ namespace dx2d
 		return (zGamepadStateCur[gamepad].Gamepad.wButtons) && true;
 	}
 
-	bool CInput::IsButtonDown(UINT gamepad, int button)
+	bool CInput::IsButtonDown(UINT gamepad, Buttons button)
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return false;
-		return (zGamepadStateCur[gamepad].Gamepad.wButtons & button) && true;
+		return (zGamepadStateCur[gamepad].Gamepad.wButtons & (int)button) && true;
 	}
 
-	bool CInput::IsButtonPressed(UINT gamepad, int button)
+	bool CInput::IsButtonPressed(UINT gamepad, Buttons button)
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return false;
-		return (zGamepadStateCur[gamepad].Gamepad.wButtons & button) && 
-			!(zGamepadStatePrev[gamepad].Gamepad.wButtons & button);
+		return (zGamepadStateCur[gamepad].Gamepad.wButtons & (int)button) &&
+			!(zGamepadStatePrev[gamepad].Gamepad.wButtons & (int)button);
 	}
 
-	bool CInput::IsButtonReleased(UINT gamepad, int button)
+	bool CInput::IsButtonReleased(UINT gamepad, Buttons button)
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return false;
-		return !(zGamepadStateCur[gamepad].Gamepad.wButtons & button) &&
-			(zGamepadStatePrev[gamepad].Gamepad.wButtons & button);
+		return !(zGamepadStateCur[gamepad].Gamepad.wButtons & (int)button) &&
+			(zGamepadStatePrev[gamepad].Gamepad.wButtons & (int)button);
 	}
 
 	bool CInput::IsGamepadActive(UINT gamepad)
@@ -265,7 +266,7 @@ namespace dx2d
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
-		return zGamepadStateCur[gamepad].Gamepad.bLeftTrigger - 
+		return zGamepadStateCur[gamepad].Gamepad.bLeftTrigger -
 			zGamepadStatePrev[gamepad].Gamepad.bLeftTrigger;
 	}
 
@@ -320,7 +321,7 @@ namespace dx2d
 	void CInput::zTest()
 	{
 		short stickLeft = Input->GetLeftStickX(0);
-		USHORT left = 0;		
+		USHORT left = 0;
 		USHORT right = 0;
 		if (stickLeft < 0)
 			left = -stickLeft * 2;
@@ -328,33 +329,33 @@ namespace dx2d
 			right = stickLeft * 2;
 		Input->SetMotorSpeed(0, left, right);
 
-		if (Input->IsButtonDown(0, Button.A))
+		if (Input->IsButtonDown(0, Buttons::A))
 			DebugManager->Debug(L"A", L"A");
-		if (Input->IsButtonDown(0, Button.B))
+		if (Input->IsButtonDown(0, Buttons::B))
 			DebugManager->Debug(L"B", L"B");
-		if (Input->IsButtonDown(0, Button.Back))
+		if (Input->IsButtonDown(0, Buttons::Back))
 			DebugManager->Debug(L"Back", L"Back");
-		if (Input->IsButtonDown(0, Button.Down))
+		if (Input->IsButtonDown(0, Buttons::Down))
 			DebugManager->Debug(L"Down", L"Down");
-		if (Input->IsButtonDown(0, Button.LB))
+		if (Input->IsButtonDown(0, Buttons::LB))
 			DebugManager->Debug(L"LB", L"LB");
-		if (Input->IsButtonDown(0, Button.Left))
+		if (Input->IsButtonDown(0, Buttons::Left))
 			DebugManager->Debug(L"Left", L"Left");
-		if (Input->IsButtonDown(0, Button.LeftStick))
+		if (Input->IsButtonDown(0, Buttons::LeftStick))
 			DebugManager->Debug(L"LeftStick", L"LeftStick");
-		if (Input->IsButtonDown(0, Button.RB))
+		if (Input->IsButtonDown(0, Buttons::RB))
 			DebugManager->Debug(L"RB", L"RB");
-		if (Input->IsButtonDown(0, Button.Right))
+		if (Input->IsButtonDown(0, Buttons::Right))
 			DebugManager->Debug(L"Right", L"Right");
-		if (Input->IsButtonDown(0, Button.RightStick))
+		if (Input->IsButtonDown(0, Buttons::RightStick))
 			DebugManager->Debug(L"RightStick", L"RightStick");
-		if (Input->IsButtonDown(0, Button.Start))
+		if (Input->IsButtonDown(0, Buttons::Start))
 			DebugManager->Debug(L"Start", L"Start");
-		if (Input->IsButtonDown(0, Button.Up))
+		if (Input->IsButtonDown(0, Buttons::Up))
 			DebugManager->Debug(L"Up", L"Up");
-		if (Input->IsButtonDown(0, Button.X))
+		if (Input->IsButtonDown(0, Buttons::X))
 			DebugManager->Debug(L"X", L"X");
-		if (Input->IsButtonDown(0, Button.Y))
+		if (Input->IsButtonDown(0, Buttons::Y))
 			DebugManager->Debug(L"Y", L"Y");
 
 		DebugManager->Debug(Input->GetLeftTrigger(0), L"left trigger");
@@ -370,62 +371,62 @@ namespace dx2d
 		DebugManager->Debug(Input->GetRightStickXDelta(0), L"right stick x Delta");
 		DebugManager->Debug(Input->GetRightStickYDelta(0), L"right stick y Delta");
 
-		if (Input->IsButtonPressed(0, Button.A))
+		if (Input->IsButtonPressed(0, Buttons::A))
 			printf("A pressed\n");
-		if (Input->IsButtonPressed(0, Button.B))
+		if (Input->IsButtonPressed(0, Buttons::B))
 			printf("B pressed\n");
-		if (Input->IsButtonPressed(0, Button.Back))
+		if (Input->IsButtonPressed(0, Buttons::Back))
 			printf("Back pressed\n");
-		if (Input->IsButtonPressed(0, Button.Down))
+		if (Input->IsButtonPressed(0, Buttons::Down))
 			printf("Down pressed\n");
-		if (Input->IsButtonPressed(0, Button.LB))
+		if (Input->IsButtonPressed(0, Buttons::LB))
 			printf("LB pressed\n");
-		if (Input->IsButtonPressed(0, Button.Left))
+		if (Input->IsButtonPressed(0, Buttons::Left))
 			printf("Left pressed\n");
-		if (Input->IsButtonPressed(0, Button.LeftStick))
+		if (Input->IsButtonPressed(0, Buttons::LeftStick))
 			printf("LeftStick pressed\n");
-		if (Input->IsButtonPressed(0, Button.RB))
+		if (Input->IsButtonPressed(0, Buttons::RB))
 			printf("RB pressed\n");
-		if (Input->IsButtonPressed(0, Button.Right))
+		if (Input->IsButtonPressed(0, Buttons::Right))
 			printf("Right pressed\n");
-		if (Input->IsButtonPressed(0, Button.RightStick))
+		if (Input->IsButtonPressed(0, Buttons::RightStick))
 			printf("RightStick pressed\n");
-		if (Input->IsButtonPressed(0, Button.Start))
+		if (Input->IsButtonPressed(0, Buttons::Start))
 			printf("Start pressed\n");
-		if (Input->IsButtonPressed(0, Button.Up))
+		if (Input->IsButtonPressed(0, Buttons::Up))
 			printf("Up pressed\n");
-		if (Input->IsButtonPressed(0, Button.X))
+		if (Input->IsButtonPressed(0, Buttons::X))
 			printf("X pressed\n");
-		if (Input->IsButtonPressed(0, Button.Y))
+		if (Input->IsButtonPressed(0, Buttons::Y))
 			printf("Y pressed\n");
 
-		if (Input->IsButtonReleased(0, Button.A))
+		if (Input->IsButtonReleased(0, Buttons::A))
 			printf("A released\n");
-		if (Input->IsButtonReleased(0, Button.B))
+		if (Input->IsButtonReleased(0, Buttons::B))
 			printf("B released\n");
-		if (Input->IsButtonReleased(0, Button.Back))
+		if (Input->IsButtonReleased(0, Buttons::Back))
 			printf("Back released\n");
-		if (Input->IsButtonReleased(0, Button.Down))
+		if (Input->IsButtonReleased(0, Buttons::Down))
 			printf("Down released\n");
-		if (Input->IsButtonReleased(0, Button.LB))
+		if (Input->IsButtonReleased(0, Buttons::LB))
 			printf("LB released\n");
-		if (Input->IsButtonReleased(0, Button.Left))
+		if (Input->IsButtonReleased(0, Buttons::Left))
 			printf("Left released\n");
-		if (Input->IsButtonReleased(0, Button.LeftStick))
+		if (Input->IsButtonReleased(0, Buttons::LeftStick))
 			printf("LeftStick released\n");
-		if (Input->IsButtonReleased(0, Button.RB))
+		if (Input->IsButtonReleased(0, Buttons::RB))
 			printf("RB released\n");
-		if (Input->IsButtonReleased(0, Button.Right))
+		if (Input->IsButtonReleased(0, Buttons::Right))
 			printf("Right released\n");
-		if (Input->IsButtonReleased(0, Button.RightStick))
+		if (Input->IsButtonReleased(0, Buttons::RightStick))
 			printf("RightStick released\n");
-		if (Input->IsButtonReleased(0, Button.Start))
+		if (Input->IsButtonReleased(0, Buttons::Start))
 			printf("Start released\n");
-		if (Input->IsButtonReleased(0, Button.Up))
+		if (Input->IsButtonReleased(0, Buttons::Up))
 			printf("Up released\n");
-		if (Input->IsButtonReleased(0, Button.X))
+		if (Input->IsButtonReleased(0, Buttons::X))
 			printf("X released\n");
-		if (Input->IsButtonReleased(0, Button.Y))
+		if (Input->IsButtonReleased(0, Buttons::Y))
 			printf("Y released\n");
 
 		if (Input->GamepadConnected())

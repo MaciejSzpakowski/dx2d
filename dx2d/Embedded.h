@@ -1,10 +1,11 @@
+#pragma once
+
 namespace dx2d
 {
 	extern const char rc_PixelShader[] = R"(
 cbuffer cbBufferPS
 {
 	float4 color;
-	int4 vars;
 };
 
 Texture2D ObjTexture;
@@ -36,7 +37,6 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 cbuffer cbBufferPS
 {
 	float4 color;
-	int4 vars;
 };
 
 Texture2D ObjTexture;
@@ -100,7 +100,7 @@ VS_OUTPUT main(float4 inPos : POSITION, float3 inCol : COLOR, float2 inTexCoord 
 		output.TexCoord = float2(uv[2], 1-uv[3]);
 	}
 
-	return output;
+			return output;
 }
 )";
 

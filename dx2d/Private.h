@@ -10,9 +10,9 @@ namespace dx2d
 		FLOAT X, Y, Z;
 		FLOAT R, G, B;
 		FLOAT U, V;
-		Vertex(){}
+		Vertex() {}
 		Vertex(FLOAT x, FLOAT y, FLOAT z, FLOAT r, FLOAT g, FLOAT b, FLOAT u, FLOAT v)
-			: X(x), Y(y), Z(z), R(r), G(g), B(b), U(u), V(v){}
+			: X(x), Y(y), Z(z), R(r), G(g), B(b), U(u), V(v) {}
 	};
 
 	enum class TEX_FILTER { POINT, LINEAR };
@@ -20,8 +20,8 @@ namespace dx2d
 	struct Color
 	{
 		float r, g, b, a;
-		Color(){}
-		Color(float _r, float _g, float _b, float _a) : r(_r), g(_g), b(_b), a(_a){}
+		Color() {}
+		Color(float _r, float _g, float _b, float _a) : r(_r), g(_g), b(_b), a(_a) {}
 		Color& operator = (const XMFLOAT4& other)
 		{
 			r = other.x;
@@ -38,10 +38,10 @@ namespace dx2d
 		float top;
 		float right;
 		float bottom;
-		Rect(){}
+		Rect() {}
 		Rect(float _left, float _top, float _right, float _bottom) :
-			left(_left), top(_top), right(_right), bottom(_bottom){}
-	};	
+			left(_left), top(_top), right(_right), bottom(_bottom) {}
+	};
 
 	struct Event
 	{
@@ -64,19 +64,19 @@ namespace dx2d
 		wstring zName;
 		ID3D11ShaderResourceView* zShaderResource;
 
-		CTexture(bool cached, int height, int width, wstring name, 
+		CTexture(bool cached, int height, int width, wstring name,
 			ID3D11ShaderResourceView* shaderResource) :
-			zCached(cached),zHeight(height),zWidth(width),zName(name),
-			zShaderResource(shaderResource){}
-		int GetWidth(){ return zWidth; }
-		int GetHeight(){ return zHeight; }
-		wstring GetName(){ return zName;}
+			zCached(cached), zHeight(height), zWidth(width), zName(name),
+			zShaderResource(shaderResource) {}
+		int GetWidth() { return zWidth; }
+		int GetHeight() { return zHeight; }
+		wstring GetName() { return zName; }
 		void Destroy()
 		{
 			zShaderResource->Release();
 			delete this;
-		}				
-	};	
+		}
+	};
 
 	class CWindow
 	{
@@ -169,18 +169,18 @@ namespace dx2d
 		XMVECTOR zAbsolutePosition;
 		XMVECTOR zAbsoluteRotation;
 		CDynamic* zParent;
-		vector<CDynamic*> zChildren;		
+		vector<CDynamic*> zChildren;
 		//matrix algebra for
 		//produces worldViewProj used by VS
 		void zTransform();
 		//updates PVAJ etc.
 		void zUpdate();
 		virtual XMMATRIX zGetScaleMatrix() = 0;
-		virtual void zCheckForCursor(XMMATRIX transform){}
+		virtual void zCheckForCursor(XMMATRIX transform) {}
 		bool zUnderCursor;
 		virtual void zTransformVertices();
 		virtual void zDraw() = 0;
-		
+
 		CDynamic* GetParent();
 		void SetParent(CDynamic* parent);
 		vector<CDynamic*> GetChildren();
@@ -193,7 +193,7 @@ namespace dx2d
 		CDynamic();
 		~CDynamic();
 
-		bool Pickable;		
+		bool Pickable;
 		float SizeVelocity;
 		float SizeAcceleration;
 		float Size;
@@ -206,43 +206,43 @@ namespace dx2d
 		void SetColor(float r, float g, float b, float a);
 
 		//repetitive code
-		void SetPosition(XMFLOAT3 v){zPosition = XMLoadFloat3(&v);}
-		void SetPosition(float x, float y, float z){zPosition = XMVectorSet(x, y, z, 1);}
-		void SetPositionX(float x){zPosition = XMVectorSetX(zPosition, x);}
-		void SetPositionY(float y){ zPosition = XMVectorSetY(zPosition, y); }
-		void SetPositionZ(float z){ zPosition = XMVectorSetZ(zPosition, z); }
-		XMFLOAT3 GetPosition(){ XMFLOAT3 v; XMStoreFloat3(&v, zPosition); return v; }
-		XMVECTOR GetPositionVector(){return zPosition;}
-		void SetVelocity(XMFLOAT3 v){ zVelocity = XMLoadFloat3(&v); }
-		void SetVelocity(float x, float y, float z){ zVelocity = XMVectorSet(x, y, z, 1); }
-		void SetVelocityX(float x){ zVelocity = XMVectorSetX(zVelocity, x); }
-		void SetVelocityY(float y){ zVelocity = XMVectorSetY(zVelocity, y); }
-		void SetVelocityZ(float z){ zVelocity = XMVectorSetZ(zVelocity, z); }
-		XMFLOAT3 GetVelocity(){ XMFLOAT3 v; XMStoreFloat3(&v, zVelocity); return v; }
-		void SetAcceleration(XMFLOAT3 v){ zAcceleration = XMLoadFloat3(&v); }
-		void SetAcceleration(float x, float y, float z){ zAcceleration = XMVectorSet(x, y, z, 1); }
-		void SetAccelerationX(float x){ zAcceleration = XMVectorSetX(zAcceleration, x); }
-		void SetAccelerationY(float y){ zAcceleration = XMVectorSetY(zAcceleration, y); }
-		void SetAccelerationZ(float z){ zAcceleration = XMVectorSetZ(zAcceleration, z); }
-		XMFLOAT3 GetAcceleration(){ XMFLOAT3 v; XMStoreFloat3(&v, zAcceleration); return v; }
-		void SetRotation(XMFLOAT3 v){ zRotation = XMLoadFloat3(&v); }
-		void SetRotation(float x, float y, float z){ zRotation = XMVectorSet(x, y, z, 1); }
-		void SetRotationX(float x){ zRotation = XMVectorSetX(zRotation, x); }
-		void SetRotationY(float y){ zRotation = XMVectorSetY(zRotation, y); }
-		void SetRotationZ(float z){ zRotation = XMVectorSetZ(zRotation, z); }
-		XMFLOAT3 GetRotation(){ XMFLOAT3 v; XMStoreFloat3(&v, zRotation); return v; }
-		void SetAngularVel(XMFLOAT3 v){ zAngularVel = XMLoadFloat3(&v); }
-		void SetAngularVel(float x, float y, float z){ zAngularVel = XMVectorSet(x, y, z, 1); }
-		void SetAngularVelX(float x){ zAngularVel = XMVectorSetX(zAngularVel, x); }
-		void SetAngularVelY(float y){ zAngularVel = XMVectorSetY(zAngularVel, y); }
-		void SetAngularVelZ(float z){ zAngularVel = XMVectorSetZ(zAngularVel, z); }
-		XMFLOAT3 GetAngularVel(){ XMFLOAT3 v; XMStoreFloat3(&v, zAngularVel); return v; }
-		void SetAngularAcc(XMFLOAT3 v){ zAngularAcc = XMLoadFloat3(&v); }
-		void SetAngularAcc(float x, float y, float z){ zAngularAcc = XMVectorSet(x, y, z, 1); }
-		void SetAngularAccX(float x){ zAngularAcc = XMVectorSetX(zAngularAcc, x); }
-		void SetAngularAccY(float y){ zAngularAcc = XMVectorSetY(zAngularAcc, y); }
-		void SetAngularAccZ(float z){ zAngularAcc = XMVectorSetZ(zAngularAcc, z); }
-		XMFLOAT3 GetAngularAcc(){ XMFLOAT3 v; XMStoreFloat3(&v, zAngularAcc); return v; }
+		void SetPosition(XMFLOAT3 v) { zPosition = XMLoadFloat3(&v); }
+		void SetPosition(float x, float y, float z) { zPosition = XMVectorSet(x, y, z, 1); }
+		void SetPositionX(float x) { zPosition = XMVectorSetX(zPosition, x); }
+		void SetPositionY(float y) { zPosition = XMVectorSetY(zPosition, y); }
+		void SetPositionZ(float z) { zPosition = XMVectorSetZ(zPosition, z); }
+		XMFLOAT3 GetPosition() { XMFLOAT3 v; XMStoreFloat3(&v, zPosition); return v; }
+		XMVECTOR GetPositionVector() { return zPosition; }
+		void SetVelocity(XMFLOAT3 v) { zVelocity = XMLoadFloat3(&v); }
+		void SetVelocity(float x, float y, float z) { zVelocity = XMVectorSet(x, y, z, 1); }
+		void SetVelocityX(float x) { zVelocity = XMVectorSetX(zVelocity, x); }
+		void SetVelocityY(float y) { zVelocity = XMVectorSetY(zVelocity, y); }
+		void SetVelocityZ(float z) { zVelocity = XMVectorSetZ(zVelocity, z); }
+		XMFLOAT3 GetVelocity() { XMFLOAT3 v; XMStoreFloat3(&v, zVelocity); return v; }
+		void SetAcceleration(XMFLOAT3 v) { zAcceleration = XMLoadFloat3(&v); }
+		void SetAcceleration(float x, float y, float z) { zAcceleration = XMVectorSet(x, y, z, 1); }
+		void SetAccelerationX(float x) { zAcceleration = XMVectorSetX(zAcceleration, x); }
+		void SetAccelerationY(float y) { zAcceleration = XMVectorSetY(zAcceleration, y); }
+		void SetAccelerationZ(float z) { zAcceleration = XMVectorSetZ(zAcceleration, z); }
+		XMFLOAT3 GetAcceleration() { XMFLOAT3 v; XMStoreFloat3(&v, zAcceleration); return v; }
+		void SetRotation(XMFLOAT3 v) { zRotation = XMLoadFloat3(&v); }
+		void SetRotation(float x, float y, float z) { zRotation = XMVectorSet(x, y, z, 1); }
+		void SetRotationX(float x) { zRotation = XMVectorSetX(zRotation, x); }
+		void SetRotationY(float y) { zRotation = XMVectorSetY(zRotation, y); }
+		void SetRotationZ(float z) { zRotation = XMVectorSetZ(zRotation, z); }
+		XMFLOAT3 GetRotation() { XMFLOAT3 v; XMStoreFloat3(&v, zRotation); return v; }
+		void SetAngularVel(XMFLOAT3 v) { zAngularVel = XMLoadFloat3(&v); }
+		void SetAngularVel(float x, float y, float z) { zAngularVel = XMVectorSet(x, y, z, 1); }
+		void SetAngularVelX(float x) { zAngularVel = XMVectorSetX(zAngularVel, x); }
+		void SetAngularVelY(float y) { zAngularVel = XMVectorSetY(zAngularVel, y); }
+		void SetAngularVelZ(float z) { zAngularVel = XMVectorSetZ(zAngularVel, z); }
+		XMFLOAT3 GetAngularVel() { XMFLOAT3 v; XMStoreFloat3(&v, zAngularVel); return v; }
+		void SetAngularAcc(XMFLOAT3 v) { zAngularAcc = XMLoadFloat3(&v); }
+		void SetAngularAcc(float x, float y, float z) { zAngularAcc = XMVectorSet(x, y, z, 1); }
+		void SetAngularAccX(float x) { zAngularAcc = XMVectorSetX(zAngularAcc, x); }
+		void SetAngularAccY(float y) { zAngularAcc = XMVectorSetY(zAngularAcc, y); }
+		void SetAngularAccZ(float z) { zAngularAcc = XMVectorSetZ(zAngularAcc, z); }
+		XMFLOAT3 GetAngularAcc() { XMFLOAT3 v; XMStoreFloat3(&v, zAngularAcc); return v; }
 		//It's different from position if object has a parent
 		XMFLOAT3 GetAbsolutePosition() { XMFLOAT3 v; XMStoreFloat3(&v, zAbsolutePosition); return v; }
 	};
@@ -256,7 +256,7 @@ namespace dx2d
 
 		CPolygon();
 		CPolygon(XMFLOAT2 points[], int n);
-		
+
 		//make exact (but independent) copy and add to draw manager
 		//stuff that is not copied: children (since they can have only one parent)
 		virtual CPolygon* Clone();
@@ -295,7 +295,7 @@ namespace dx2d
 			zTexture(nullptr),
 			zTargetView(nullptr),
 			zSprite(nullptr),
-			PixelShader(Core->zDefaultPost){}
+			PixelShader(Core->zDefaultPost) {}
 
 		//draw all objects that belong to the render target
 		void zDraw();
@@ -327,7 +327,7 @@ namespace dx2d
 		ID3D11SamplerState* zPointSampler;
 		ID3D11SamplerState* zLineSampler;
 		ID3D11Buffer* zIndexBufferSprite;
-		ID3D11Buffer* zVertexBufferSprite;		
+		ID3D11Buffer* zVertexBufferSprite;
 		ID3D11RasterizerState* zWireframe;
 		ID3D11RasterizerState* zSolid;
 		XMMATRIX zRenderTargetMatrix;
@@ -354,7 +354,7 @@ namespace dx2d
 
 		//add sprite from file
 		//supported file formats: BMP, GIF, JPEG, PNG, TIFF, Exif, WMF, EMF
-		CSprite* AddSprite(LPCWSTR file, 
+		CSprite* AddSprite(LPCWSTR file,
 			CRenderTarget* target = nullptr);
 
 		void AddSprite(CSprite* s,
@@ -364,7 +364,7 @@ namespace dx2d
 			CRenderTarget* target = nullptr);
 		void AddAnimation(CAnimation* a,
 			CRenderTarget* target = nullptr);
-		void RemoveAnimation(CAnimation* a);		
+		void RemoveAnimation(CAnimation* a);
 		CBitmapFont* AddBitmapFont(LPCWSTR file, vector<Rect> chars);
 		void AddBitmapFont(CBitmapFont* font);
 		CBitmapFont* AddBitmapFont(LPCWSTR file, int width, int height, int charsPerRow);
@@ -378,6 +378,7 @@ namespace dx2d
 		CRenderTarget* AddRenderTarget();
 		void DestroyRenderTarget(CRenderTarget* target);
 		void InitDefaultFont();
+		CRenderTarget* GetDefaultRenderTarget();
 
 		//create extra buffer for PS
 		//size in bytes must be multiple of 16
@@ -429,7 +430,7 @@ namespace dx2d
 		void zCheckGamepads();
 		void zActivity();
 		void zTest();
-		
+
 		CInput();
 
 		// MOUSE
@@ -438,10 +439,10 @@ namespace dx2d
 		POINT GetCursorClientPos();
 
 		// KEYS (aslo mouse buttons) and KEYBOARD
-		bool IsKeyDown(int vkey);
-		bool IsKeyPressed(int vkey);
-		bool IsKeyReleased(int vkey);
-		bool IsAnyKeyDown();		
+		bool IsKeyDown(Keys vkey);
+		bool IsKeyPressed(Keys vkey);
+		bool IsKeyReleased(Keys vkey);
+		bool IsAnyKeyDown();
 		char GetChar(bool enableShift = true, bool enableCapslock = true);
 		//offset, where to start looking
 		bool IsCapslockActive();
@@ -453,9 +454,9 @@ namespace dx2d
 		//max count is XUSER_MAX_COUNT (currently 4)
 		UINT AcceptGamepads;
 		bool IsAnyButtonDown(UINT gamepad);
-		bool IsButtonDown(UINT gamepad, int button);
-		bool IsButtonPressed(UINT gamepad, int button);
-		bool IsButtonReleased(UINT gamepad, int button);
+		bool IsButtonDown(UINT gamepad, Buttons button);
+		bool IsButtonPressed(UINT gamepad, Buttons button);
+		bool IsButtonReleased(UINT gamepad, Buttons button);
 		BYTE GetLeftTrigger(UINT gamepad);
 		BYTE GetRightTrigger(UINT gamepad);
 		SHORT GetLeftStickX(UINT gamepad);
@@ -469,7 +470,7 @@ namespace dx2d
 		SHORT GetRightStickXDelta(UINT gamepad);
 		SHORT GetRightStickYDelta(UINT gamepad);
 		void SetMotorSpeed(UINT gamepad, USHORT speedLeft, USHORT speedRight);
-		
+
 		//technically: was gamepad connected during last read
 		//generally: is that gamepad connected
 		bool IsGamepadActive(UINT gamepad);
@@ -484,20 +485,20 @@ namespace dx2d
 
 	class CSprite : public CDynamic
 	{
-	public:		
+	public:
 		CTexture* zTexture;
 		ID3D11ShaderResourceView* zShaderResource;
 		XMMATRIX zGetScaleMatrix() override;
-		virtual void zPlay(){}
+		virtual void zPlay() {}
 		void zDraw() override;
 		void zCheckForCursor(XMMATRIX transform) override;
 		void zSpriteUpdate();
-		
+
 		CSprite();
 		CSprite(CTexture* texture);
 		CSprite(LPCWSTR file);
 
-		CTexture* GetTexture(){ return zTexture; }
+		CTexture* GetTexture() { return zTexture; }
 
 		//sets up scale to match texture size
 		void SetNaturalScale();
@@ -523,7 +524,7 @@ namespace dx2d
 		//lifeTime: destroy event after that time, 0 to never destroy
 		//tick: run event once every tick seconds, 0 to run every frame
 		void AddEvent(std::function<int()> func, wstring name, double delay, double lifeTime, double tick);
-		void RemoveEvent(wstring name);		
+		void RemoveEvent(wstring name);
 		void Destroy();
 	};
 
@@ -537,17 +538,17 @@ namespace dx2d
 		bool zFrameChanged;
 		//plays animation
 		void zPlay() override;
-		
+
 		CAnimation(LPCWSTR file, int x, int y);
 		bool FrameChanged(); //true if frame changed in prev game frame
-		//set frames order, size of the array should be the same as frame count
+							 //set frames order, size of the array should be the same as frame count
 		void SetOrder(int order[]);
 		int GetFrameCount();
 		//next frame and loop
 		void NextFrame();
 		//prev frame and loop
 		void PreviousFrame();
-		
+
 		int Start; //first frame of currently played animation
 		int Finish; //last frame of currently played animation
 		int Frame; //current frame displayed
@@ -565,7 +566,7 @@ namespace dx2d
 		CBitmapFont(LPCWSTR file, int width, int height, int charsPerRow);
 		CBitmapFont(CTexture* texture, vector<Rect> _chars);
 		CBitmapFont(CTexture* texture, int width, int height, int charsPerRow);
-		CTexture* GetTexture(){ return zTexture; }
+		CTexture* GetTexture() { return zTexture; }
 		void Destroy();
 	};
 
@@ -586,21 +587,21 @@ namespace dx2d
 		void Destroy();
 
 		TextHorAlign HorizontalAlign;
-		TextVerAlign VerticalAlign;		
+		TextVerAlign VerticalAlign;
 		TEX_FILTER TexFilter; //point or linear
 		wstring Text;
 		float Size;
 		float Height;
 		float Width;
 		float HorizontalSpacing;
-		float VerticalSpacing;		
+		float VerticalSpacing;
 	};
 
 	class CDebugManager
 	{
 	public:
 		CBitmapText* zDebugText;
-		std::wstringstream zWss;	
+		std::wstringstream zWss;
 
 		CDebugManager();
 		void Init(CBitmapFont* font);

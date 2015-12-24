@@ -1,4 +1,5 @@
 #include "Private.h"
+#include "Embedded.h"
 
 namespace dx2d
 {
@@ -9,8 +10,6 @@ namespace dx2d
 
 	CCore::CCore(int sizex, int sizey, std::function<void()> worker, int style)
 	{
-		EnableAlpha = false;
-		srand((int)time(0));
 		hr = 0;
 		zFullscreen = false;
 		zClientSize.x = sizex;
@@ -38,7 +37,7 @@ namespace dx2d
 		scd.SampleDesc.Quality = 0;
 		scd.SampleDesc.Count = 1;                               // no anti aliasing
 		scd.Windowed = TRUE;                                    // windowed/full-screen mode
-		//scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;     // alternative fullscreen mode
+																//scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;     // alternative fullscreen mode
 
 		UINT creationFlags = D3D11_CREATE_DEVICE_SINGLETHREADED;
 
@@ -55,7 +54,7 @@ namespace dx2d
 		// use the back buffer address to create the render target
 		hr = zDevice->CreateRenderTargetView(buf, NULL, &zBackBuffer); CHECKHR();
 		buf->Release();
-		
+
 		//Describe our Depth/Stencil Buffer and View
 		D3D11_TEXTURE2D_DESC depthStencilDesc;
 		depthStencilDesc.Width = sizex;
@@ -88,9 +87,9 @@ namespace dx2d
 		////    VS and PS    ////
 		//default shaders
 		ID3D10Blob *vs; //release vs after CreateInputLayout()
-		//alternative to loading shader from cso file
-		//hr = D3DCompileFromFile(L"VertexShader.hlsl", 0, 0, "main", "vs_5_0", 0, 0, &vs, 0); CHECKHR();
-		hr = D3DCompile(rc_VertexShader, strlen(rc_VertexShader), 
+						//alternative to loading shader from cso file
+						//hr = D3DCompileFromFile(L"VertexShader.hlsl", 0, 0, "main", "vs_5_0", 0, 0, &vs, 0); CHECKHR();
+		hr = D3DCompile(rc_VertexShader, strlen(rc_VertexShader),
 			0, 0, 0, "main", "vs_5_0", 0, 0, &vs, 0); CHECKHR();
 		hr = zDevice->CreateVertexShader(vs->GetBufferPointer(), vs->GetBufferSize(), 0,
 			&zDefaultVS); CHECKHR();
@@ -103,15 +102,15 @@ namespace dx2d
 		D3D11_INPUT_ELEMENT_DESC ied[] =
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
-				0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 
-				0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 
-				0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT,
+			0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,
+			0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			//if you need to pass something on your own to PS or VS per vertex
 			//{ "SOME_MORE_DATA", 0, DXGI_FORMAT_R32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 		};
-		hr = zDevice->CreateInputLayout(ied, 3, vs->GetBufferPointer(), vs->GetBufferSize(), 
+		hr = zDevice->CreateInputLayout(ied, 3, vs->GetBufferPointer(), vs->GetBufferSize(),
 			&zLayout); CHECKHR();
 		vs->Release();
 		zContext->IASetInputLayout(zLayout);
@@ -156,7 +155,7 @@ namespace dx2d
 		zStartTime = li.QuadPart;
 		zPrevFrameTime = zStartTime;
 		zGameTime = 0;
-		zFrameTime = 0;		
+		zFrameTime = 0;
 	}
 
 	void CCore::zUpdateGameTime()
@@ -230,7 +229,7 @@ namespace dx2d
 	bool CCore::GetFullscreen()
 	{
 		return zFullscreen;
-	}	
+	}
 
 	void CCore::SaveScreenshot(LPCWSTR file)
 	{
