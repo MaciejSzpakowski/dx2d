@@ -1,6 +1,6 @@
 #pragma once
 
-namespace dx2d
+namespace Viva
 {
 	extern const char rc_PixelShader[] = R"(
 cbuffer cbBufferPS

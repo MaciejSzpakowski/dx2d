@@ -1,6 +1,6 @@
-#include "Private.h"
+#include "Viva.h"
 
-namespace dx2d
+namespace Viva
 {
 	LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{

@@ -1,6 +1,6 @@
-#include "Private.h"
+#include "Viva.h"
 
-namespace dx2d
+namespace Viva
 {
 	CInput::CInput()
 	{

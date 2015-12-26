@@ -1,9 +1,7 @@
-#include "Private.h"
+#include "Viva.h"
 
-namespace dx2d
+namespace Viva
 {
-	void AddFloat3(XMFLOAT3* src, XMFLOAT3* dst);
-
 	CCamera::CCamera()
 	{
 		zNearPlane = 0.1f;

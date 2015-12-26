@@ -144,10 +144,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Animation.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Core.h" />
+    <ClInclude Include="DebugManager.h" />
+    <ClInclude Include="DrawManager.h" />
+    <ClInclude Include="Dynamic.h" />
     <ClInclude Include="Embedded.h" />
+    <ClInclude Include="EventManager.h" />
+    <ClInclude Include="InputManager.h" />
     <ClInclude Include="Keys.h" />
-    <ClInclude Include="Private.h" />
+    <ClInclude Include="Polygon.h" />
+    <ClInclude Include="RenderTarget.h" />
+    <ClInclude Include="ResourceManager.h" />
+    <ClInclude Include="Sprite.h" />
+    <ClInclude Include="BitmapText.h" />
+    <ClInclude Include="Types.h" />
     <ClInclude Include="Proto.h" />
+    <ClInclude Include="Viva.h" />
+    <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />

@@ -1,7 +1,6 @@
-#include "Private.h"
-#include <algorithm>
+#include "Viva.h"
 
-namespace dx2d
+namespace Viva
 {
 	void CreateSampler(TEX_FILTER mode, ID3D11SamplerState** sampler)
 	{
@@ -26,7 +25,7 @@ namespace dx2d
 		ZeroMemory(&rd, sizeof(rd));
 		rd.FillMode = D3D11_FILL_WIREFRAME;
 		rd.CullMode = D3D11_CULL_NONE;
-		hr = Core->zDevice->CreateRasterizerState(&rd, &zWireframe); CHECKHR();
+		HRESULT hr = Core->zDevice->CreateRasterizerState(&rd, &zWireframe); CHECKHR();
 		rd.FillMode = D3D11_FILL_SOLID;
 		rd.CullMode = D3D11_CULL_FRONT;
 		hr = Core->zDevice->CreateRasterizerState(&rd, &zSolid); CHECKHR();
@@ -464,7 +463,7 @@ namespace dx2d
 		textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 		textureDesc.CPUAccessFlags = 0;
 		textureDesc.MiscFlags = 0;
-		hr = Core->zDevice->CreateTexture2D(&textureDesc, NULL, &tex); CHECKHR();
+		HRESULT hr = Core->zDevice->CreateTexture2D(&textureDesc, NULL, &tex); CHECKHR();
 
 		ID3D11RenderTargetView* rtv;
 		renderTargetViewDesc.Format = textureDesc.Format;
@@ -481,7 +480,7 @@ namespace dx2d
 		hr = Core->zDevice->CreateShaderResourceView(tex,
 			&shaderResourceViewDesc, &srv); CHECKHR();
 
-		CRenderTarget* target = new CRenderTarget;
+		CRenderTarget* target = new CRenderTarget(Core->zDefaultPost);
 		target->zTexture = tex;
 		target->zTargetView = rtv;
 		target->zSprite = new CSprite();

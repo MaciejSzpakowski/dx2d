@@ -1,5 +1,6 @@
 #pragma once
-namespace dx2d
+
+namespace Viva
 {
 	enum class Keys : int
 	{

@@ -1,4 +1,4 @@
-#include "Private.h"
+#include "Viva.h"
 
 /* HOW TO GET ID3D11TEXTURE2D and D3D11_TEXTURE2D_DESC from ID3D11ShaderResourceView
 ID3D11Texture2D *pTextureInterface = 0;
@@ -9,7 +9,7 @@ D3D11_TEXTURE2D_DESC desc;
 pTextureInterface->GetDesc(&desc);
 */
 
-namespace dx2d
+namespace Viva
 {
 	CSprite::CSprite()
 	{

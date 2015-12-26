@@ -1,7 +1,7 @@
-#include "Private.h"
+#include "Viva.h"
 #include "Embedded.h"
 
-namespace dx2d
+namespace Viva
 {
 	void IntActivity();
 	extern const char rc_PixelShader[];
@@ -10,7 +10,7 @@ namespace dx2d
 
 	CCore::CCore(int sizex, int sizey, std::function<void()> worker, int style)
 	{
-		hr = 0;
+		HRESULT hr = 0;
 		zFullscreen = false;
 		zClientSize.x = sizex;
 		zClientSize.y = sizey;
@@ -179,7 +179,7 @@ namespace dx2d
 		return zWindow->zRun();
 	}
 
-	void CCore::SetWindowTitle(const wchar_t* title)
+	void CCore::SetWindowTitle(LPCWSTR title)
 	{
 		SetWindowText(zWindow->zHandle, title);
 	}

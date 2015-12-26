@@ -1,6 +1,6 @@
-#include "Private.h"
+#include "Viva.h"
 
-namespace dx2d
+namespace Viva
 {
 	void CEventManager::AddEvent
 		(std::function<int()> func, wstring name, double delay, double lifeTime, double tick)

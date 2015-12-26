@@ -1,19 +1,15 @@
-#include "Private.h"
-#include <random>
-#include <sstream>
+#include "Viva.h"
 
-namespace dx2d
+namespace Viva
 {
 	//globals
-	CCore* Core;
+	/*CCore* Core;
 	CDrawManager* DrawManager;
 	CCamera* Camera;
 	CInput* Input;
 	CEventManager* EventManager;
 	CResourceManager* ResourceManager;
-	CDebugManager* DebugManager;
-
-	HRESULT hr;
+	CDebugManager* DebugManager;*/
 
 	void IntActivity()
 	{
@@ -224,7 +220,7 @@ namespace dx2d
 			return newRes;
 		}
 
-		void Checkhr(LPCSTR file, int line)
+		void Checkhr(LPCSTR file, int line, HRESULT hr)
 		{
 			if (hr == 0)
 				return;
@@ -243,7 +239,7 @@ namespace dx2d
 		{
 			ID3D11PixelShader* result;
 			ID3D10Blob *ps;
-			hr = D3DCompileFromFile(file, 0, 0, entryPoint, target, 0, 0, &ps, 0); CHECKHR();
+			HRESULT hr = D3DCompileFromFile(file, 0, 0, entryPoint, target, 0, 0, &ps, 0); CHECKHR();
 			//D3DCompile
 			hr = Core->zDevice->CreatePixelShader(ps->GetBufferPointer(), ps->GetBufferSize(), 0,
 				&result); CHECKHR();
@@ -256,7 +252,7 @@ namespace dx2d
 			ID3D11PixelShader* result;
 
 			ID3D10Blob *ps;
-			hr = D3DCompile(string, strlen(string), 0, 0, 0, entryPoint, target, 0, 0, &ps, 0); CHECKHR();
+			HRESULT hr = D3DCompile(string, strlen(string), 0, 0, 0, entryPoint, target, 0, 0, &ps, 0); CHECKHR();
 			//D3DCompile
 			hr = Core->zDevice->CreatePixelShader(ps->GetBufferPointer(), ps->GetBufferSize(), 0,
 				&result); CHECKHR();

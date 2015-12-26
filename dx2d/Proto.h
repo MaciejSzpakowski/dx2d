@@ -1,18 +1,20 @@
 #pragma once
-#include <Windows.h>
+
+#include <algorithm>
 #include <functional>
-#include <d3d11.h>
-#include <DirectXMath.h>
-#include <DirectXCollision.h>
-#include <vector>
-#include <string>
 #include <map>
+#include <random>
 #include <sstream>
+#include <string>
+#include <vector>
+
+#include <Windows.h>
 #include <gdiplus.h>
-#include <ctime>
+#include <d3d11.h>
+#include <DirectXCollision.h>
+#include <DirectXMath.h>
 #include <d3dcompiler.h>
 #include <Xinput.h>
-#include "Keys.h"
 
 #pragma comment(lib,"Gdiplus.lib")
 #pragma comment (lib, "d3d11.lib")
@@ -24,7 +26,7 @@
 #endif
 #pragma comment(linker, "/subsystem:windows /ENTRY:mainCRTStartup")
 
-namespace dx2d
+namespace Viva
 {
 	//using	
 	using namespace DirectX;
@@ -51,14 +53,13 @@ namespace dx2d
 	class CRenderTarget;
 
 	//externals
-	extern CCore* Core;
-	extern CDrawManager* DrawManager;
-	extern CCamera* Camera;
-	extern CInput* Input;
-	extern CEventManager* EventManager;
-	extern CResourceManager* ResourceManager;
-	extern CDebugManager* DebugManager;
-	extern HRESULT hr;
+	CCore* Core;
+	CDrawManager* DrawManager;
+	CCamera* Camera;
+	CInput* Input;
+	CEventManager* EventManager;
+	CResourceManager* ResourceManager;
+	CDebugManager* DebugManager;
 
 	namespace Functions
 	{
@@ -96,7 +97,7 @@ namespace dx2d
 		CTexture* GetCachedTextureFromResource(int resource, wstring name);
 
 		//check for HR when directx init functions are called
-		void Checkhr(LPCSTR file, int line);
+		void Checkhr(LPCSTR file, int line, HRESULT hr);
 
 		//ps from file
 		//entryPoint: main of the ps

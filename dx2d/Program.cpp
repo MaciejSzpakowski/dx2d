@@ -1,7 +1,6 @@
-#include "Private.h"
-#include <ctime>
+#include "Viva.h"
 
-using namespace dx2d;
+using namespace Viva;
 
 
 void Activity()
