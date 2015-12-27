@@ -2,66 +2,53 @@
 
 namespace Viva
 {
-	CBitmapFont::CBitmapFont(LPCWSTR file, vector<Rect> _chars)
+	BitmapFont::BitmapFont(const wchar_t* filename, const vector<Rect>& _chars)
 	{
-		zChars = _chars;
-		zTexture = DrawManager->GetTexture(file);
-		zShaderResource = zTexture->zShaderResource;
+		chars = _chars;
+		texture = DrawManager->GetTexture(filename);
 	}
 
-	CBitmapFont::CBitmapFont(LPCWSTR file, int width, int height, int charsPerRow)
+	BitmapFont::BitmapFont(const wchar_t* filename, const Size& letterSize, int charsPerRow)
 	{
-		zTexture = DrawManager->GetTexture(file);
-		zShaderResource = zTexture->zShaderResource;
+		texture = DrawManager->GetTexture(filename);
 
 		float fWidth;
 		float fHeight;
-		vector<Rect> chars1;
+
 		for (int i = 0, k = 32; k < 127; i++)
 		{
 			for (int j = 0; j < charsPerRow; j++, k++)
 			{
-				fWidth = (float)width;
-				fHeight = (float)height;
-				chars1.push_back(Rect(fWidth / zTexture->size.width *j, fHeight / zTexture->size.height *i, fWidth /
-					zTexture->size.width *(j + 1), fHeight / zTexture->size.height *(i + 1)));
+				fWidth = (float)letterSize.width;
+				fHeight = (float)letterSize.height;
+				chars.push_back(Rect(fWidth / texture->size.width *j, fHeight / texture->size.height *i, fWidth /
+					texture->size.width *(j + 1), fHeight / texture->size.height *(i + 1)));
 			}
 		}
-
-		zChars = chars1;
 	}
 
-	CBitmapFont::CBitmapFont(CTexture* texture, vector<Rect> _chars)
+	BitmapFont::BitmapFont(CTexture* texture, const vector<Rect>& _chars)
 	{
-		zChars = _chars;
-		zTexture = texture;
-		zShaderResource = texture->zShaderResource;
+		chars = _chars;
+		texture = texture;
 	}
 
-	CBitmapFont::CBitmapFont(CTexture* texture, int width, int height, int charsPerRow)
+	BitmapFont::BitmapFont(CTexture* texture, const Size& letterSize, int charsPerRow)
 	{
-		zTexture = texture;
-		zShaderResource = zTexture->zShaderResource;
+		texture = texture;
 
 		float fWidth;
 		float fHeight;
-		vector<Rect> chars1;
+
 		for (int i = 0, k = 32; k < 127; i++)
 		{
 			for (int j = 0; j < charsPerRow; j++, k++)
 			{
-				fWidth = (float)width;
-				fHeight = (float)height;
-				chars1.push_back(Rect(fWidth / zTexture->size.width *j, fHeight / zTexture->size.height *i, fWidth /
-					zTexture->size.width *(j + 1), fHeight / zTexture->size.height *(i + 1)));
+				fWidth = (float)letterSize.width;
+				fHeight = (float)letterSize.height;
+				chars.push_back(Rect(fWidth / texture->size.width *j, fHeight / texture->size.height *i, fWidth /
+					texture->size.width *(j + 1), fHeight / texture->size.height *(i + 1)));
 			}
 		}
-
-		zChars = chars1;
-	}
-
-	void CBitmapFont::Destroy()
-	{
-		delete this;
 	}
 }

@@ -2,18 +2,39 @@
 
 namespace Viva
 {
-	class CBitmapFont
+	class BitmapFont
 	{
+	private:
+		vector<Rect> chars; // uv cooridantes for letters 
+		CTexture* texture;
 	public:
-		vector<Rect> zChars;
-		CTexture* zTexture;
-		ID3D11ShaderResourceView* zShaderResource;
+		// Create bitmap font from file.
+		// _chars: uv coordinates of each letter in ascii order
+		BitmapFont(const wchar_t* filename, const vector<Rect>& _chars);
 
-		CBitmapFont(LPCWSTR file, vector<Rect> _chars);
-		CBitmapFont(LPCWSTR file, int width, int height, int charsPerRow);
-		CBitmapFont(CTexture* texture, vector<Rect> _chars);
-		CBitmapFont(CTexture* texture, int width, int height, int charsPerRow);
-		CTexture* GetTexture() { return zTexture; }
-		void Destroy();
+		// Create bitmap font from file.
+		// UV cooridnates will be generated starting from 0,0 (upper left corner).
+		// letterSize: width and height of each letter in pixels
+		// charsPerRow: how many characters there are per row
+		BitmapFont(const wchar_t* filename, const Size& letterSize, int charsPerRow);
+
+		// Create bitmap font from texture.
+		// _chars: uv coordinates of each letter in ascii order
+		BitmapFont(CTexture* texture, const vector<Rect>& _chars);
+
+		// Create bitmap font from texture.
+		// UV cooridnates will be generated starting from 0,0 (upper left corner).
+		// letterSize: width and height of each letter in pixels
+		// charsPerRow: how many characters there are per row
+		BitmapFont(CTexture* texture, const Size& letterSize, int charsPerRow);
+
+		CTexture* GetTexture() const { return texture; }
+
+		const vector<Rect>& _GetChars() const { return chars; }
+
+		void Destroy()
+		{
+			delete this;
+		}
 	};
 }

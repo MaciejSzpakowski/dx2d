@@ -2,7 +2,7 @@
 
 namespace Viva
 {
-	ID3D11ShaderResourceView* SrvFromColorArray(const Color data[], const Size& _size)
+	ID3D11ShaderResourceView* SrvFromColorArray(const Pixel data[], const Size& _size)
 	{
 		ID3D11Texture2D *tex;
 		D3D11_TEXTURE2D_DESC desc;
@@ -79,7 +79,7 @@ namespace Viva
 		}
 
 		size = Size(w, h);
-		zShaderResource = SrvFromColorArray((Color*)data, size);
+		zShaderResource = SrvFromColorArray((Pixel*)data, size);
 
 		DeleteObject(hbitmap);
 		delete gdibitmap;
@@ -87,7 +87,7 @@ namespace Viva
 	}
 
 	// create texture from Color array
-	CTexture::CTexture(const Color data[], const Size& _size, const wchar_t* _name) :Resource(_name)
+	CTexture::CTexture(const Pixel data[], const Size& _size, const wchar_t* _name) :Resource(_name)
 	{
 		size = _size;
 		zShaderResource = SrvFromColorArray(data, _size);

@@ -5,12 +5,12 @@ namespace Viva
 	class CBitmapText : public CDynamic
 	{
 	public:
-		CBitmapFont* zFont;
+		BitmapFont* zFont;
 		void zDraw() override;
 		XMMATRIX zGetScaleMatrix() override;
 		void zTextTransform(int col, int row, int len);
 
-		CBitmapText(CBitmapFont* _font);
+		CBitmapText(BitmapFont* _font);
 		//set up scale to match given size
 		void SetPixelScale(int width, int height);
 		void Destroy();

@@ -47,7 +47,7 @@ namespace Viva
 	class CEventManager;
 	class CResourceManager;
 	class CAnimation;
-	class CBitmapFont;
+	class BitmapFont;
 	class CBitmapText;
 	class CDebugManager;
 	class CTexture;

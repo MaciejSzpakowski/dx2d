@@ -9,7 +9,7 @@ namespace Viva
 		std::wstringstream zWss;
 
 		CDebugManager();
-		void Init(CBitmapFont* font);
+		void Init(BitmapFont* font);
 		void Debug(int debug, wstring name);
 		void Debug(float debug, wstring name);
 		void Debug(double debug, wstring name);

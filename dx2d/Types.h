@@ -16,10 +16,11 @@ namespace Viva
 
 	enum class TextureFilter { Point, Linear };
 
+	// some functions use color where each component is between 0 and 1
 	struct Color
 	{
 		float r, g, b, a;
-		Color() {}
+		Color() :r(0), g(0), b(0), a(0) {}
 		Color(float _r, float _g, float _b, float _a) : r(_r), g(_g), b(_b), a(_a) {}
 		Color& operator = (const XMFLOAT4& other)
 		{
@@ -29,6 +30,14 @@ namespace Viva
 			a = other.w;
 			return *this;
 		}
+	};
+
+	// some functions use pixel (which is the same as color) where each component is between 0 and 255
+	struct Pixel
+	{
+		byte r, g, b, a;
+		Pixel() :r(0), g(0), b(0), a(0) {}
+		Pixel(byte _r, byte _g, byte _b, byte _a) : r(_r), g(_g), b(_b), a(_a) {}
 	};
 
 	struct Point

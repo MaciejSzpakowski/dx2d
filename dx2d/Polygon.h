@@ -9,8 +9,8 @@ namespace Viva
 		XMMATRIX zGetScaleMatrix() override;
 		void zDraw() override;
 
-		CPolygon();
-		CPolygon(XMFLOAT2 points[], int n);
+		CPolygon() {}
+		CPolygon(const vector<XMFLOAT2>& points);
 
 		//make exact (but independent) copy and add to draw manager
 		//stuff that is not copied: children (since they can have only one parent)
@@ -24,7 +24,7 @@ namespace Viva
 		XMMATRIX zGetScaleMatrix() override;
 
 		XMFLOAT2 Scale;
-		CRectangle(float scalex, float scaley);
+		CRectangle(const Size& size);
 	};
 
 	class CCircle : public CPolygon

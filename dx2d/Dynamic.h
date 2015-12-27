@@ -49,10 +49,10 @@ namespace Viva
 		bool Pickable;
 		float SizeVelocity;
 		float SizeAcceleration;
-		float Size;
+		float size;
 		XMFLOAT2 Origin;
 		bool Visible;
-		Color Color;
+		Color color;
 		Rect UV;
 		bool TransformVertices;
 

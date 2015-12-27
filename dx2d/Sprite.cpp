@@ -18,7 +18,7 @@ namespace Viva
 		FlipVertically = false;
 		zVertexBuffer = nullptr;
 		Scale = XMFLOAT2(1, 1);
-		Color = XMFLOAT4(1, 1, 1, 1);
+		color = XMFLOAT4(1, 1, 1, 1);
 		TexFilter = DrawManager->TexFilterCreationMode;
 		zRenderTarget = nullptr;
 	}
@@ -30,7 +30,7 @@ namespace Viva
 		FlipVertically = false;
 		zVertexBuffer = nullptr;
 		Scale = XMFLOAT2(1, 1);
-		Color = XMFLOAT4(1, 1, 1, 1);
+		color = XMFLOAT4(1, 1, 1, 1);
 		TexFilter = DrawManager->TexFilterCreationMode;
 		zTexture = DrawManager->GetTexture(file);
 		zShaderResource = zTexture->zShaderResource;
@@ -44,7 +44,7 @@ namespace Viva
 		FlipVertically = false;
 		zVertexBuffer = nullptr;
 		Scale = XMFLOAT2(1, 1);
-		Color = XMFLOAT4(1, 1, 1, 1);
+		color = XMFLOAT4(1, 1, 1, 1);
 		TexFilter = DrawManager->TexFilterCreationMode;
 		zTexture = texture;
 		zShaderResource = texture->zShaderResource;
@@ -57,7 +57,7 @@ namespace Viva
 		if(PixelShader != nullptr)
 			Core->zContext->PSSetShader(PixelShader, 0, 0);
 		//color		
-		Core->zContext->UpdateSubresource(DrawManager->zCbBufferPS, 0, 0, &Color, 0, 0);
+		Core->zContext->UpdateSubresource(DrawManager->zCbBufferPS, 0, 0, &color, 0, 0);
 		//uv
 		Rect uv;
 		uv.left = FlipHorizontally ? UV.right : UV.left;
@@ -77,12 +77,12 @@ namespace Viva
 
 	void CSprite::zSpriteUpdate()
 	{
-		Size += SizeVelocity * (float)Core->GetFrameTime();
+		size += SizeVelocity * (float)Core->GetFrameTime();
 	}
 
 	XMMATRIX CSprite::zGetScaleMatrix()
 	{
-		return XMMatrixScaling(Scale.x * Size, Scale.y * Size, 1);
+		return XMMatrixScaling(Scale.x * size, Scale.y * size, 1);
 	}
 
 	void CSprite::SetNaturalScale()

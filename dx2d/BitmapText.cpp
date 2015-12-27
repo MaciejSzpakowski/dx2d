@@ -2,9 +2,9 @@
 
 namespace Viva
 {
-	CBitmapText::CBitmapText(CBitmapFont* _font)
+	CBitmapText::CBitmapText(BitmapFont* _font)
 	{
-		Color = XMFLOAT4(1, 1, 1, 1);
+		color = XMFLOAT4(1, 1, 1, 1);
 		zFont = _font;
 		Text = L"";
 		HorizontalAlign = HorizontalAlignment::Left;
@@ -21,9 +21,9 @@ namespace Viva
 		if (Text.length() == 0)
 			return;
 		//color
-		Core->zContext->UpdateSubresource(DrawManager->zCbBufferPS, 0, NULL, &Color, 0, 0);
+		Core->zContext->UpdateSubresource(DrawManager->zCbBufferPS, 0, NULL, &color, 0, 0);
 		//tex
-		Core->zContext->PSSetShaderResources(0, 1, &zFont->zShaderResource);
+		Core->zContext->PSSetShaderResources(0, 1, &zFont->GetTexture()->zShaderResource);
 		int len = (int)Text.length();
 		int col = 0;
 		int row = 0;
@@ -38,9 +38,9 @@ namespace Viva
 			}			
 			//uv
 			int index = Text[i] - ' ';
-			if (index < 0 || index > zFont->zChars.size())
+			if (index < 0 || index > zFont->_GetChars().size())
 				continue;
-			Core->zContext->UpdateSubresource(DrawManager->zCbBufferUV, 0, NULL, &(zFont->zChars[index]), 0, 0);
+			Core->zContext->UpdateSubresource(DrawManager->zCbBufferUV, 0, NULL, &(zFont->_GetChars()[index]), 0, 0);
 			//transform letter and draw
 			zTextTransform(col,row, len);
 			Core->zContext->DrawIndexed(6, 0, 0);

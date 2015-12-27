@@ -7,7 +7,7 @@ namespace Viva
 	public:
 		CRenderTarget* zDefaultRenderTarget;
 		vector<CRenderTarget*> zRenderTargets;
-		CBitmapFont* zDefaultFont;
+		BitmapFont* zDefaultFont;
 		ID3D11ShaderResourceView* zWhiteRes;
 		ID3D11SamplerState* zPointSampler;
 		ID3D11SamplerState* zLineSampler;
@@ -27,14 +27,10 @@ namespace Viva
 
 		CDrawManager();
 		void Destroy();
-		CPolygon* AddPoly(XMFLOAT2 points[], int n,
-			CRenderTarget* target = nullptr);
-		CRectangle* AddRect(float sizex, float sizey,
-			CRenderTarget* target = nullptr);
-		CCircle* AddCircle(float radius, unsigned char resolution,
-			CRenderTarget* target = nullptr);
-		void AddPoly(CPolygon* p,
-			CRenderTarget* target = nullptr);
+		CPolygon* AddPoly(const vector<XMFLOAT2>& points, CRenderTarget* target = nullptr);
+		CRectangle* AddRect(const Size& size, CRenderTarget* target = nullptr);
+		CCircle* AddCircle(float radius, unsigned char resolution, CRenderTarget* target = nullptr);
+		void AddPoly(CPolygon* p, CRenderTarget* target = nullptr);
 		void RemovePoly(CPolygon* p);
 
 		//add sprite from file
@@ -42,21 +38,15 @@ namespace Viva
 		CSprite* AddSprite(LPCWSTR file,
 			CRenderTarget* target = nullptr);
 
-		void AddSprite(CSprite* s,
-			CRenderTarget* target = nullptr);
+		void AddSprite(CSprite* s, CRenderTarget* target = nullptr);
 		void RemoveSprite(CSprite* s);
-		CAnimation* AddAnimation(LPCWSTR file, int x, int y,
-			CRenderTarget* target = nullptr);
-		void AddAnimation(CAnimation* a,
-			CRenderTarget* target = nullptr);
+		CAnimation* AddAnimation(LPCWSTR file, int x, int y, CRenderTarget* target = nullptr);
+		void AddAnimation(CAnimation* a, CRenderTarget* target = nullptr);
 		void RemoveAnimation(CAnimation* a);
-		CBitmapText* AddBitmapText(CBitmapFont* font,
-			CRenderTarget* target = nullptr);
-		void AddBitmapText(CBitmapText* text,
-			CRenderTarget* target = nullptr);
-		void RemoveBitmapFont(CBitmapFont* font);
+		CBitmapText* AddBitmapText(BitmapFont* font, CRenderTarget* target = nullptr);
+		void AddBitmapText(CBitmapText* text, CRenderTarget* target = nullptr);
 		void RemoveBitmapText(CBitmapText* text);
-		CBitmapFont* GetDefaultFont();
+		BitmapFont* GetDefaultFont();
 		CRenderTarget* AddRenderTarget();
 		void DestroyRenderTarget(CRenderTarget* target);
 		void InitDefaultFont();

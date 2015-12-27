@@ -2,14 +2,10 @@
 
 namespace Viva
 {
-	CPolygon::CPolygon()
+	CPolygon::CPolygon(const vector<XMFLOAT2>& points)
 	{
-	}
-
-	CPolygon::CPolygon(XMFLOAT2 points[], int n)
-	{
-		Color = XMFLOAT4(0, 0, 0, 0);
-		zVertexCount = n;
+		color = XMFLOAT4(0, 0, 0, 0);
+		zVertexCount = (int)points.size();
 		zRadius = 0;
 
 		/*/method 1
@@ -35,12 +31,12 @@ namespace Viva
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
 		bd.Usage = D3D11_USAGE_DEFAULT;				   // GPU writes and reads
-		bd.ByteWidth = sizeof(Vertex) * n;	           // size is the VERTEX struct * 3
+		bd.ByteWidth = (UINT)(sizeof(Vertex) * points.size()); // size is the VERTEX struct * 3
 		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;       // use as a vertex buffer
 		bd.CPUAccessFlags = 0;		                   // CPU does nothing
 
-		Vertex* vertices = new Vertex[n];
-		for (int i = 0; i < n; i++)
+		Vertex* vertices = new Vertex[points.size()];
+		for (int i = 0; i < points.size(); i++)
 		{
 			float distFromOrigin = sqrtf(points[i].x*points[i].x + points[i].y*points[i].y);
 			if (distFromOrigin > zRadius)
@@ -72,11 +68,11 @@ namespace Viva
 		return XMMatrixIdentity();
 	}
 
-	CRectangle::CRectangle(float scalex, float scaley)
+	CRectangle::CRectangle(const Size& size)
 	{
 		zVertexCount = 5;
-		Scale.x = scalex;
-		Scale.y = scaley;
+		Scale.x = (float)size.width;
+		Scale.y = (float)size.height;
 		//method 2
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
@@ -150,7 +146,7 @@ namespace Viva
 
 	void CPolygon::zDraw()
 	{		
-		Core->zContext->UpdateSubresource(DrawManager->zCbBufferPS, 0, NULL, &Color, 0, 0);		
+		Core->zContext->UpdateSubresource(DrawManager->zCbBufferPS, 0, NULL, &color, 0, 0);		
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 		Core->zContext->IASetVertexBuffers(0, 1, &zVertexBuffer, &stride, &offset);

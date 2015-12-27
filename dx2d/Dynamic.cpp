@@ -9,7 +9,7 @@ namespace Viva
 		zRenderTarget = nullptr;
 		Visible = true;
 		UV = Rect(0, 0, 1, 1);
-		Color = XMFLOAT4(0, 0, 0, 0);
+		color = XMFLOAT4(0, 0, 0, 0);
 		zIndex = -1;
 		zExtraBufferPSdata = nullptr;
 		TransformVertices = false;
@@ -22,7 +22,7 @@ namespace Viva
 		Origin = { 0, 0 };
 		SizeAcceleration = 0;
 		SizeVelocity = 0;
-		Size = 1;
+		size = 1;
 		zParent = nullptr;
 		Pickable = false;		
 		zUnderCursor = false;
@@ -138,6 +138,6 @@ namespace Viva
 
 	void CDynamic::SetColor(float r, float g, float b, float a)
 	{
-		Color = XMFLOAT4(r, g, b, a);
+		color = XMFLOAT4(r, g, b, a);
 	}
 }

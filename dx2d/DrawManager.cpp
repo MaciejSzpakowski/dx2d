@@ -94,8 +94,8 @@ namespace Viva
 		zCbBufferPSExtra = nullptr;
 
 		//default white texture used by non textured objects
-		Color fourOnes[1] = { Color(1,1,1,1) };
-		CTexture* tex = new CTexture(fourOnes, Size(1, 1), L"");
+		Pixel whitePixel[1] = { Pixel(255,255,255,255) };
+		CTexture* tex = new CTexture(whitePixel, Size(1, 1), L"");
 		zWhiteRes = tex->zShaderResource;
 		delete tex;
 		
@@ -131,22 +131,22 @@ namespace Viva
 		p->zIndex = (int)target->zPolygons.size() - 1;
 	}
 
-	CPolygon* CDrawManager::AddPoly(XMFLOAT2 points[], int n, CRenderTarget* target)
+	CPolygon* CDrawManager::AddPoly(const vector<XMFLOAT2>& points, CRenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
-		CPolygon* newPoly = new CPolygon(points, n);
+		CPolygon* newPoly = new CPolygon(points);
 		target->zPolygons.push_back(newPoly);
 		newPoly->zRenderTarget = target;
 		newPoly->zIndex = (int)target->zPolygons.size() - 1;
 		return newPoly;
 	}
 
-	CRectangle* CDrawManager::AddRect(float sizex, float sizey, CRenderTarget* target)
+	CRectangle* CDrawManager::AddRect(const Size& size, CRenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
-		CRectangle* newRect = new CRectangle(sizex,sizey);
+		CRectangle* newRect = new CRectangle(size);
 		target->zPolygons.push_back(newRect);
 		newRect->zRenderTarget = target;
 		newRect->zIndex = (int)target->zPolygons.size() - 1;
@@ -344,7 +344,7 @@ namespace Viva
 		RemoveSprite(a);
 	}
 
-	CBitmapText* CDrawManager::AddBitmapText(CBitmapFont* font, CRenderTarget* target)
+	CBitmapText* CDrawManager::AddBitmapText(BitmapFont* font, CRenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
@@ -366,11 +366,6 @@ namespace Viva
 		target->zTexts.push_back(text);
 		text->zRenderTarget = target;
 		text->zIndex = (int)target->zTexts.size() - 1;
-	}
-
-	void CDrawManager::RemoveBitmapFont(CBitmapFont* font)
-	{
-		MessageBox(0, L"CDrawManager::RemoveBitmapFont(CBitmapFont* font)\nnot implemented", 0, 0);
 	}
 
 	void CDrawManager::RemoveBitmapText(CBitmapText* t)
@@ -398,7 +393,7 @@ namespace Viva
 		t->zIndex = -1;
 	}
 
-	CBitmapFont* CDrawManager::GetDefaultFont()
+	BitmapFont* CDrawManager::GetDefaultFont()
 	{
 		return zDefaultFont;
 	}
@@ -445,8 +440,8 @@ namespace Viva
 					300.0f*(j + 1), 21 / 105.0f*(i + 1)));
 			}
 		
-		CTexture* tex1 = new CTexture((Color*)rc_font, Size(300, 105),L"");
-		DrawManager->zDefaultFont = new CBitmapFont(tex1,15,21,20);
+		CTexture* tex1 = new CTexture((Pixel*)rc_font, Size(300, 105),L"");
+		DrawManager->zDefaultFont = new BitmapFont(tex1,Size(15,21),20);
 		DebugManager->Init(DrawManager->GetDefaultFont());
 	}
 

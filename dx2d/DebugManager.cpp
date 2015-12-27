@@ -15,7 +15,7 @@ namespace Viva
 		zWss.str(L"");
 	}
 
-	void CDebugManager::Init(CBitmapFont* font)
+	void CDebugManager::Init(BitmapFont* font)
 	{
 		zDebugText = new CBitmapText(DrawManager->zDefaultFont);
 		zDebugText->SetPosition(-9, 7, 10.3f);
