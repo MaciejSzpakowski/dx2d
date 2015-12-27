@@ -8,16 +8,15 @@ namespace Viva
 	extern const char rc_PostProcessing[];
 	extern const char rc_VertexShader[];
 
-	CCore::CCore(int sizex, int sizey, std::function<void()> worker, int style)
+	CCore::CCore(Size _clientSize, std::function<void()> worker, int style)
 	{
 		HRESULT hr = 0;
 		zFullscreen = false;
-		zClientSize.x = sizex;
-		zClientSize.y = sizey;
+		clientSize = _clientSize;
 		//assign global variable
 		Core = this;
 		//create window
-		zWindow = new CWindow(sizex, sizey, style);
+		zWindow = new CWindow(_clientSize, style);
 		zWindow->zWorker = worker;
 		zWindow->zActivity = IntActivity;
 
@@ -57,8 +56,8 @@ namespace Viva
 
 		//Describe our Depth/Stencil Buffer and View
 		D3D11_TEXTURE2D_DESC depthStencilDesc;
-		depthStencilDesc.Width = sizex;
-		depthStencilDesc.Height = sizey;
+		depthStencilDesc.Width = (UINT)clientSize.width;
+		depthStencilDesc.Height = (UINT)clientSize.height;
 		depthStencilDesc.MipLevels = 1;
 		depthStencilDesc.ArraySize = 1;
 		depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -78,8 +77,8 @@ namespace Viva
 		ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
 		viewport.TopLeftX = 0;
 		viewport.TopLeftY = 0;
-		viewport.Width = (float)sizex;
-		viewport.Height = (float)sizey;
+		viewport.Width = (FLOAT)clientSize.width;
+		viewport.Height = (FLOAT)clientSize.height;
 		viewport.MinDepth = 0.0f;
 		viewport.MaxDepth = 1.0f;
 		zContext->RSSetViewports(1, &viewport);
@@ -94,8 +93,8 @@ namespace Viva
 		hr = zDevice->CreateVertexShader(vs->GetBufferPointer(), vs->GetBufferSize(), 0,
 			&zDefaultVS); CHECKHR();
 		zContext->VSSetShader(zDefaultVS, 0, 0);
-		zDefaultPS = Functions::CreatePSFromString(rc_PixelShader, "main");
-		zDefaultPost = Functions::CreatePSFromString(rc_PostProcessing, "main");
+		zDefaultPS = CreatePixelShaderFromString(rc_PixelShader, "main");
+		zDefaultPost = CreatePixelShaderFromString(rc_PostProcessing, "main");
 
 		////    INPUT LAYOUT    ////
 		//defaul input layout

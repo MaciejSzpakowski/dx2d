@@ -25,10 +25,10 @@ namespace Viva
 		double zFrameTime;
 		void zUpdateGameTime();
 		bool zFullscreen;
-		POINT zClientSize;
+		Size clientSize;
 		bool EnableAlpha;
 
-		CCore(int sizex, int sizey, std::function<void()> worker, int style);
+		CCore(Size _clientSize, std::function<void()> worker, int style);
 		HWND GetWindowHandle();
 		void SetWindowTitle(LPCWSTR title);
 		void SetBackgroundColor(Color color);
@@ -44,5 +44,31 @@ namespace Viva
 		void Destroy();
 		void SaveScreenshot(LPCWSTR file);
 		void Exit();
+
+		// CREATOR
+
+		// create pixel shader from file
+		ID3D11PixelShader* CreatePixelShaderFromFile(const wchar_t* filepath, const char* entryPoint, const char* = "ps_5_0");
+
+		// create pixel shader from const char*
+		ID3D11PixelShader* CreatePixelShaderFromString(const char* str, const char* entryPoint, const char* = "ps_5_0");
+
+		// create render target
+		CRenderTarget* CreateRenderTarget();
+
+		// create texture from file
+		CTexture* CreateTexture(const wchar_t* filepath);
+
+		// create texture from byte array
+		CTexture* CreateTexture(const Color data[], const Size& size, const wchar_t* name);
+
+		//// create sprite from file
+		CSprite* CreateSprite(const wchar_t* filepath);
+
+		//// create sprite from texture
+		CSprite* CreateSprite(CTexture* texture);
+
+		// create polygon from list of points
+		CPolygon* CreatePolygon(const vector<Point>& points);
 	};
 }

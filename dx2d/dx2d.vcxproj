@@ -152,6 +152,7 @@
     <ClInclude Include="Dynamic.h" />
     <ClInclude Include="Embedded.h" />
     <ClInclude Include="EventManager.h" />
+    <ClInclude Include="Functions.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Keys.h" />
     <ClInclude Include="Polygon.h" />
@@ -165,9 +166,12 @@
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Animation.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Core.cpp" />
+    <ClCompile Include="Create.cpp" />
     <ClCompile Include="DebugManager.cpp" />
+    <ClCompile Include="Globals.cpp" />
     <ClCompile Include="Polygon.cpp" />
     <ClCompile Include="DrawManager.cpp" />
     <ClCompile Include="Dynamic.cpp" />
@@ -175,6 +179,7 @@
     <ClCompile Include="Functions.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="Program.cpp" />
+    <ClCompile Include="RenderTarget.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="Text.cpp" />

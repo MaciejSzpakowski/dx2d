@@ -16,7 +16,7 @@ namespace Viva
 		zView = XMMatrixLookAtLH(zPosition, target, zUp);
 
 		//Set the Projection matrix
-		zAspectRatio = (float)Core->zClientSize.x / Core->zClientSize.y;
+		zAspectRatio = (float)Core->clientSize.width / Core->clientSize.height;
 		zProj = XMMatrixPerspectiveFovLH(zFovAngle, zAspectRatio, zNearPlane, zFarPlane);
 		DrawManager->zRenderTargetMatrix = zView * zProj;
 	}

@@ -9,7 +9,7 @@ namespace Viva
 		MSG zMsg;
 		std::function<void()> zWorker;
 		std::function<void()> zActivity;
-		CWindow(int sizex, int sizey, int style);
+		CWindow(Size clientSize, int style);
 		int zRun();
 		void Destroy();
 	};

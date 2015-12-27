@@ -23,7 +23,7 @@ namespace Viva
 		return 0;
 	}
 
-	CWindow::CWindow(int sizex, int sizey,int style)
+	CWindow::CWindow(Size clientSize,int style)
 	{
 		const wchar_t className[] = L"myWindowClass";
 		WNDCLASSEX wc;		
@@ -44,7 +44,7 @@ namespace Viva
 			exit(0);
 		}
 
-		RECT rect = { 0, 0, sizex, sizey };
+		RECT rect = { 0, 0, (LONG)clientSize.width, (LONG)clientSize.height };
 		AdjustWindowRectEx(&rect, style | WS_CLIPSIBLINGS,
 			FALSE, 0);
 

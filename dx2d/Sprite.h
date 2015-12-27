@@ -22,7 +22,7 @@ namespace Viva
 		//sets up scale to match texture size
 		void SetNaturalScale();
 		//set up scale to match given size
-		void SetPixelScale(int width, int height);
+		void SetPixelScale(const Size& _size);
 		void Destroy();
 
 		TEX_FILTER TexFilter; //point or linear

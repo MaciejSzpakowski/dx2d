@@ -124,8 +124,8 @@ namespace Viva
 			{
 				fWidth = (float)width;
 				fHeight = (float)height;
-				chars1.push_back(Rect(fWidth / zTexture->zWidth *j, fHeight / zTexture->zHeight *i, fWidth /
-					zTexture->zWidth *(j + 1), fHeight / zTexture->zHeight*(i + 1)));
+				chars1.push_back(Rect(fWidth / zTexture->size.width *j, fHeight / zTexture->size.height *i, fWidth /
+					zTexture->size.width *(j + 1), fHeight / zTexture->size.height *(i + 1)));
 			}		
 		
 		zChars = chars1;
@@ -151,8 +151,8 @@ namespace Viva
 			{
 				fWidth = (float)width;
 				fHeight = (float)height;
-				chars1.push_back(Rect(fWidth / zTexture->zWidth *j, fHeight / zTexture->zHeight *i, fWidth /
-					zTexture->zWidth *(j + 1), fHeight / zTexture->zHeight*(i + 1)));
+				chars1.push_back(Rect(fWidth / zTexture->size.width *j, fHeight / zTexture->size.height *i, fWidth /
+					zTexture->size.width *(j + 1), fHeight / zTexture->size.height *(i + 1)));
 			}
 
 		zChars = chars1;

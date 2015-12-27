@@ -53,96 +53,11 @@ namespace Viva
 	class CRenderTarget;
 
 	//externals
-	CCore* Core;
-	CDrawManager* DrawManager;
-	CCamera* Camera;
-	CInput* Input;
-	CEventManager* EventManager;
-	CResourceManager* ResourceManager;
-	CDebugManager* DebugManager;
-
-	namespace Functions
-	{
-		//creates new CCore object so you dont have to use new operator
-		CCore* InitCore(int sizex, int sizey, std::function<void()> worker, int style = WS_OVERLAPPEDWINDOW);
-
-		//creates new ID3D11Texture2D object from bytes
-		//you probably dont want to use it unless you want to deal with directx directly
-		ID3D11Texture2D* CreateTexture2DFromBytes(BYTE* data, int width, int height);
-
-		//creates new ID3D11Texture2D object from Gdibitmap
-		//you probably dont want to use it unless you want to deal with directx directly
-		ID3D11Texture2D* CreateTexture2DFromGdibitmap(Gdiplus::Bitmap* _gdibitmap);
-
-		//creates new ID3D11Texture2D object from file
-		//you probably dont want to use it unless you want to deal with directx directly
-		ID3D11Texture2D* CreateTexture2DFromFile(LPCWSTR file);
-
-		//creates new ID3D11Texture2D object from resource
-		//you probably dont want to use it unless you want to deal with directx directly
-		ID3D11Texture2D* CreateTexture2DFromResource(int resource);
-
-		//creates CTexture obj that can be used to create sprite or font
-		//source: raw bytes, format: one pixel is 4 bytes in order RGBA
-		//not cached
-		CTexture* GetUncachedTextureFromBytes(BYTE* data, int width, int height);
-
-		//creates CTexture obj that can be used to create sprite or font
-		//source: file
-		CTexture* GetCachedTextureFromFile(LPCWSTR file);
-
-		//creates CTexture obj that can be used to create sprite or font
-		//source: internal resource
-		//name: unique name
-		CTexture* GetCachedTextureFromResource(int resource, wstring name);
-
-		//check for HR when directx init functions are called
-		void Checkhr(LPCSTR file, int line, HRESULT hr);
-
-		//ps from file
-		//entryPoint: main of the ps
-		//target: ps version, ps_5_0 by default
-		ID3D11PixelShader* CreatePSFromFile(LPCWSTR file, LPCSTR entryPoint, LPCSTR target = "ps_5_0");
-
-		//ps from string
-		//entryPoint: main of the ps
-		//target: ps version, ps_5_0 by default
-		ID3D11PixelShader* CreatePSFromString(LPCSTR string, LPCSTR entryPoint, LPCSTR target = "ps_5_0");
-	}
-
-	namespace Random
-	{
-		//return double between 0(inclusive) and 1(exclusive)
-		double RndDouble();
-
-		//return integer
-		//between min and max (both inclusive)
-		int RndInt(int min, int max);
-	}
-
-	namespace Collision
-	{
-		bool IsColliding(CCircle* c1, CCircle* c2);
-
-		bool IsColliding(CCircle* c, CRectangle* r);
-
-		bool IsColliding(CCircle* c, CPolygon* p);
-
-		//very efficient collision check for rectangles
-		//if rectangle Rotation.z is 0 it's considered axis aligned
-		//if r1 and r2 are axis aligned, the test is even faster
-		bool IsColliding(CRectangle* r1, CRectangle* r2);
-
-		//the most powerful (and inefficient) collision check
-		//pointOfCollision can be used to get the first point of collision
-		//this one checks collision line by line, if any of the two polygons
-		//lines intersects it counts as collision
-		//otherwise it's not a collision even if one poly is inside the another
-		//polygons dont have to be closed
-		bool IsColliding(CPolygon* p1, CPolygon* p2, XMFLOAT3* pointOfCollision);
-
-		//uses separated axis theorem to check for collision
-		//faster than line by line check but polygons must be closed and convex !
-		bool IsCollidingSat(CPolygon* p1, CPolygon* p2);
-	}
+	extern CCore* Core;
+	extern CDrawManager* DrawManager;
+	extern CCamera* Camera;
+	extern CInput* Input;
+	extern CEventManager* EventManager;
+	extern CResourceManager* ResourceManager;
+	extern CDebugManager* DebugManager;
 }

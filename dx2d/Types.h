@@ -31,6 +31,24 @@ namespace Viva
 		}
 	};
 
+	struct Point
+	{
+		float x;
+		float y;
+
+		Point() :x(0), y(0) {}
+		Point(float _x, float _y) :x(_x), y(_y) {}
+	};
+
+	struct Size
+	{
+		size_t width;
+		size_t height;
+
+		Size() :width(0), height(0) {}
+		Size(size_t _width, size_t _height) :width(_width), height(_height) {}
+	};
+
 	struct Rect
 	{
 		float left;
@@ -58,18 +76,20 @@ namespace Viva
 	{
 	public:
 		bool zCached;
-		int zHeight;
-		int zWidth;
+		Size size;
 		wstring zName;
 		ID3D11ShaderResourceView* zShaderResource;
 
-		CTexture(bool cached, int height, int width, wstring name,
-			ID3D11ShaderResourceView* shaderResource) :
-			zCached(cached), zHeight(height), zWidth(width), zName(name),
+		CTexture(bool cached, Size _size, const wchar_t* name,	ID3D11ShaderResourceView* shaderResource) :
+			zCached(cached), size(_size), zName(name),
 			zShaderResource(shaderResource) {}
-		int GetWidth() { return zWidth; }
-		int GetHeight() { return zHeight; }
-		wstring GetName() { return zName; }
+
+		size_t GetWidth() const { return size.width; }
+
+		size_t GetHeight() const { return size.height; }
+
+		wstring GetName() const { return zName; }
+
 		void Destroy()
 		{
 			zShaderResource->Release();
