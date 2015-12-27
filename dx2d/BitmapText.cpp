@@ -7,8 +7,8 @@ namespace Viva
 		Color = XMFLOAT4(1, 1, 1, 1);
 		zFont = _font;
 		Text = L"";
-		HorizontalAlign = TextHorAlign::Left;
-		VerticalAlign = TextVerAlign::Top;
+		HorizontalAlign = HorizontalAlignment::Left;
+		VerticalAlign = VerticalAlignment::Top;
 		Height = 1;
 		Width = 1;
 		HorizontalSpacing = 0;
@@ -56,9 +56,9 @@ namespace Viva
 		float _VerticalSpacing = VerticalSpacing * Size;
 		float horAlignOffset = 0;
 		float verAlignOffset = 0;
-		if (HorizontalAlign == TextHorAlign::Center)
+		if (HorizontalAlign == HorizontalAlignment::Center)
 			horAlignOffset = -len / 2.0f;
-		else if (HorizontalAlign == TextHorAlign::Right)
+		else if (HorizontalAlign == HorizontalAlignment::Right)
 			horAlignOffset = (float)-len;
 		XMMATRIX scale = XMMatrixScaling(_Width, _Height, 1);
 		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(zRotation);
@@ -102,65 +102,6 @@ namespace Viva
 	void CBitmapText::Destroy()
 	{
 		DrawManager->RemoveBitmapText(this);
-		delete this;
-	}
-
-	CBitmapFont::CBitmapFont(LPCWSTR file, vector<Rect> _chars)
-	{
-		zChars = _chars;
-		zTexture = Functions::GetCachedTextureFromFile(file);
-		zShaderResource = zTexture->zShaderResource;
-	}
-
-	CBitmapFont::CBitmapFont(LPCWSTR file, int width, int height, int charsPerRow)
-	{
-		zTexture = Functions::GetCachedTextureFromFile(file);
-
-		float fWidth;
-		float fHeight;
-		vector<Rect> chars1;
-		for (int i = 0,k=32;k<127 ; i++)
-			for (int j = 0; j < charsPerRow; j++, k++)
-			{
-				fWidth = (float)width;
-				fHeight = (float)height;
-				chars1.push_back(Rect(fWidth / zTexture->size.width *j, fHeight / zTexture->size.height *i, fWidth /
-					zTexture->size.width *(j + 1), fHeight / zTexture->size.height *(i + 1)));
-			}		
-		
-		zChars = chars1;
-		zShaderResource = zTexture->zShaderResource;
-	}
-
-	CBitmapFont::CBitmapFont(CTexture* texture, vector<Rect> _chars)
-	{
-		zChars = _chars;
-		zTexture = texture;
-		zShaderResource = texture->zShaderResource;
-	}
-
-	CBitmapFont::CBitmapFont(CTexture* texture, int width, int height, int charsPerRow)
-	{
-		zTexture = texture;
-
-		float fWidth;
-		float fHeight;
-		vector<Rect> chars1;
-		for (int i = 0, k = 32; k<127; i++)
-			for (int j = 0; j < charsPerRow; j++, k++)
-			{
-				fWidth = (float)width;
-				fHeight = (float)height;
-				chars1.push_back(Rect(fWidth / zTexture->size.width *j, fHeight / zTexture->size.height *i, fWidth /
-					zTexture->size.width *(j + 1), fHeight / zTexture->size.height *(i + 1)));
-			}
-
-		zChars = chars1;
-		zShaderResource = zTexture->zShaderResource;
-	}
-
-	void CBitmapFont::Destroy()
-	{
 		delete this;
 	}
 }

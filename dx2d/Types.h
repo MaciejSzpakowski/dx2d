@@ -49,6 +49,21 @@ namespace Viva
 		Size(size_t _width, size_t _height) :width(_width), height(_height) {}
 	};
 
+	class Resource
+	{
+	protected:
+		wstring name;
+		bool cached;
+	public:
+		Resource(const wstring& _name) :name(_name), cached(false) {}
+
+		bool IsCached() const { return cached; }
+
+		void _SetCached(bool _cached) { cached = _cached; }
+
+		wstring GetName() const { return name; }
+	};
+
 	struct Rect
 	{
 		float left;
@@ -70,22 +85,7 @@ namespace Viva
 		wstring Name;
 		std::function<int()> Activity;
 	};
-
-	class CBitmapFont
-	{
-	public:
-		vector<Rect> zChars;
-		CTexture* zTexture;
-		ID3D11ShaderResourceView* zShaderResource;
-
-		CBitmapFont(LPCWSTR file, vector<Rect> _chars);
-		CBitmapFont(LPCWSTR file, int width, int height, int charsPerRow);
-		CBitmapFont(CTexture* texture, vector<Rect> _chars);
-		CBitmapFont(CTexture* texture, int width, int height, int charsPerRow);
-		CTexture* GetTexture() { return zTexture; }
-		void Destroy();
-	};
-
-	enum class TextHorAlign { Left, Center, Right };
-	enum class TextVerAlign { Top, Center, Bottom };	
+	
+	enum class HorizontalAlignment { Left, Center, Right };
+	enum class VerticalAlignment { Top, Center, Bottom };
 }

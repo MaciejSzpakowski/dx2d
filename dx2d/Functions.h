@@ -5,7 +5,7 @@ namespace Viva
 	namespace Functions
 	{
 		//creates new CCore object so you dont have to use new operator
-		CCore* InitCore(Size clientSize, std::function<void()> worker, int style = WS_OVERLAPPEDWINDOW);
+		void InitViva(Size clientSize, std::function<void()> worker, int style = WS_OVERLAPPEDWINDOW);
 				
 		//check for HR when directx init functions are called
 		void Checkhr(LPCSTR file, int line, HRESULT hr);

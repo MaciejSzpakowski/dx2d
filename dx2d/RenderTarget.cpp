@@ -2,6 +2,52 @@
 
 namespace Viva
 {
+	CRenderTarget::CRenderTarget()
+	{
+		D3D11_TEXTURE2D_DESC textureDesc;
+		D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+
+		ID3D11Texture2D* tex;
+		ZeroMemory(&textureDesc, sizeof(textureDesc));
+		textureDesc.Width = (UINT)Core->clientSize.width;
+		textureDesc.Height = (UINT)Core->clientSize.height;
+		textureDesc.MipLevels = 1;
+		textureDesc.ArraySize = 1;
+		textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		textureDesc.SampleDesc.Count = 1;
+		textureDesc.Usage = D3D11_USAGE_DEFAULT;
+		textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+		textureDesc.CPUAccessFlags = 0;
+		textureDesc.MiscFlags = 0;
+		HRESULT hr = Core->zDevice->CreateTexture2D(&textureDesc, NULL, &tex); CHECKHR();
+
+		ID3D11RenderTargetView* rtv;
+		renderTargetViewDesc.Format = textureDesc.Format;
+		renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		renderTargetViewDesc.Texture2D.MipSlice = 0;
+		hr = Core->zDevice->CreateRenderTargetView(tex,
+			&renderTargetViewDesc, &rtv); CHECKHR();
+
+		ID3D11ShaderResourceView* srv;
+		shaderResourceViewDesc.Format = textureDesc.Format;
+		shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
+		shaderResourceViewDesc.Texture2D.MipLevels = 1;
+		hr = Core->zDevice->CreateShaderResourceView(tex,
+			&shaderResourceViewDesc, &srv); CHECKHR();
+
+		PixelShader = Core->zDefaultPost;
+		zTexture = tex;
+		zTargetView = rtv;
+		zSprite = new CSprite();
+		zSprite->FlipVertically = true;
+		zSprite->Pickable = false;
+		zSprite->zTexture = nullptr;
+		zSprite->PixelShader = nullptr;
+		zSprite->zShaderResource = srv;
+	}
+
 	int myfunc(CSprite* s1, CSprite* s2)
 	{
 		return s1->GetPosition().z > s2->GetPosition().z;
@@ -48,7 +94,7 @@ namespace Viva
 			s->zTransform();
 			if (s->Visible)
 			{
-				if (s->TexFilter == TEX_FILTER::LINEAR)
+				if (s->TexFilter == TextureFilter::Linear)
 					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zLineSampler);
 				else
 					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zPointSampler);
@@ -61,7 +107,7 @@ namespace Viva
 			t->zUpdate();
 			if (t->Visible)
 			{
-				if (t->TexFilter == TEX_FILTER::LINEAR)
+				if (t->TexFilter == TextureFilter::Linear)
 					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zLineSampler);
 				else
 					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zPointSampler);

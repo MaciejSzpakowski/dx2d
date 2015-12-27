@@ -13,11 +13,11 @@ namespace Viva
 
 	namespace Functions
 	{
-		CCore* InitCore(Size clientSize, std::function<void()> worker, int style)
+		void InitViva(Size clientSize, std::function<void()> worker, int style)
 		{
-			CCore* core = new CCore(clientSize, worker, style);
+			// for now core assigns itself to global variable
+			new CCore(clientSize, worker, style);
 			DrawManager->zInit();
-			return core;
 		}
 
 		//ID3D11Texture2D* CreateTexture2DFromBytes(BYTE* data, int width, int height)

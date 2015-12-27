@@ -32,7 +32,7 @@ namespace Viva
 		Scale = XMFLOAT2(1, 1);
 		Color = XMFLOAT4(1, 1, 1, 1);
 		TexFilter = DrawManager->TexFilterCreationMode;
-		zTexture = Functions::GetCachedTextureFromFile(file);
+		zTexture = DrawManager->GetTexture(file);
 		zShaderResource = zTexture->zShaderResource;
 		zRenderTarget = nullptr;
 	}
@@ -88,10 +88,11 @@ namespace Viva
 	void CSprite::SetNaturalScale()
 	{
 		CTexture* tex = GetTexture();
-		SetPixelScale(Size(tex->size.width, tex->size.height));
+		
+		SetPixelScale(Viva::Size(tex->size.width, tex->size.height));
 	}
 
-	void CSprite::SetPixelScale(const Size& _size)
+	void CSprite::SetPixelScale(const Viva::Size& _size)
 	{
 		XMFLOAT2 frustum = Camera->GetFrustumSize(GetPosition().z);
 		RECT client;

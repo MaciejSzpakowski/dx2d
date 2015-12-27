@@ -12,11 +12,7 @@ namespace Viva
 		vector<CSprite*> zSprites;
 		vector<CBitmapText*> zTexts;
 
-		CRenderTarget(ID3D11PixelShader* _post) :
-			zTexture(nullptr),
-			zTargetView(nullptr),
-			zSprite(nullptr),
-			PixelShader(_post) {}
+		CRenderTarget();
 
 		//draw all objects that belong to the render target
 		void zDraw();

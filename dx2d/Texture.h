@@ -2,12 +2,10 @@
 
 namespace Viva
 {
-	class CTexture
+	class CTexture : public Resource
 	{
 	public:
-		bool zCached;
 		Size size;
-		wstring zName;
 		ID3D11ShaderResourceView* zShaderResource;
 
 		// create texture from file
@@ -18,10 +16,11 @@ namespace Viva
 
 		Size GetSize() const { return size; }
 
-		wstring GetName() const { return zName; }
-
 		void Destroy()
 		{
+			if (cached)
+				ResourceManager->RemoveResource(name);
+
 			zShaderResource->Release();
 			delete this;
 		}

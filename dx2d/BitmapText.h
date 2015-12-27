@@ -15,9 +15,9 @@ namespace Viva
 		void SetPixelScale(int width, int height);
 		void Destroy();
 
-		TextHorAlign HorizontalAlign;
-		TextVerAlign VerticalAlign;
-		TEX_FILTER TexFilter; //point or linear
+		HorizontalAlignment HorizontalAlign;
+		VerticalAlignment VerticalAlign;
+		TextureFilter TexFilter; //point or linear
 		wstring Text;
 		float Size;
 		float Height;

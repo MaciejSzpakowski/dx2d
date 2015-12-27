@@ -50,9 +50,6 @@ namespace Viva
 		void AddAnimation(CAnimation* a,
 			CRenderTarget* target = nullptr);
 		void RemoveAnimation(CAnimation* a);
-		CBitmapFont* AddBitmapFont(LPCWSTR file, vector<Rect> chars);
-		void AddBitmapFont(CBitmapFont* font);
-		CBitmapFont* AddBitmapFont(LPCWSTR file, int width, int height, int charsPerRow);
 		CBitmapText* AddBitmapText(CBitmapFont* font,
 			CRenderTarget* target = nullptr);
 		void AddBitmapText(CBitmapText* text,
@@ -63,7 +60,11 @@ namespace Viva
 		CRenderTarget* AddRenderTarget();
 		void DestroyRenderTarget(CRenderTarget* target);
 		void InitDefaultFont();
-		CRenderTarget* GetDefaultRenderTarget();
+		CRenderTarget* GetDefaultRenderTarget() { return zDefaultRenderTarget; }
+
+		// try to get texture from the resource manager, if it's not there
+		// create a new texture from file and add it to the resource manager
+		CTexture* GetTexture(const wchar_t* filename) const;
 
 		//create extra buffer for PS
 		//size in bytes must be multiple of 16
@@ -72,7 +73,7 @@ namespace Viva
 		//destroys all but default render target
 		void ClearRenderTargets();
 
-		TEX_FILTER TexFilterCreationMode;
+		TextureFilter TexFilterCreationMode;
 		bool SupressDuplicateWarning;
 	};
 }

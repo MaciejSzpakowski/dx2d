@@ -2,10 +2,11 @@
 
 #include "Proto.h"
 #include "Types.h"
+#include "ResourceManager.h"
 #include "Texture.h"
 #include "Functions.h"
 #include "Window.h"
-#include "ResourceManager.h"
+#include "BitmapFont.h"
 #include "Keys.h"
 #include "InputManager.h"
 #include "EventManager.h"

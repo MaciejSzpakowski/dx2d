@@ -145,6 +145,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Animation.h" />
+    <ClInclude Include="BitmapFont.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="DebugManager.h" />
@@ -168,9 +169,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animation.cpp" />
+    <ClCompile Include="BitmapFont.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Core.cpp" />
-    <ClCompile Include="Create.cpp" />
     <ClCompile Include="DebugManager.cpp" />
     <ClCompile Include="Globals.cpp" />
     <ClCompile Include="Polygon.cpp" />
@@ -181,9 +182,9 @@
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="RenderTarget.cpp" />
-    <ClCompile Include="Resources.cpp" />
+    <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="Sprite.cpp" />
-    <ClCompile Include="Text.cpp" />
+    <ClCompile Include="BitmapText.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>

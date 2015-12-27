@@ -5,6 +5,7 @@
 #include <map>
 #include <random>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 

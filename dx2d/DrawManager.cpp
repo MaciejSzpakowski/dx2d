@@ -2,11 +2,11 @@
 
 namespace Viva
 {
-	void CreateSampler(TEX_FILTER mode, ID3D11SamplerState** sampler)
+	void CreateSampler(TextureFilter mode, ID3D11SamplerState** sampler)
 	{
 		D3D11_SAMPLER_DESC sampDesc;
 		ZeroMemory(&sampDesc, sizeof(sampDesc));
-		sampDesc.Filter = mode == TEX_FILTER::POINT ?
+		sampDesc.Filter = mode == TextureFilter::Point ?
 		D3D11_FILTER_MIN_MAG_MIP_POINT : D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -19,7 +19,7 @@ namespace Viva
 
 	CDrawManager::CDrawManager() : 
 		SupressDuplicateWarning(false),
-		TexFilterCreationMode (TEX_FILTER::POINT)
+		TexFilterCreationMode (TextureFilter::Point)
 	{
 		D3D11_RASTERIZER_DESC rd;
 		ZeroMemory(&rd, sizeof(rd));
@@ -95,12 +95,12 @@ namespace Viva
 
 		//default white texture used by non textured objects
 		Color fourOnes[1] = { Color(1,1,1,1) };
-		CTexture* tex = Core->CreateTexture(fourOnes, Size(1, 1), L"");
+		CTexture* tex = new CTexture(fourOnes, Size(1, 1), L"");
 		zWhiteRes = tex->zShaderResource;
 		delete tex;
 		
-		CreateSampler(TEX_FILTER::POINT,&zPointSampler);
-		CreateSampler(TEX_FILTER::LINEAR, &zLineSampler);		
+		CreateSampler(TextureFilter::Point, &zPointSampler);
+		CreateSampler(TextureFilter::Linear, &zLineSampler);
 	}
 
 	void CDrawManager::zInit()
@@ -344,48 +344,6 @@ namespace Viva
 		RemoveSprite(a);
 	}
 
-	CBitmapFont* CDrawManager::AddBitmapFont(LPCWSTR file, vector<Rect> chars)
-	{
-		CBitmapFont* newFont = ResourceManager->GetBitmapFont(file);
-		if (newFont != nullptr)
-			return newFont;
-		try
-		{
-			newFont = new CBitmapFont(file, chars);
-		}
-		catch(int)
-		{
-			return nullptr;
-		}
-		ResourceManager->AddBitmapFont(newFont);
-		return newFont;
-	}
-
-	CBitmapFont* CDrawManager::AddBitmapFont(LPCWSTR file, int width, int height, int charsPerRow)
-	{
-		CBitmapFont* newFont = ResourceManager->GetBitmapFont(file);
-		if (newFont != nullptr)
-			return newFont;
-		try
-		{
-			newFont = new CBitmapFont(file, width, height, charsPerRow);
-		}
-		catch (int)
-		{
-			return nullptr;
-		}
-		ResourceManager->AddBitmapFont(newFont);
-		return newFont;
-	}
-	
-	void CDrawManager::AddBitmapFont(CBitmapFont* font)
-	{
-		CBitmapFont* newFont = ResourceManager->GetBitmapFont(font->zTexture->zName);
-		if (newFont != nullptr)
-			return;
-		ResourceManager->AddBitmapFont(font);
-	}
-
 	CBitmapText* CDrawManager::AddBitmapText(CBitmapFont* font, CRenderTarget* target)
 	{
 		if (target == nullptr)
@@ -447,7 +405,7 @@ namespace Viva
 
 	CRenderTarget* CDrawManager::AddRenderTarget()
 	{
-		zRenderTargets.push_back(Core->CreateRenderTarget());
+		zRenderTargets.push_back(new CRenderTarget());
 		return *(zRenderTargets.end() - 1);
 	}
 
@@ -487,9 +445,22 @@ namespace Viva
 					300.0f*(j + 1), 21 / 105.0f*(i + 1)));
 			}
 		
-		CTexture* tex1 = Core->CreateTexture((Color*)rc_font, Size(300, 105),L"");
+		CTexture* tex1 = new CTexture((Color*)rc_font, Size(300, 105),L"");
 		DrawManager->zDefaultFont = new CBitmapFont(tex1,15,21,20);
-		DrawManager->AddBitmapFont(DrawManager->zDefaultFont);
 		DebugManager->Init(DrawManager->GetDefaultFont());
-	}	
+	}
+
+	CTexture* CDrawManager::GetTexture(const wchar_t* filename) const
+	{
+		CTexture* tex;
+
+		if (ResourceManager->PeekResource(filename, (Resource**)&tex)) // WTF casting ???
+			return tex;
+		else
+		{
+			tex = new CTexture(filename);
+			ResourceManager->AddResource(tex);
+			return tex;
+		}
+	}
 }

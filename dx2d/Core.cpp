@@ -10,6 +10,7 @@ namespace Viva
 
 	CCore::CCore(Size _clientSize, std::function<void()> worker, int style)
 	{
+		EnableAlpha = false;
 		HRESULT hr = 0;
 		zFullscreen = false;
 		clientSize = _clientSize;
@@ -238,6 +239,32 @@ namespace Viva
 	void CCore::Exit()
 	{
 		PostMessage(zWindow->zHandle, WM_CLOSE, 0, 0);
+	}
+
+	ID3D11PixelShader* CCore::CreatePixelShaderFromFile(const wchar_t* filepath, const char* entryPoint, const char* target)
+	{
+		ID3D11PixelShader* result;
+		ID3D10Blob *ps;
+		HRESULT hr = D3DCompileFromFile(filepath, 0, 0, entryPoint, target, 0, 0, &ps, 0); CHECKHR();
+		//D3DCompile
+		hr = zDevice->CreatePixelShader(ps->GetBufferPointer(), ps->GetBufferSize(), 0,
+			&result); CHECKHR();
+		ps->Release();
+		return result;
+	}
+
+	// create pixel shader from const char*
+	ID3D11PixelShader* CCore::CreatePixelShaderFromString(const char* str, const char* entryPoint, const char* target)
+	{
+		ID3D11PixelShader* result;
+
+		ID3D10Blob *ps;
+		HRESULT hr = D3DCompile(str, strlen(str), 0, 0, 0, entryPoint, target, 0, 0, &ps, 0); CHECKHR();
+		//D3DCompile
+		hr = zDevice->CreatePixelShader(ps->GetBufferPointer(), ps->GetBufferSize(), 0,
+			&result); CHECKHR();
+		ps->Release();
+		return result;
 	}
 
 	void CCore::Destroy()

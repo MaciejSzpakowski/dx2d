@@ -52,8 +52,5 @@ namespace Viva
 
 		// create pixel shader from const char*
 		ID3D11PixelShader* CreatePixelShaderFromString(const char* str, const char* entryPoint, const char* = "ps_5_0");
-
-		// create render target
-		CRenderTarget* CreateRenderTarget();
 	};
 }
