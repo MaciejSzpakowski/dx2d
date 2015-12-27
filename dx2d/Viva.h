@@ -2,6 +2,7 @@
 
 #include "Proto.h"
 #include "Types.h"
+#include "Texture.h"
 #include "Functions.h"
 #include "Window.h"
 #include "ResourceManager.h"

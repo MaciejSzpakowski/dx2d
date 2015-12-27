@@ -55,20 +55,5 @@ namespace Viva
 
 		// create render target
 		CRenderTarget* CreateRenderTarget();
-
-		// create texture from file
-		CTexture* CreateTexture(const wchar_t* filepath);
-
-		// create texture from byte array
-		CTexture* CreateTexture(const Color data[], const Size& size, const wchar_t* name);
-
-		//// create sprite from file
-		CSprite* CreateSprite(const wchar_t* filepath);
-
-		//// create sprite from texture
-		CSprite* CreateSprite(CTexture* texture);
-
-		// create polygon from list of points
-		CPolygon* CreatePolygon(const vector<Point>& points);
 	};
 }

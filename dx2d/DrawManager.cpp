@@ -487,7 +487,7 @@ namespace Viva
 					300.0f*(j + 1), 21 / 105.0f*(i + 1)));
 			}
 		
-		CTexture* tex1 = Functions::GetUncachedTextureFromBytes((BYTE*)rc_font, 300, 105);
+		CTexture* tex1 = Core->CreateTexture((Color*)rc_font, Size(300, 105),L"");
 		DrawManager->zDefaultFont = new CBitmapFont(tex1,15,21,20);
 		DrawManager->AddBitmapFont(DrawManager->zDefaultFont);
 		DebugManager->Init(DrawManager->GetDefaultFont());

@@ -14,7 +14,7 @@ namespace Viva
 			: X(x), Y(y), Z(z), R(r), G(g), B(b), U(u), V(v) {}
 	};
 
-	enum class TEX_FILTER { POINT, LINEAR };
+	enum class TextureFilter { Point, Linear };
 
 	struct Color
 	{
@@ -70,32 +70,6 @@ namespace Viva
 		wstring Name;
 		std::function<int()> Activity;
 	};
-
-	//used to cache texture loaded from file
-	class CTexture
-	{
-	public:
-		bool zCached;
-		Size size;
-		wstring zName;
-		ID3D11ShaderResourceView* zShaderResource;
-
-		CTexture(bool cached, Size _size, const wchar_t* name,	ID3D11ShaderResourceView* shaderResource) :
-			zCached(cached), size(_size), zName(name),
-			zShaderResource(shaderResource) {}
-
-		size_t GetWidth() const { return size.width; }
-
-		size_t GetHeight() const { return size.height; }
-
-		wstring GetName() const { return zName; }
-
-		void Destroy()
-		{
-			zShaderResource->Release();
-			delete this;
-		}
-	};	
 
 	class CBitmapFont
 	{
