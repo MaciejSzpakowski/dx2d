@@ -71,6 +71,16 @@ namespace Viva
 		return res;
 	}
 
+	XMFLOAT2 CCamera::GetUnitsPerPixel(float z)
+	{
+		XMFLOAT2 frustum = Camera->GetFrustumSize(z);
+		RECT client;
+		GetClientRect(Core->GetWindowHandle(), &client);
+		XMFLOAT2 clientSize = { (float)client.right - client.left,
+			(float)client.bottom - client.top };
+		return XMFLOAT2( frustum.x / clientSize.x, frustum.y / clientSize.y );
+	}
+
 	void CCamera::Destroy()
 	{
 		delete this;

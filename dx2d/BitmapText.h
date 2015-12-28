@@ -13,13 +13,12 @@ namespace Viva
 		CBitmapText(BitmapFont* _font);
 		//set up scale to match given size
 		void SetPixelScale(int width, int height);
-		void Destroy();
+		void Destroy() override;
 
 		HorizontalAlignment HorizontalAlign;
 		VerticalAlignment VerticalAlign;
 		TextureFilter TexFilter; //point or linear
 		wstring Text;
-		float Size;
 		float Height;
 		float Width;
 		float HorizontalSpacing;

@@ -44,7 +44,7 @@ namespace Viva
 		CRenderTarget* GetRenderTarget() { return zRenderTarget; }
 		void SetRenderTarget(CRenderTarget* target);
 		CDynamic();
-		~CDynamic();
+		virtual void Destroy();
 
 		bool Pickable;
 		float SizeVelocity;

@@ -13,7 +13,7 @@ namespace Viva
 		Width = 1;
 		HorizontalSpacing = 0;
 		VerticalSpacing = 0;
-		Size = 1;
+		size = 1;
 	}
 
 	void CBitmapText::zDraw()
@@ -50,10 +50,10 @@ namespace Viva
 
 	void CBitmapText::zTextTransform(int col, int row, int len)
 	{
-		float _Height = Height * Size;
-		float _Width = Width * Size;
-		float _HorizontalSpacing = HorizontalSpacing * Size;
-		float _VerticalSpacing = VerticalSpacing * Size;
+		float _Height = Height * size;
+		float _Width = Width * size;
+		float _HorizontalSpacing = HorizontalSpacing * size;
+		float _VerticalSpacing = VerticalSpacing * size;
 		float horAlignOffset = 0;
 		float verAlignOffset = 0;
 		if (HorizontalAlign == HorizontalAlignment::Center)
@@ -91,7 +91,7 @@ namespace Viva
 		XMFLOAT2 unitsPerPixel = { frustum.x / clientSize.x, frustum.y / clientSize.y };
 		Width = unitsPerPixel.x * width / 4;
 		Height = unitsPerPixel.y * height / 4;
-		Size = 1;
+		size = 1;
 	}
 
 	XMMATRIX CBitmapText::zGetScaleMatrix()
@@ -101,6 +101,7 @@ namespace Viva
 
 	void CBitmapText::Destroy()
 	{
+		CDynamic::Destroy();
 		DrawManager->RemoveBitmapText(this);
 		delete this;
 	}

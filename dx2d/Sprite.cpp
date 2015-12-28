@@ -128,6 +128,7 @@ namespace Viva
 
 	void CSprite::Destroy()
 	{
+		CDynamic::Destroy();
 		DrawManager->RemoveSprite(this);
 		delete this;
 	}

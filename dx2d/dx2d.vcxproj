@@ -177,7 +177,7 @@
     <ClCompile Include="Polygon.cpp" />
     <ClCompile Include="DrawManager.cpp" />
     <ClCompile Include="Dynamic.cpp" />
-    <ClCompile Include="Events.cpp" />
+    <ClCompile Include="EventManager.cpp" />
     <ClCompile Include="Functions.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="Program.cpp" />

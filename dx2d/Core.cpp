@@ -246,9 +246,10 @@ namespace Viva
 		ID3D11PixelShader* result;
 		ID3D10Blob *ps;
 		HRESULT hr = D3DCompileFromFile(filepath, 0, 0, entryPoint, target, 0, 0, &ps, 0); CHECKHR();
+		if (hr != 0)
+			throw std::runtime_error("Error compiling pixel shader");
 		//D3DCompile
-		hr = zDevice->CreatePixelShader(ps->GetBufferPointer(), ps->GetBufferSize(), 0,
-			&result); CHECKHR();
+		hr = zDevice->CreatePixelShader(ps->GetBufferPointer(), ps->GetBufferSize(), 0,	&result); CHECKHR();
 		ps->Release();
 		return result;
 	}
@@ -259,10 +260,11 @@ namespace Viva
 		ID3D11PixelShader* result;
 
 		ID3D10Blob *ps;
-		HRESULT hr = D3DCompile(str, strlen(str), 0, 0, 0, entryPoint, target, 0, 0, &ps, 0); CHECKHR();
+		HRESULT hr = D3DCompile(str, strlen(str), 0, 0, 0, entryPoint, target, 0, 0, &ps, 0);
+		if (hr != 0)
+			throw std::runtime_error("Error compiling pixel shader");
 		//D3DCompile
-		hr = zDevice->CreatePixelShader(ps->GetBufferPointer(), ps->GetBufferSize(), 0,
-			&result); CHECKHR();
+		hr = zDevice->CreatePixelShader(ps->GetBufferPointer(), ps->GetBufferSize(), 0,	&result); CHECKHR();
 		ps->Release();
 		return result;
 	}

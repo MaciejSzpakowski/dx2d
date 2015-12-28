@@ -169,14 +169,7 @@ namespace Viva
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
 		CSprite* newSprite;
-		try
-		{
-			newSprite = new CSprite(file);
-		}
-		catch (int)
-		{
-			return nullptr;
-		}
+		newSprite = new CSprite(file);
 		target->zSprites.push_back(newSprite);
 		newSprite->zRenderTarget = target;
 		newSprite->zIndex = (int)target->zSprites.size() - 1;
@@ -199,14 +192,7 @@ namespace Viva
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
 		CAnimation* newAnimation;
-		try
-		{
-			newAnimation = new CAnimation(file, x, y);
-		}
-		catch (int)
-		{
-			return nullptr;
-		}
+		newAnimation = new CAnimation(file, x, y);
 		target->zSprites.push_back(newAnimation);
 		newAnimation->zRenderTarget = target;
 		newAnimation->zIndex = (int)target->zSprites.size() - 1;

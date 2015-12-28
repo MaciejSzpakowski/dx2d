@@ -19,6 +19,7 @@ namespace Viva
 		CCamera();
 		XMFLOAT3 GetCursorWorldPos(float z);
 		XMFLOAT2 GetFrustumSize(float z);
+		XMFLOAT2 GetUnitsPerPixel(float z);
 		XMMATRIX GetViewMatrix();
 		XMMATRIX GetProjMatrix();
 		void Destroy();

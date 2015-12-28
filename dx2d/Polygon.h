@@ -15,7 +15,7 @@ namespace Viva
 		//make exact (but independent) copy and add to draw manager
 		//stuff that is not copied: children (since they can have only one parent)
 		virtual CPolygon* Clone();
-		void Destroy();
+		void Destroy() override;
 	};
 
 	class CRectangle : public CPolygon

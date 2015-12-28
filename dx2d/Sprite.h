@@ -23,7 +23,7 @@ namespace Viva
 		void SetNaturalScale();
 		//set up scale to match given size
 		void SetPixelScale(const Viva::Size& _size);
-		void Destroy();
+		void Destroy() override;
 
 		TextureFilter TexFilter; //point or linear
 		XMFLOAT2 Scale;

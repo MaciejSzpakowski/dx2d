@@ -2,7 +2,7 @@
 
 namespace Viva
 {
-	void CEventManager::AddEvent
+	Event* CEventManager::AddEvent
 		(std::function<int()> func, wstring name, double delay, double lifeTime, double tick)
 	{
 		Event* newEvent = new Event;
@@ -14,6 +14,7 @@ namespace Viva
 		newEvent->Name = name;
 		newEvent->lastPulse = 0;
 		zEvents.push_back(newEvent);
+		return newEvent;
 	}
 
 	void CEventManager::RemoveEvent(wstring name)
@@ -23,7 +24,23 @@ namespace Viva
 			{
 				delete zEvents[i];
 				zEvents[i] = nullptr;
+				return;
 			}
+
+		throw std::runtime_error("CEventManager::RemoveEvent() event not found");
+	}
+
+	void CEventManager::RemoveEvent(Event* e)
+	{
+		for (int i = 0; i<zEvents.size(); i++)
+			if (zEvents[i] && zEvents[i] == e)
+			{
+				delete zEvents[i];
+				zEvents[i] = nullptr;
+				return;
+			}
+
+		throw std::runtime_error("CEventManager::RemoveEvent() event not found");
 	}
 
 	void CEventManager::zActivity()

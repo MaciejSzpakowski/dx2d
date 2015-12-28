@@ -49,7 +49,8 @@ namespace Viva
 		if (gdibitmap->GetLastStatus() != 0)
 		{
 			std::stringstream msg;
-			msg << "Could not open " << filepath;
+			wstring file = filepath;
+			msg << "Could not open " << std::string(file.begin(),file.end());
 			delete gdibitmap;
 			Gdiplus::GdiplusShutdown(m_gdiplusToken);
 			throw std::runtime_error(msg.str().c_str());

@@ -129,7 +129,7 @@ namespace Viva
 		return zWorld;
 	}
 
-	CDynamic::~CDynamic()
+	void CDynamic::Destroy()
 	{
 		//set all childrens parent to nullptr
 		for (CDynamic* d : zChildren)

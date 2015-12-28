@@ -155,6 +155,7 @@ namespace Viva
 
 	void CPolygon::Destroy()
 	{
+		CDynamic::Destroy();
 		DrawManager->RemovePoly(this);
 		zVertexBuffer->Release();
 		delete this;

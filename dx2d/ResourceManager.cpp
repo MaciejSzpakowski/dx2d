@@ -38,7 +38,7 @@ namespace Viva
 	{
 		auto it = resources.find(name);
 
-		if (it != resources.end())
+		if (it != resources.end() && outRes != nullptr)
 			*outRes = it->second;
 
 		return it != resources.end();
