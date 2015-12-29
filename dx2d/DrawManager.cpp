@@ -187,19 +187,19 @@ namespace Viva
 		s->zIndex = (int)target->zSprites.size() - 1;
 	}
 
-	CAnimation* CDrawManager::AddAnimation(LPCWSTR file, int x, int y, CRenderTarget* target)
+	Animation* CDrawManager::AddAnimation(LPCWSTR file, int x, int y, CRenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
-		CAnimation* newAnimation;
-		newAnimation = new CAnimation(file, x, y);
+		Animation* newAnimation;
+		newAnimation = new Animation(file, x, y);
 		target->zSprites.push_back(newAnimation);
 		newAnimation->zRenderTarget = target;
 		newAnimation->zIndex = (int)target->zSprites.size() - 1;
 		return newAnimation;
 	}
 
-	void CDrawManager::AddAnimation(CAnimation* a, CRenderTarget* target)
+	void CDrawManager::AddAnimation(Animation* a, CRenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
@@ -224,8 +224,8 @@ namespace Viva
 		float scalex = (20.0f - i*0.001f) * tan(Camera->zFovAngle / 2) * Camera->zAspectRatio;
 		float scaley = (20.0f - i*0.001f) * tan(Camera->zFovAngle / 2);
 		//move every target above previous one
-		XMMATRIX transform = XMMatrixScaling(scalex, scaley, 1) *
-			XMMatrixTranslation(0, 0, -i*0.001f) *  zRenderTargetMatrix;
+		XMMATRIX transform = XMMatrixScaling(scalex, scaley, 1) * 
+			XMMatrixTranslation(0, 0, -i*0.001f) * zRenderTargetMatrix;
 
 		transform = XMMatrixTranspose(transform);
 		Core->zContext->UpdateSubresource(zCbBufferVS, 0, NULL, &transform, 0, 0);
@@ -245,13 +245,16 @@ namespace Viva
 		{
 			zRenderTargetTransform(i);
 			Core->zContext->PSSetShader(zRenderTargets[i]->PixelShader, 0, 0);
+			if (zRenderTargets[i]->zExtraBufferPSdata != nullptr)
+				Core->zContext->UpdateSubresource(DrawManager->zCbBufferPSExtra, 0, 0, 
+					zRenderTargets[i]->zExtraBufferPSdata, 0, 0);
 			zRenderTargets[i]->zSprite->zDraw();
 		}
 
 		//debug text
 		Core->zContext->PSSetShader(Core->zDefaultPS, 0, 0);
 		DebugManager->Flush();
-		if(DebugManager->zDebugText->Text != L"")
+		if(DebugManager->zDebugText->GetText() != L"")
 			DebugManager->zDebugText->zDraw();
 
 		Core->zSwapChain->Present(0, 0);
@@ -325,25 +328,25 @@ namespace Viva
 		s->zIndex = -1;
 	}
 
-	void CDrawManager::RemoveAnimation(CAnimation* a)
+	void CDrawManager::RemoveAnimation(Animation* a)
 	{
 		RemoveSprite(a);
 	}
 
-	CBitmapText* CDrawManager::AddBitmapText(BitmapFont* font, CRenderTarget* target)
+	BitmapText* CDrawManager::AddBitmapText(BitmapFont* font, CRenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
 		if (font == nullptr)
 			return nullptr;
-		CBitmapText* newText = new CBitmapText(font);
+		BitmapText* newText = new BitmapText(font);
 		target->zTexts.push_back(newText);
 		newText->zRenderTarget = target;
 		newText->zIndex = (int)target->zTexts.size() - 1;
 		return newText;
 	}
 
-	void CDrawManager::AddBitmapText(CBitmapText* text, CRenderTarget* target)
+	void CDrawManager::AddBitmapText(BitmapText* text, CRenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
@@ -354,7 +357,7 @@ namespace Viva
 		text->zIndex = (int)target->zTexts.size() - 1;
 	}
 
-	void CDrawManager::RemoveBitmapText(CBitmapText* t)
+	void CDrawManager::RemoveBitmapText(BitmapText* t)
 	{
 		if (t->zIndex == -1)
 			return;
@@ -390,9 +393,8 @@ namespace Viva
 		return *(zRenderTargets.end() - 1);
 	}
 
-	void CDrawManager::DestroyRenderTarget(CRenderTarget* target)
+	void CDrawManager::RemoveRenderTarget(CRenderTarget* target)
 	{
-		target->Destroy();
 		for (int i = 0; i < (int)zRenderTargets.size(); i++)
 		{
 			if (target == zRenderTargets[i])

@@ -40,18 +40,18 @@ namespace Viva
 
 		void AddSprite(CSprite* s, CRenderTarget* target = nullptr);
 		void RemoveSprite(CSprite* s);
-		CAnimation* AddAnimation(LPCWSTR file, int x, int y, CRenderTarget* target = nullptr);
-		void AddAnimation(CAnimation* a, CRenderTarget* target = nullptr);
-		void RemoveAnimation(CAnimation* a);
-		CBitmapText* AddBitmapText(BitmapFont* font, CRenderTarget* target = nullptr);
-		void AddBitmapText(CBitmapText* text, CRenderTarget* target = nullptr);
-		void RemoveBitmapText(CBitmapText* text);
+		Animation* AddAnimation(LPCWSTR file, int x, int y, CRenderTarget* target = nullptr);
+		void AddAnimation(Animation* a, CRenderTarget* target = nullptr);
+		void RemoveAnimation(Animation* a);
+		BitmapText* AddBitmapText(BitmapFont* font, CRenderTarget* target = nullptr);
+		void AddBitmapText(BitmapText* text, CRenderTarget* target = nullptr);
+		void RemoveBitmapText(BitmapText* text);
 		BitmapFont* GetDefaultFont();
 		CRenderTarget* AddRenderTarget();
-		void DestroyRenderTarget(CRenderTarget* target);
+		void RemoveRenderTarget(CRenderTarget* target);
 		void InitDefaultFont();
 		CRenderTarget* GetDefaultRenderTarget() { return zDefaultRenderTarget; }
-
+		
 		// try to get texture from the resource manager, if it's not there
 		// create a new texture from file and add it to the resource manager
 		CTexture* GetTexture(const wchar_t* filename) const;

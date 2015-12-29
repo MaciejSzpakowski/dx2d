@@ -5,7 +5,7 @@ namespace Viva
 	class CDebugManager
 	{
 	public:
-		CBitmapText* zDebugText;
+		BitmapText* zDebugText;
 		std::wstringstream zWss;
 
 		CDebugManager();

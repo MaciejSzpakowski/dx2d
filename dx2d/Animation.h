@@ -2,30 +2,63 @@
 
 namespace Viva
 {
-	class CAnimation : public CSprite
+	class Animation : public CSprite
 	{
+	private:
+		int frameCount;
+		vector<Rect> uvTable;
+		double indicator;
+		bool frameChanged;
+		int begin;                 // first frame of currently played animation
+		int end;                   // last frame of currently played animation
+		int currentFrame;          // current frame displayed
+		double speed;              // in frames per second
+
 	public:
-		double zLastFrameChangeTime;
-		int zFrameCount;
-		vector<Rect> zUvTable;
-		double zIndicator;
-		bool zFrameChanged;
+		// Create animation.
+		// columns/rows: how to split the image to create frames
+		Animation(const wchar_t* filename, int columns, int rows);
+
+		// Create animation.
+		// _uvTable: where are individual frames
+		Animation(const wchar_t* filename, const vector<Rect>& _uvTable);
+
 		//plays animation
-		void zPlay() override;
+		void _Play() override;
 
-		CAnimation(LPCWSTR file, int x, int y);
-		bool FrameChanged(); //true if frame changed in prev game frame
-							 //set frames order, size of the array should be the same as frame count
-		void SetOrder(int order[]);
-		int GetFrameCount();
-		//next frame and loop
-		void NextFrame();
-		//prev frame and loop
-		void PreviousFrame();
+		// True if frame changed in previous game frame.		
+		bool FrameChanged() { return frameChanged; }
 
-		int Start; //first frame of currently played animation
-		int Finish; //last frame of currently played animation
-		int Frame; //current frame displayed
-		double Speed; //in frames per second
+		// Set frames order. Size of the array should be the same as frame count.
+		void SetOrder(const int order[]);
+
+		int GetFrameCount() const { return frameCount; }
+
+		// Advances animation to the next frame.
+		// If the current frame is the last then this method sets current frame to 0.
+		void NextFrame()
+		{
+			currentFrame++;
+			if (currentFrame > end)
+				currentFrame = begin;
+		}
+
+		// Goes back in the animation.
+		// If the current frame is the first then this method sets current frame to the last one.
+		void PreviousFrame()
+		{
+			currentFrame--;
+			if (currentFrame < begin)
+				currentFrame = end;
+		}
+
+		int GetBegin() const { return begin; }
+		void SetBegin(int _begin) { begin = _begin; }
+		int GetEnd() const { return end; }
+		void SetEnd(int _end) { end = _end; }
+		double GetSpeed() const { return speed; }
+		void SetSpeed(double _speed) { speed = _speed; }
+		int GetCurrentFrame() const { return currentFrame; }
+		void SetCurrentFrame(int _currentFrame) { currentFrame = _currentFrame; }
 	};
 }

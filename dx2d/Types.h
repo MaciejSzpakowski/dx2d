@@ -40,6 +40,19 @@ namespace Viva
 		Pixel(byte _r, byte _g, byte _b, byte _a) : r(_r), g(_g), b(_b), a(_a) {}
 	};
 
+	enum class HorizontalAlignment { Left, Center, Right };
+	enum class VerticalAlignment { Top, Center, Bottom };
+
+	struct FontMetrics
+	{
+		HorizontalAlignment horizontalAlign;
+		VerticalAlignment verticalAlign;
+		float height;
+		float width;
+		float horizontalSpacing;
+		float verticalSpacing;
+	};
+
 	struct Point
 	{
 		float x;
@@ -93,8 +106,5 @@ namespace Viva
 		double lastPulse;
 		wstring Name;
 		std::function<int()> Activity;
-	};
-	
-	enum class HorizontalAlignment { Left, Center, Right };
-	enum class VerticalAlignment { Top, Center, Bottom };
+	};	
 }

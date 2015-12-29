@@ -2,26 +2,34 @@
 
 namespace Viva
 {
-	class CBitmapText : public CDynamic
+	class BitmapText : public CDynamic
 	{
-	public:
-		BitmapFont* zFont;
-		void zDraw() override;
-		XMMATRIX zGetScaleMatrix() override;
-		void zTextTransform(int col, int row, int len);
+	private:
+		BitmapFont* font;
+		TextureFilter texFilter;
+		wstring text;
+		FontMetrics metrics;
 
-		CBitmapText(BitmapFont* _font);
-		//set up scale to match given size
-		void SetPixelScale(int width, int height);
+	public:
+		BitmapText(BitmapFont* _font);
+
+		// How big in pixels each letter should be.
+		void SetPixelScale(const Size& _size);
+
 		void Destroy() override;
 
-		HorizontalAlignment HorizontalAlign;
-		VerticalAlignment VerticalAlign;
-		TextureFilter TexFilter; //point or linear
-		wstring Text;
-		float Height;
-		float Width;
-		float HorizontalSpacing;
-		float VerticalSpacing;
+		FontMetrics GetMetrics() const { return metrics; }
+		void SetMetrics(const FontMetrics& _metrics) { metrics = _metrics; }
+		TextureFilter GetTexFilter() const { return texFilter; }
+		void SetTexFilter(TextureFilter _texFilter) { texFilter = _texFilter; }
+		wstring GetText() const { return text; }
+		void SetText(const wstring& _text) { text = _text; }
+		void SetText(wstring&& _text) { text = _text; }
+		BitmapFont* GetFont() const { return font; }
+		void SetFont(BitmapFont* _font) { font = _font; }
+
+		void zDraw() override;
+		XMMATRIX zGetScaleMatrix() override { return XMMatrixIdentity(); }
+		void _TextTransform(int col, int row, int len);
 	};
 }

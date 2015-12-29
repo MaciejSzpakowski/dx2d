@@ -4,6 +4,8 @@ namespace Viva
 {
 	CRenderTarget::CRenderTarget()
 	{
+		zExtraBufferPSdata = nullptr;
+
 		D3D11_TEXTURE2D_DESC textureDesc;
 		D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
 		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
@@ -90,7 +92,7 @@ namespace Viva
 		{
 			s->zUpdate();
 			s->zSpriteUpdate();
-			s->zPlay();
+			s->_Play();
 			s->zTransform();
 			if (s->Visible)
 			{
@@ -102,12 +104,12 @@ namespace Viva
 			}
 		}
 		//bitmap text
-		for (CBitmapText* t : zTexts)
+		for (BitmapText* t : zTexts)
 		{
 			t->zUpdate();
 			if (t->Visible)
 			{
-				if (t->TexFilter == TextureFilter::Linear)
+				if (t->GetTexFilter() == TextureFilter::Linear)
 					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zLineSampler);
 				else
 					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zPointSampler);
@@ -116,7 +118,7 @@ namespace Viva
 		}
 	}
 
-	void CRenderTarget::MoveToTop()
+	void CRenderTarget::MoveToBottom()
 	{
 		int size = (int)DrawManager->zRenderTargets.size();
 		if (size < 2)
@@ -134,7 +136,7 @@ namespace Viva
 		DrawManager->zRenderTargets.insert(DrawManager->zRenderTargets.begin(), this);
 	}
 
-	void CRenderTarget::MoveToBottom()
+	void CRenderTarget::MoveToTop()
 	{
 		int size = (int)DrawManager->zRenderTargets.size();
 		if (size < 2)
@@ -190,6 +192,8 @@ namespace Viva
 
 	void CRenderTarget::Destroy()
 	{
+		DrawManager->RemoveRenderTarget(this);
+
 		for (int i = (int)zPolygons.size() - 1; i >= 0; i--)
 			zPolygons[i]->Destroy();
 		for (int i = (int)zSprites.size() - 1; i >= 0; i--)

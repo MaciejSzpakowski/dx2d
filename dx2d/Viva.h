@@ -20,3 +20,15 @@
 #include "RenderTarget.h"
 #include "Core.h"
 #include "DrawManager.h"
+
+/*
+name = input("name:")
+type = input("type:")
+primitives = ["int","double","size_t","float","char","byte"]
+
+print(type + " Get" + name[0].upper() + name[1:] + "() const { return " + name + "; }")
+if type in primitives:
+print("void Set" + name[0].upper() + name[1:] + "(" + type + " _"+name + ")"+ " { "+name+" = "+"_"+name+"; }")
+else:
+print("void Set" + name[0].upper() + name[1:] + "(const " + type+"&" + " _"+name + ")"+ " { "+name+" = "+"_"+name+"; }")
+*/

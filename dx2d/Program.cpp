@@ -3,7 +3,7 @@
 using namespace Viva;
 
 BitmapFont* courier;
-CBitmapText* text1;
+BitmapText* text1;
 vector<std::function<void()>> tests;
 vector<CDynamic*> obj;
 vector<Event*> events;
@@ -16,16 +16,52 @@ void Activity()
 void test10()
 {
 	wstring msg = L"Test10: Render targets and pixel shaders\n";
-	text1->Text = msg;
+	msg += L"This text is in the top render target not affected by pixel shader\n";
+	text1->SetText(msg);
+
+	static float time1 = Core->GetGameTime();
 
 	CRenderTarget* r1 = DrawManager->AddRenderTarget();
+	r1->MoveToBottom();
 	CSprite* s1 = DrawManager->AddSprite(L"brick.jpg",r1);
+	s1->SetPositionZ(0.1f);
 	s1->SetNaturalScale();
+	s1->size = 1.2f;
+
+	CSprite* s2 = DrawManager->AddSprite(L"leaf.png", r1);
+	s2->SetPositionX(-10);
+	s2->SetAngularVelZ(1);
+	s2->SetNaturalScale();
+	s2->size = 0.5f;
+
+	CSprite* s3 = DrawManager->AddSprite(L"leaf.png", r1);
+	s3->SetPositionX(10);
+	s3->SetAngularVelZ(-1);
+	s3->SetNaturalScale();
+	s3->size = 0.5f;
+
+	Pixel pixels[] = { Pixel(255,255,255,255), };
+	CTexture* w1 = new CTexture(pixels, Size(1, 1));
+	CSprite* s4 = new CSprite(w1);
+	s4->Scale.x = 19;
+	s4->SetPositionY(12.5f);
+	s4->SetPositionZ(0.1f);
+	DrawManager->AddSprite(s4);
+
+	obj.push_back(s4);
+
+	DrawManager->CreateExtraBuffer(16);
+	s1->SetExtraBufferPS(&time1);
 
 	const char ps2[] = R"(
 cbuffer cbBufferPS
 {
 	float4 color;
+};
+
+cbuffer cbExtra
+{
+	float var[4];
 };
 
 Texture2D ObjTexture;
@@ -40,21 +76,42 @@ struct VS_OUTPUT
 
 float4 main(VS_OUTPUT input) : SV_TARGET
 {
-	float4 result = ObjTexture.Sample(ObjSamplerState, input.TexCoord);
-	if(input.TexCoord > 0.5)
-		result = float4(0.0,0.0,0.0,1.0);
+	float2 coord = input.TexCoord;
+	coord[0] += sin(var[0]+coord[1]*2) * 0.4;
+	coord[1] += sin(var[0]+coord[0]*2) * 0.4;
+	float4 result = ObjTexture.Sample(ObjSamplerState, coord);
+	
 	clip(result.a - 0.001f);
 	return result * color;
 }
 		)";
 
 	r1->PixelShader = Core->CreatePixelShaderFromString(ps2, "main");
+
+	Event* e1 = EventManager->AddEvent([=]
+	{
+		time1 = Core->GetGameTime();
+		return 1;
+	}, L"e1", 0, 0, 0);
+
+	events.push_back(e1);
+
+	EventManager->AddEvent([=]
+	{
+		if (Input->IsKeyPressed(Keys::Left) || Input->IsKeyPressed(Keys::Right))
+		{
+			w1->Destroy();
+			r1->Destroy();
+			return 0;
+		}
+		return 1;
+	}, L"e3", 0, 0, 0);
 }
 
 void test9()
 {
 	wstring msg = L"Test9: events\n";
-	text1->Text = msg;
+	text1->SetText(msg);
 
 	vector<Pixel> pixels;
 	pixels.push_back(Pixel(200, 200, 0, 255));
@@ -67,10 +124,10 @@ void test9()
 
 	obj.push_back(s1);
 
-	CBitmapText* text3 = DrawManager->AddBitmapText(courier);
+	BitmapText* text3 = DrawManager->AddBitmapText(courier);
 	text3->color = Color(0, 0, 0, 1);
 	text3->SetPositionX(-13);
-	text3->SetPixelScale(10, 19);
+	text3->SetPixelScale(Size(10, 19));
 	text3->size = 5;
 
 	obj.push_back(text3);
@@ -81,7 +138,7 @@ void test9()
 	Event* e2 = EventManager->AddEvent([=]
 	{
 		(*countDown)--;
-		text3->Text = std::to_wstring(*countDown);		
+		text3->SetText(std::to_wstring(*countDown));		
 		if (*countDown == 0)
 			delete countDown;
 		return 1;
@@ -95,7 +152,7 @@ void test9()
 
 	Event* e3 = EventManager->AddEvent([=]
 	{
-		if (Input->IsKeyDown(Keys::Left) || Input->IsKeyDown(Keys::Right))
+		if (Input->IsKeyPressed(Keys::Left) || Input->IsKeyPressed(Keys::Right))
 		{
 			try
 			{
@@ -114,7 +171,7 @@ void test9()
 void test8()
 {
 	wstring msg = L"Test8: collision test\n";
-	text1->Text = msg;
+	text1->SetText(msg);
 	CPolygon* p1;
 	CPolygon* r;
 
@@ -180,7 +237,7 @@ void test8()
 void test7()
 {
 	wstring msg = L"Test7: cursor picking, click and drag bricks\n";
-	text1->Text = msg;
+	text1->SetText(msg);
 	CSprite* s1;
 	static CDynamic* pick = nullptr;
 
@@ -244,7 +301,7 @@ void test6()
 	msg += L"left brick, spin cw around its corner\n";
 	msg += L"middle brick, grow/shrink and stretch on x axis\n";
 	msg += L"right brick, bubble up/ fall down";
-	text1->Text = msg;
+	text1->SetText(msg);
 	
 	CSprite* s1 = DrawManager->AddSprite(L"leaf.png");
 	s1->SetNaturalScale();
@@ -371,7 +428,7 @@ void test5()
 	msg += std::to_wstring(time2.QuadPart - time1.QuadPart);
 	msg += L" ticks";
 
-	text1->Text = msg;
+	text1->SetText(msg);
 }
 
 void test4()
@@ -379,18 +436,18 @@ void test4()
 	wstring msg = L"Test4: animation\n";
 	msg += L"On the left, cat running to the right\n";
 	msg += L"On the right, cat running slower backwards and flipped hori.\n";
-	text1->Text = msg;
+	text1->SetText(msg);
 
-	CAnimation* s1 = DrawManager->AddAnimation(L"ani.png", 2, 4);
+	Animation* s1 = DrawManager->AddAnimation(L"ani.png", 2, 4);
 	s1->SetPixelScale(Size(512, 256));
 	s1->size = 0.5f;
-	s1->Speed = 20;
+	s1->SetSpeed(20);
 	s1->SetPositionX(-10);
 
-	CAnimation* s2 = DrawManager->AddAnimation(L"ani.png", 2, 4);
+	Animation* s2 = DrawManager->AddAnimation(L"ani.png", 2, 4);
 	s2->SetPixelScale(Size(512, 256));
 	s2->size = 0.5f;
-	s2->Speed = -7;
+	s2->SetSpeed(-7);
 	s2->FlipHorizontally = true;
 	s2->SetPositionX(10);
 
@@ -404,7 +461,7 @@ void test3()
 	msg += L"On the left, brick 200x200 in pixels (take a screenshot and check)\n";
 	msg += L"On the right, red-green checkerboard 200x200\n";
 	msg += L"In the middle, leaf (should be proportional)";
-	text1->Text = msg;
+	text1->SetText(msg);
 
 	CSprite* s1 = DrawManager->AddSprite(L"brick.jpg");
 	s1->SetPixelScale(Size(200, 200));
@@ -433,7 +490,7 @@ void test2()
 {
 	wstring msg = L"Test2: polygons and colors\n";
 	msg += L"Red star on the left, blue rectangle in the middle, \nrainbow circle on the right";
-	text1->Text = msg;
+	text1->SetText(msg);
 
 	vector<XMFLOAT2> v;
 	for (int i = 0; i < 10; i+=2)
@@ -470,7 +527,7 @@ void test1()
 	wstring msg = L"Test1: primer, event manager, basic input\n";
 	msg += L"If you see this text it means that primer, bitmap font, \nbitmap text some texture loading works.\n";
 	msg += L"Press left/right to navigate. If test2 will load, it means that some input \nand basics of event manager works.";
-	text1->Text = msg;
+	text1->SetText(msg);
 }
 
 void startTest(int i)
@@ -521,7 +578,7 @@ int wrapper()
 	text1 = DrawManager->AddBitmapText(courier);
 	text1->SetPosition(XMFLOAT3(-18, 13, 0));
 	text1->color = Color(0, 0, 0, 1);
-	text1->SetPixelScale(10, 19);
+	text1->SetPixelScale(Size(10, 19));
 	text1->size = 2;
 
 	tests.push_back(test1);

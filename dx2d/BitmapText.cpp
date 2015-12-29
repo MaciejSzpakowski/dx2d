@@ -2,63 +2,65 @@
 
 namespace Viva
 {
-	CBitmapText::CBitmapText(BitmapFont* _font)
+	BitmapText::BitmapText(BitmapFont* _font)
 	{
-		color = XMFLOAT4(1, 1, 1, 1);
-		zFont = _font;
-		Text = L"";
-		HorizontalAlign = HorizontalAlignment::Left;
-		VerticalAlign = VerticalAlignment::Top;
-		Height = 1;
-		Width = 1;
-		HorizontalSpacing = 0;
-		VerticalSpacing = 0;
+		color = Color(1, 1, 1, 1);
+		font = _font;
+		text = L"";
 		size = 1;
+
+		metrics.horizontalAlign = HorizontalAlignment::Left;
+		metrics.verticalAlign = VerticalAlignment::Top;
+		metrics.height = 1;
+		metrics.width = 1;
+		metrics.horizontalSpacing = 0;
+		metrics.verticalSpacing = 0;
 	}
 
-	void CBitmapText::zDraw()
+	void BitmapText::zDraw()
 	{
-		if (Text.length() == 0)
+		if (text.length() == 0)
 			return;
 		//color
 		Core->zContext->UpdateSubresource(DrawManager->zCbBufferPS, 0, NULL, &color, 0, 0);
 		//tex
-		Core->zContext->PSSetShaderResources(0, 1, &zFont->GetTexture()->zShaderResource);
-		int len = (int)Text.length();
+		Core->zContext->PSSetShaderResources(0, 1, &font->GetTexture()->zShaderResource);
+		int len = (int)text.length();
 		int col = 0;
 		int row = 0;
 		for (int i = 0; i < len; i++)
 		{
 			//check for new line
-			if (Text[i] == '\n')
+			if (text[i] == '\n')
 			{
 				row++;
 				col = 0;
 				continue;
 			}			
 			//uv
-			int index = Text[i] - ' ';
-			if (index < 0 || index > zFont->_GetChars().size())
+			int index = text[i] - ' ';
+			if (index < 0 || index > font->_GetChars().size())
 				continue;
-			Core->zContext->UpdateSubresource(DrawManager->zCbBufferUV, 0, NULL, &(zFont->_GetChars()[index]), 0, 0);
+			Core->zContext->UpdateSubresource(DrawManager->zCbBufferUV, 0, NULL, 
+				&(font->_GetChars()[index]), 0, 0);
 			//transform letter and draw
-			zTextTransform(col,row, len);
+			_TextTransform(col,row, len);
 			Core->zContext->DrawIndexed(6, 0, 0);
 			col++;
 		}
 	}
 
-	void CBitmapText::zTextTransform(int col, int row, int len)
+	void BitmapText::_TextTransform(int col, int row, int len)
 	{
-		float _Height = Height * size;
-		float _Width = Width * size;
-		float _HorizontalSpacing = HorizontalSpacing * size;
-		float _VerticalSpacing = VerticalSpacing * size;
+		float _Height = metrics.height * size;
+		float _Width = metrics.width * size;
+		float _HorizontalSpacing = metrics.horizontalSpacing * size;
+		float _VerticalSpacing = metrics.verticalSpacing * size;
 		float horAlignOffset = 0;
 		float verAlignOffset = 0;
-		if (HorizontalAlign == HorizontalAlignment::Center)
+		if (metrics.horizontalAlign == HorizontalAlignment::Center)
 			horAlignOffset = -len / 2.0f;
-		else if (HorizontalAlign == HorizontalAlignment::Right)
+		else if (metrics.horizontalAlign == HorizontalAlignment::Right)
 			horAlignOffset = (float)-len;
 		XMMATRIX scale = XMMatrixScaling(_Width, _Height, 1);
 		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(zRotation);
@@ -81,7 +83,7 @@ namespace Viva
 		Core->zContext->UpdateSubresource(DrawManager->zCbBufferVS, 0, NULL, &worldViewProj, 0, 0);
 	}
 
-	void CBitmapText::SetPixelScale(int width, int height)
+	void BitmapText::SetPixelScale(const Size& _size)
 	{		
 		XMFLOAT2 frustum = Camera->GetFrustumSize(GetPosition().z);
 		RECT client;
@@ -89,17 +91,12 @@ namespace Viva
 		XMFLOAT2 clientSize = { (float)client.right - client.left,
 			(float)client.bottom - client.top };
 		XMFLOAT2 unitsPerPixel = { frustum.x / clientSize.x, frustum.y / clientSize.y };
-		Width = unitsPerPixel.x * width / 4;
-		Height = unitsPerPixel.y * height / 4;
+		metrics.width = unitsPerPixel.x * _size.width / 4;
+		metrics.height = unitsPerPixel.y * _size.height / 4;
 		size = 1;
 	}
 
-	XMMATRIX CBitmapText::zGetScaleMatrix()
-	{
-		return XMMatrixIdentity();
-	}
-
-	void CBitmapText::Destroy()
+	void BitmapText::Destroy()
 	{
 		CDynamic::Destroy();
 		DrawManager->RemoveBitmapText(this);

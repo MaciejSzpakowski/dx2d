@@ -3,14 +3,15 @@
 namespace Viva
 {
 	class CRenderTarget
-	{
+	{		
 	public:
+		void* zExtraBufferPSdata;
 		ID3D11Texture2D* zTexture;
 		ID3D11RenderTargetView* zTargetView;
 		CSprite* zSprite;
 		vector<CPolygon*> zPolygons;
 		vector<CSprite*> zSprites;
-		vector<CBitmapText*> zTexts;
+		vector<BitmapText*> zTexts;
 
 		CRenderTarget();
 
@@ -28,6 +29,8 @@ namespace Viva
 
 		//reorder render target
 		void MoveDown();
+
+		void SetExtraBufferPS(void* data) { zExtraBufferPSdata = data; }
 
 		void Destroy();
 

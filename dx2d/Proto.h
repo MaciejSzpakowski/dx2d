@@ -46,9 +46,9 @@ namespace Viva
 	class CSprite;
 	class CEventManager;
 	class CResourceManager;
-	class CAnimation;
+	class Animation;
 	class BitmapFont;
-	class CBitmapText;
+	class BitmapText;
 	class CDebugManager;
 	class CTexture;
 	class CRenderTarget;

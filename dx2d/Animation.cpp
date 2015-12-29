@@ -2,75 +2,64 @@
 
 namespace Viva
 {
-	CAnimation::CAnimation(LPCWSTR file, int x, int y) : CSprite(file)
+	Animation::Animation(const wchar_t* filename, int columns, int rows) : CSprite(filename)
 	{
-		zFrameCount = x*y;
-		Start = 0;
-		Finish = zFrameCount - 1;
-		Frame = 0;
-		Speed = 1;
-		zFrameChanged = true;
-		zIndicator = 0;
-		zUvTable.reserve(zFrameCount);
-		for (int i = 0; i < y; i++)
-			for (int j = 0; j < x; j++)
-				zUvTable.push_back(Rect(1.0f / x*j, 1.0f / y*i, 1.0f /
-					x*(j + 1), 1.0f / y*(i + 1)));
-		UV = zUvTable[Frame];
+		frameCount = columns*rows;
+		begin = 0;
+		end = frameCount - 1;
+		currentFrame = 0;
+		speed = 1;
+		frameChanged = true;
+		indicator = 0;
+		uvTable.reserve(frameCount);
+		for (int i = 0; i < rows; i++)
+			for (int j = 0; j < columns; j++)
+				uvTable.push_back(Rect(1.0f / columns*j, 1.0f / rows*i, 1.0f /
+					columns*(j + 1), 1.0f / rows*(i + 1)));
+		UV = uvTable[0];
 	}
 
-	void CAnimation::zPlay()
+	Animation::Animation(const wchar_t* filename, const vector<Rect>& _uvTable) : CSprite(filename)
 	{
-		if (Speed != 0)
+		uvTable = _uvTable;
+		frameCount = (int)_uvTable.size();
+		begin = 0;
+		end = frameCount - 1;
+		currentFrame = 0;
+		speed = 1;
+		frameChanged = true;
+		indicator = 0;
+		UV = uvTable[0];
+	}
+
+	void Animation::_Play()
+	{
+		if (speed != 0)
 		{
-			zIndicator += Speed * Core->GetFrameTime();
-			zFrameChanged = false;
-			if (zIndicator > 1)
+			indicator += speed * Core->GetFrameTime();
+			frameChanged = false;
+			if (indicator > 1)
 			{
-				zIndicator = 0;
-				zFrameChanged = true;
+				indicator = 0;
+				frameChanged = true;
 				NextFrame();
 			}
-			else if (zIndicator < 0)
+			else if (indicator < 0)
 			{
-				zIndicator = 1;
-				zFrameChanged = true;
+				indicator = 1;
+				frameChanged = true;
 				PreviousFrame();
 			}
 		}
-		UV = zUvTable[Frame];
+		UV = uvTable[currentFrame];
 	}
 
-	void CAnimation::SetOrder(int order[])
+	void Animation::SetOrder(const int order[])
 	{
 		vector<Rect> newUvtable;
-		newUvtable.reserve(zFrameCount);
-		for (int i = 0; i < zFrameCount; i++)
-			newUvtable[i] = zUvTable[order[i]];
-		zUvTable = newUvtable;
-	}
-
-	int CAnimation::GetFrameCount()
-	{
-		return zFrameCount;
-	}
-
-	void CAnimation::NextFrame()
-	{
-		Frame++;
-		if (Frame > Finish)
-			Frame = Start;
-	}
-
-	void CAnimation::PreviousFrame()
-	{
-		Frame--;
-		if (Frame < Start)
-			Frame = Finish;
-	}
-
-	bool CAnimation::FrameChanged()
-	{
-		return zFrameChanged;
+		newUvtable.reserve(frameCount);
+		for (int i = 0; i < frameCount; i++)
+			newUvtable[i] = uvTable[order[i]];
+		uvTable = newUvtable;
 	}
 }

@@ -11,16 +11,16 @@ namespace Viva
 	{
 		if (zDebugText == nullptr)
 			return;
-		zDebugText->Text = zWss.str();
+		zDebugText->SetText(zWss.str());
 		zWss.str(L"");
 	}
 
 	void CDebugManager::Init(BitmapFont* font)
 	{
-		zDebugText = new CBitmapText(DrawManager->zDefaultFont);
+		zDebugText = new BitmapText(DrawManager->zDefaultFont);
 		zDebugText->SetPosition(-9, 7, 10.3f);
 		zDebugText->zParent = Camera;
-		zDebugText->SetPixelScale(10, 14);
+		zDebugText->SetPixelScale(Size(10, 14));
 	}
 
 	void CDebugManager::Debug(int debug, wstring name)
