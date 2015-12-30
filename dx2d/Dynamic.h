@@ -5,7 +5,8 @@ namespace Viva
 	class CDynamic
 	{
 	public:
-		CRenderTarget* zRenderTarget;
+		wstring name;
+		RenderTarget* zRenderTarget;
 		int zVertexCount;
 		vector<XMVECTOR> zVertices;
 		vector<XMVECTOR> zTransformedVertices;
@@ -29,7 +30,7 @@ namespace Viva
 		//updates PVAJ etc.
 		void zUpdate();
 		virtual XMMATRIX _GetScaleMatrix() = 0;
-		virtual void zCheckForCursor(XMMATRIX transform) {}
+		virtual void _CheckForCursor(XMMATRIX transform) {}
 		bool zUnderCursor;
 		virtual void zTransformVertices();
 		virtual void _Draw() = 0;
@@ -41,8 +42,8 @@ namespace Viva
 		bool IsUnderCursor();
 		//used to send custom data to PS		
 		void SetExtraBufferPS(void* data);
-		CRenderTarget* GetRenderTarget() { return zRenderTarget; }
-		void SetRenderTarget(CRenderTarget* target);
+		RenderTarget* GetRenderTarget() { return zRenderTarget; }
+		void SetRenderTarget(RenderTarget* target) { zRenderTarget = target; }
 		CDynamic();
 		virtual void Destroy();
 

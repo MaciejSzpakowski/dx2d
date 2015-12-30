@@ -14,6 +14,8 @@ namespace Viva
 
 		float fWidth;
 		float fHeight;
+		float texWidth = (float)texture->GetSize().width;
+		float texHeight = (float)texture->GetSize().height;
 
 		for (int i = 0, k = 32; k < 127; i++)
 		{
@@ -21,24 +23,26 @@ namespace Viva
 			{
 				fWidth = (float)letterSize.width;
 				fHeight = (float)letterSize.height;
-				chars.push_back(Rect(fWidth / texture->size.width *j, fHeight / texture->size.height *i, fWidth /
-					texture->size.width *(j + 1), fHeight / texture->size.height *(i + 1)));
+				chars.push_back(Rect(fWidth / texWidth *j, fHeight / texHeight *i, fWidth /
+					texWidth *(j + 1), fHeight / texHeight *(i + 1)));
 			}
 		}
 	}
 
-	BitmapFont::BitmapFont(CTexture* texture, const vector<Rect>& _chars)
+	BitmapFont::BitmapFont(CTexture* _texture, const vector<Rect>& _chars)
 	{
 		chars = _chars;
-		texture = texture;
+		texture = _texture;
 	}
 
-	BitmapFont::BitmapFont(CTexture* texture, const Size& letterSize, int charsPerRow)
+	BitmapFont::BitmapFont(CTexture* _texture, const Size& letterSize, int charsPerRow)
 	{
-		texture = texture;
+		texture = _texture;
 
 		float fWidth;
 		float fHeight;
+		float texWidth = (float)texture->GetSize().width;
+		float texHeight = (float)texture->GetSize().height;
 
 		for (int i = 0, k = 32; k < 127; i++)
 		{
@@ -46,8 +50,8 @@ namespace Viva
 			{
 				fWidth = (float)letterSize.width;
 				fHeight = (float)letterSize.height;
-				chars.push_back(Rect(fWidth / texture->size.width *j, fHeight / texture->size.height *i, fWidth /
-					texture->size.width *(j + 1), fHeight / texture->size.height *(i + 1)));
+				chars.push_back(Rect(fWidth / texWidth *j, fHeight / texHeight *i, fWidth /
+					texWidth *(j + 1), fHeight / texHeight *(i + 1)));
 			}
 		}
 	}

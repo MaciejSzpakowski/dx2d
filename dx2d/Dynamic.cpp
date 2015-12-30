@@ -6,6 +6,7 @@ namespace Viva
 
 	CDynamic::CDynamic()
 	{
+		name = L"";
 		zVertexCount = 0;
 		zVertexBuffer = nullptr;
 		zRenderTarget = nullptr;
@@ -35,11 +36,6 @@ namespace Viva
 		zExtraBufferPSdata = data;
 	}
 
-	void CDynamic::SetRenderTarget(CRenderTarget * target)
-	{
-		zRenderTarget = target;
-	}
-
 	void CDynamic::zTransform()
 	{
 		if (TransformVertices)
@@ -64,7 +60,7 @@ namespace Viva
 		XMMATRIX worldViewProj = zWorld * Core->GetCamera()->GetViewMatrix() * Core->GetCamera()->GetProjMatrix();
 		//check for cursor
 		if (Pickable)
-			zCheckForCursor(zWorld);
+			_CheckForCursor(zWorld);
 		worldViewProj = XMMatrixTranspose(worldViewProj);
 		Core->zContext->UpdateSubresource(DrawManager->zCbBufferVS, 0, NULL, &worldViewProj, 0, 0);
 	}

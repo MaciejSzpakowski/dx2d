@@ -53,7 +53,7 @@ namespace Viva
 	{
 		POINT p;
 		::GetCursorPos(&p);
-		ScreenToClient(Core->zWindow->zHandle, &p);
+		ScreenToClient(Core->GetWindowHandle(), &p);
 		return p;
 	}
 

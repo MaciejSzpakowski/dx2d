@@ -13,6 +13,13 @@ void Activity()
 	Sleep(10);
 }
 
+void test11()
+{
+	wstring msg = L"Test11: Memory test\n";
+	msg += L"Open task manager and check if memory is leaking\n";
+	text1->SetText(msg);
+}
+
 void test10()
 {
 	wstring msg = L"Test10: Render targets and pixel shaders\n";
@@ -21,29 +28,30 @@ void test10()
 
 	static float time1 = Core->GetGameTime();
 
-	CRenderTarget* r1 = DrawManager->AddRenderTarget();
+	RenderTarget* r1 = DrawManager->AddRenderTarget();
 	r1->MoveToBottom();
-	CSprite* s1 = DrawManager->AddSprite(L"brick.jpg",r1);
+	Sprite* s1 = DrawManager->AddSprite(L"brick.jpg",r1);
 	s1->SetPositionZ(0.1f);
-	s1->SetNaturalScale();
+	s1->SetPixelPerfectScale();
 	s1->size = 1.2f;
 
-	CSprite* s2 = DrawManager->AddSprite(L"leaf.png", r1);
+	Sprite* s2 = DrawManager->AddSprite(L"leaf.png", r1);
 	s2->SetPositionX(-10);
 	s2->SetAngularVelZ(1);
-	s2->SetNaturalScale();
+	s2->SetPixelPerfectScale();
 	s2->size = 0.5f;
 
-	CSprite* s3 = DrawManager->AddSprite(L"leaf.png", r1);
+	Sprite* s3 = DrawManager->AddSprite(L"leaf.png", r1);
 	s3->SetPositionX(10);
 	s3->SetAngularVelZ(-1);
-	s3->SetNaturalScale();
+	s3->SetPixelPerfectScale();
 	s3->size = 0.5f;
 
 	Pixel pixels[] = { Pixel(255,255,255,255), };
-	CTexture* w1 = new CTexture(pixels, Size(1, 1));
-	CSprite* s4 = new CSprite(w1);
-	s4->Scale.x = 19;
+	CTexture* w1 = new CTexture(pixels, Size(1, 1),L"whiteBackground");
+	Sprite* s4 = new Sprite(w1);
+	s4->name = L"back";
+	s4->SetScaleX(19);
 	s4->SetPositionY(12.5f);
 	s4->SetPositionZ(0.1f);
 	DrawManager->AddSprite(s4);
@@ -86,7 +94,7 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 }
 		)";
 
-	r1->PixelShader = Core->CreatePixelShaderFromString(ps2, "main");
+	r1->SetPixelShader(Core->CreatePixelShaderFromString(ps2, "main"));
 
 	Event* e1 = EventManager->AddEvent([=]
 	{
@@ -117,7 +125,7 @@ void test9()
 	pixels.push_back(Pixel(200, 200, 0, 255));
 
 	CTexture* t1 = new CTexture(pixels.data(), Size(1, 1));
-	CSprite* s1 = new CSprite(t1);
+	Sprite* s1 = new Sprite(t1);
 	DrawManager->AddSprite(s1);
 	s1->SetPositionX(-10);
 	s1->SetPositionY(-6);
@@ -159,7 +167,7 @@ void test9()
 				EventManager->RemoveEvent(e1);
 				EventManager->RemoveEvent(e2);
 			}
-			catch (std::runtime_error er)
+			catch (VivaError er)
 			{
 			}
 			return 0;
@@ -238,7 +246,7 @@ void test7()
 {
 	wstring msg = L"Test7: cursor picking, click and drag bricks\n";
 	text1->SetText(msg);
-	CSprite* s1;
+	Sprite* s1;
 	static CDynamic* pick = nullptr;
 
 	for (int i = 0; i < 20; i++)
@@ -303,37 +311,37 @@ void test6()
 	msg += L"right brick, bubble up/ fall down";
 	text1->SetText(msg);
 	
-	CSprite* s1 = DrawManager->AddSprite(L"leaf.png");
-	s1->SetNaturalScale();
+	Sprite* s1 = DrawManager->AddSprite(L"leaf.png");
+	s1->SetPixelPerfectScale();
 	s1->size = 0.3f;
 	s1->SetPositionX(-15);
 	s1->SetPositionY(4);
 	s1->SetAngularVelZ(2);
 
-	CSprite* s2 = DrawManager->AddSprite(L"brick.jpg");
-	s2->SetNaturalScale();
+	Sprite* s2 = DrawManager->AddSprite(L"brick.jpg");
+	s2->SetPixelPerfectScale();
 	s2->size = 0.3f;
 	s2->SetPositionX(-11);
 	s2->SetPositionY(4);
 	s2->SetAngularVelZ(-3);
 	s2->Origin = XMFLOAT2(-1, 1);
 
-	CSprite* s3 = DrawManager->AddSprite(L"brick.jpg");
-	s3->SetNaturalScale();
+	Sprite* s3 = DrawManager->AddSprite(L"brick.jpg");
+	s3->SetPixelPerfectScale();
 	s3->size = 0.1f;
 	s3->SetPositionX(0);
 	s3->SetPositionY(4);
 	s3->SizeAcceleration = 10;
 
-	CSprite* s4 = DrawManager->AddSprite(L"brick.jpg");
-	s4->SetNaturalScale();
+	Sprite* s4 = DrawManager->AddSprite(L"brick.jpg");
+	s4->SetPixelPerfectScale();
 	s4->size = 0.1f;
 	s4->SetPositionX(10);
 	s4->SetPositionY(4);
 	s4->SetAccelerationY(10);
 
-	CSprite* s5 = DrawManager->AddSprite(L"leaf.png");
-	s5->SetNaturalScale();
+	Sprite* s5 = DrawManager->AddSprite(L"leaf.png");
+	s5->SetPixelPerfectScale();
 	s5->size = 0.3f;
 	s5->SetPositionX(0);
 	s5->SetPositionY(-4);
@@ -349,7 +357,7 @@ void test6()
 		{
 			s3->SizeAcceleration = 1;
 		}
-		s3->Scale.x = (sinf((float)Core->GetGameTime()*10) + 1.5f) * 11;
+		s3->SetScaleX((sinf((float)Core->GetGameTime()*10) + 1.5f) * 11);
 
 		if (s4->GetPosition().y > 10)
 		{
@@ -396,12 +404,12 @@ void test5()
 	LARGE_INTEGER time2;
 	QueryPerformanceCounter(&time1);
 	CTexture* t1;
-	CSprite* s1;
+	Sprite* s1;
 
 	for (int i = 0; i < 1000; i++)
 	{
 		t1 = new CTexture(v.data(), Size(128, 128)); // this will leak memory but that's fine
-		s1 = new CSprite(t1);
+		s1 = new Sprite(t1);
 		DrawManager->AddSprite(s1);
 		obj.push_back(s1);
 	}
@@ -418,7 +426,7 @@ void test5()
 
 	for (int i = 0; i < 1000; i++)
 	{
-		s1 = new CSprite((CTexture*)ResourceManager->GetResource(L"5x5"));
+		s1 = new Sprite((CTexture*)ResourceManager->GetResource(L"5x5"));
 		DrawManager->AddSprite(s1);
 		obj.push_back(s1);
 	}
@@ -448,7 +456,7 @@ void test4()
 	s2->SetPixelScale(Size(512, 256));
 	s2->size = 0.5f;
 	s2->SetSpeed(-7);
-	s2->FlipHorizontally = true;
+	s2->SetFlipHorizontally(true);
 	s2->SetPositionX(10);
 
 	obj.push_back(s1);
@@ -463,7 +471,7 @@ void test3()
 	msg += L"In the middle, leaf (should be proportional)";
 	text1->SetText(msg);
 
-	CSprite* s1 = DrawManager->AddSprite(L"brick.jpg");
+	Sprite* s1 = DrawManager->AddSprite(L"brick.jpg");
 	s1->SetPixelScale(Size(200, 200));
 	s1->SetPositionX(-10);
 	obj.push_back(s1);
@@ -474,14 +482,14 @@ void test3()
 			pixels.push_back(Pixel(255 - 255 * ((i+j) % 2), 255 * ((i + j) % 2), 0, 255));
 	CTexture* t1 = new CTexture(pixels.data(), Size(8, 8)); // memory leak
 
-	CSprite* s2 = new CSprite(t1);
+	Sprite* s2 = new Sprite(t1);
 	DrawManager->AddSprite(s2);
 	s2->SetPositionX(10);
 	s2->SetPixelScale(Size(200, 200));
 	obj.push_back(s2);
 
-	CSprite* s3 = DrawManager->AddSprite(L"leaf.png");
-	s3->SetNaturalScale();
+	Sprite* s3 = DrawManager->AddSprite(L"leaf.png");
+	s3->SetPixelPerfectScale();
 	s3->size = 0.5f;
 	obj.push_back(s3);
 }
@@ -591,7 +599,9 @@ int wrapper()
 	tests.push_back(test8);
 	tests.push_back(test9);
 	tests.push_back(test10);
+	tests.push_back(test11);
 
+	MessageBox(0, L"TODO:\nSetextrabuffersize instead of createextrabuffer\nGive more meaningful CHECKHR error", L"Test1", 0);
 	MessageBox(0, L"1st test should display text on screen", L"Test1", 0);
 	startTest(0);
 
@@ -606,9 +616,12 @@ int main(int argc, char** argv)
 	{
 		return wrapper();
 	}
-	catch (std::runtime_error ex)
+	catch (VivaError er)
 	{
-		MessageBoxA(0, ex.what(), "Error", MB_ICONEXCLAMATION);
+		std::string s = er.function;
+		s += "\n";
+		s += er.what();
+		MessageBoxA(0, s.c_str(), "Error", MB_ICONEXCLAMATION);
 		return 0;
 	}
 }

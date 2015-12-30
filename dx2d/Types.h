@@ -2,7 +2,13 @@
 
 namespace Viva
 {
-#define CHECKHR() Functions::Checkhr(__FILE__,__LINE__, hr)
+	struct VivaError : public std::runtime_error
+	{
+		const char* function;
+
+		VivaError(const char* fun, const char* msg) :
+			runtime_error(msg), function(fun) {}
+	};
 
 	struct Vertex
 	{
@@ -53,15 +59,6 @@ namespace Viva
 		float verticalSpacing;
 	};
 
-	struct Point
-	{
-		float x;
-		float y;
-
-		Point() :x(0), y(0) {}
-		Point(float _x, float _y) :x(_x), y(_y) {}
-	};
-
 	struct Size
 	{
 		size_t width;
@@ -92,7 +89,7 @@ namespace Viva
 		float top;
 		float right;
 		float bottom;
-		Rect() {}
+		Rect():left(0),top(0),right(0),bottom(0) {}
 		Rect(float _left, float _top, float _right, float _bottom) :
 			left(_left), top(_top), right(_right), bottom(_bottom) {}
 	};

@@ -2,15 +2,19 @@
 
 namespace Viva
 {
-	class CWindow
+	class Window
 	{
+	private:
+		HWND handle;
+		MSG msg;
+		std::function<void()> worker;   // lib side worker
+		std::function<void()> activity; // client size activity
+
 	public:
-		HWND zHandle;
-		MSG zMsg;
-		std::function<void()> zWorker;
-		std::function<void()> zActivity;
-		CWindow(Size clientSize, int style);
-		int zRun();
-		void Destroy();
+		Window(const Size& clientSize, int style, const std::function<void()>& _worker, 
+			const std::function<void()>& _activity);
+		int _Run();
+		HWND GetHandle() const { return handle; }
+		void Destroy() { delete this; }
 	};
 }

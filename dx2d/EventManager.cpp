@@ -27,7 +27,7 @@ namespace Viva
 				return;
 			}
 
-		throw std::runtime_error("CEventManager::RemoveEvent() event not found");
+		throw VIVA_ERROR("Event not found");
 	}
 
 	void CEventManager::RemoveEvent(Event* e)
@@ -40,7 +40,7 @@ namespace Viva
 				return;
 			}
 
-		throw std::runtime_error("CEventManager::RemoveEvent() event not found");
+		throw VIVA_ERROR("Event not found");
 	}
 
 	void CEventManager::_Activity()

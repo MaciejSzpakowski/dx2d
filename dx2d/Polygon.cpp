@@ -111,7 +111,7 @@ namespace Viva
 	Circle::Circle(float _radius, size_t resolution)
 	{
 		zVertexCount = (int)resolution + 1;
-		radius = radius;
+		radius = _radius;
 
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
@@ -156,7 +156,8 @@ namespace Viva
 	void Polygon::Destroy()
 	{
 		CDynamic::Destroy();
-		DrawManager->RemovePoly(this);
+		if (zIndex != -1)
+			DrawManager->RemovePoly(this);
 		zVertexBuffer->Release();
 		delete this;
 	}	

@@ -53,7 +53,7 @@ namespace Viva
 			msg << "Could not open " << std::string(file.begin(),file.end());
 			delete gdibitmap;
 			Gdiplus::GdiplusShutdown(m_gdiplusToken);
-			throw std::runtime_error(msg.str().c_str());
+			throw VIVA_ERROR(msg.str().c_str());
 		}
 
 		UINT h = gdibitmap->GetHeight();
@@ -80,7 +80,7 @@ namespace Viva
 		}
 
 		size = Size(w, h);
-		zShaderResource = SrvFromColorArray((Pixel*)data, size);
+		shaderResource = SrvFromColorArray((Pixel*)data, size);
 
 		DeleteObject(hbitmap);
 		delete gdibitmap;
@@ -91,6 +91,6 @@ namespace Viva
 	CTexture::CTexture(const Pixel data[], const Size& _size, const wchar_t* _name) :Resource(_name)
 	{
 		size = _size;
-		zShaderResource = SrvFromColorArray(data, _size);
+		shaderResource = SrvFromColorArray(data, _size);
 	}
 }

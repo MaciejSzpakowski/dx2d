@@ -17,10 +17,9 @@ namespace Viva
 		Core->zDevice->CreateSamplerState(&sampDesc, sampler);
 	}
 
-	CDrawManager::CDrawManager() : 
-		SupressDuplicateWarning(false),
-		TexFilterCreationMode (TextureFilter::Point)
+	CDrawManager::CDrawManager()
 	{
+		TexFilterCreationMode = TextureFilter::Point;
 		D3D11_RASTERIZER_DESC rd;
 		ZeroMemory(&rd, sizeof(rd));
 		rd.FillMode = D3D11_FILL_WIREFRAME;
@@ -96,7 +95,7 @@ namespace Viva
 		//default white texture used by non textured objects
 		Pixel whitePixel[1] = { Pixel(255,255,255,255) };
 		CTexture* tex = new CTexture(whitePixel, Size(1, 1), L"");
-		zWhiteRes = tex->zShaderResource;
+		zWhiteRes = tex->_GetShaderResource();
 		delete tex;
 		
 		CreateSampler(TextureFilter::Point, &zPointSampler);
@@ -108,98 +107,71 @@ namespace Viva
 		zDefaultRenderTarget = AddRenderTarget();
 	}
 
-	//when adding drawable to drawmanager, its index should be -1
-	//if it's not it probably means that it's there already
-	bool CDrawManager::zHasObject(CDynamic* d)
-	{
-		if ( !SupressDuplicateWarning && d->zIndex != -1)
-		{
-			MessageBox(0, L"This object has already been added", L"Error", MB_ICONEXCLAMATION);
-			return true;
-		}
-		return false;
-	}
-
-	void CDrawManager::AddPoly(Polygon* p, CRenderTarget* target)
+	void CDrawManager::AddPoly(Polygon* p, RenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
-		if (zHasObject(p))
-			return;
-		target->zPolygons.push_back(p);
-		p->zRenderTarget = target;
-		p->zIndex = (int)target->zPolygons.size() - 1;
+		if (p->zIndex != -1)
+			throw VIVA_ERROR("This poly has a render target already");
+		target->AddPoly(p);
 	}
 
-	Polygon* CDrawManager::AddPoly(const vector<XMFLOAT2>& points, CRenderTarget* target)
+	Polygon* CDrawManager::AddPoly(const vector<XMFLOAT2>& points, RenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
 		Polygon* newPoly = new Polygon(points);
-		target->zPolygons.push_back(newPoly);
+		target->AddPoly(newPoly);
 		newPoly->zRenderTarget = target;
-		newPoly->zIndex = (int)target->zPolygons.size() - 1;
 		return newPoly;
 	}
 
-	Rectangle* CDrawManager::AddRect(const Size& size, CRenderTarget* target)
+	Rectangle* CDrawManager::AddRect(const Size& size, RenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
 		Rectangle* newRect = new Rectangle(size);
-		target->zPolygons.push_back(newRect);
-		newRect->zRenderTarget = target;
-		newRect->zIndex = (int)target->zPolygons.size() - 1;
+		target->AddPoly(newRect);
 		return newRect;
 	}
 
-	Circle* CDrawManager::AddCircle(float radius, unsigned char resolution, CRenderTarget* target)
+	Circle* CDrawManager::AddCircle(float radius, unsigned char resolution, RenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
 		Circle* newCircle = new Circle(radius, resolution);
-		target->zPolygons.push_back(newCircle);
-		newCircle->zRenderTarget = target;
-		newCircle->zIndex = (int)target->zPolygons.size() - 1;
+		target->AddPoly(newCircle);
 		return newCircle;
 	}
 
-	CSprite* CDrawManager::AddSprite(LPCWSTR file, CRenderTarget* target)
+	Sprite* CDrawManager::AddSprite(const wchar_t* filename, RenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
-		CSprite* newSprite;
-		newSprite = new CSprite(file);
-		target->zSprites.push_back(newSprite);
-		newSprite->zRenderTarget = target;
-		newSprite->zIndex = (int)target->zSprites.size() - 1;
+		Sprite* newSprite = new Sprite(filename);
+		target->AddSprite(newSprite);
 		return newSprite;
 	}
 
-	void CDrawManager::AddSprite(CSprite* s, CRenderTarget* target)
+	void CDrawManager::AddSprite(Sprite* s, RenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
-		if (zHasObject(s))
-			return;
-		target->zSprites.push_back(s);
-		s->zRenderTarget = target;
-		s->zIndex = (int)target->zSprites.size() - 1;
+		if (s->zIndex != -1)
+			throw VIVA_ERROR("This sprite has a render target already");
+		target->AddSprite(s);
 	}
 
-	Animation* CDrawManager::AddAnimation(LPCWSTR file, int x, int y, CRenderTarget* target)
+	Animation* CDrawManager::AddAnimation(LPCWSTR file, int x, int y, RenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
-		Animation* newAnimation;
-		newAnimation = new Animation(file, x, y);
-		target->zSprites.push_back(newAnimation);
-		newAnimation->zRenderTarget = target;
-		newAnimation->zIndex = (int)target->zSprites.size() - 1;
+		Animation* newAnimation = new Animation(file, x, y);
+		target->AddSprite(newAnimation);
 		return newAnimation;
 	}
 
-	void CDrawManager::AddAnimation(Animation* a, CRenderTarget* target)
+	void CDrawManager::AddAnimation(Animation* a, RenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
@@ -234,7 +206,7 @@ namespace Viva
 	void CDrawManager::zDrawAll()
 	{
 		for (int i = 0; i < (int)zRenderTargets.size(); i++)
-			zRenderTargets[i]->zDraw();
+			zRenderTargets[i]->_DrawObjects();
 
 		Core->zContext->ClearRenderTargetView(Core->zBackBuffer, Core->zBackBufferColor);
 		Core->zContext->ClearDepthStencilView(Core->zDepthStencilView,
@@ -244,11 +216,11 @@ namespace Viva
 		for (int i = 0; i < (int)zRenderTargets.size(); i++)
 		{
 			zRenderTargetTransform(i);
-			Core->zContext->PSSetShader(zRenderTargets[i]->PixelShader, 0, 0);
-			if (zRenderTargets[i]->zExtraBufferPSdata != nullptr)
+			Core->zContext->PSSetShader(zRenderTargets[i]->GetPixelShader(), 0, 0);
+			if (zRenderTargets[i]->GetExtraBufferPS() != nullptr)
 				Core->zContext->UpdateSubresource(DrawManager->zCbBufferPSExtra, 0, 0, 
-					zRenderTargets[i]->zExtraBufferPSdata, 0, 0);
-			zRenderTargets[i]->zSprite->_Draw();
+					zRenderTargets[i]->GetExtraBufferPS(), 0, 0);
+			zRenderTargets[i]->_DrawTarget();
 		}
 
 		//debug text
@@ -280,106 +252,42 @@ namespace Viva
 
 	void CDrawManager::RemovePoly(Polygon* p)
 	{		
-		if (p->zIndex == -1)
-			return;
-		auto polygons = &(p->zRenderTarget->zPolygons);
-		if (polygons->size() == 0 || (*polygons)[p->zIndex] != p)
-		{
-			MessageBox(0, L"This polygon is not in its target polygons collection", L"Error", MB_ICONERROR);
-			return;
-		}
-		else if (p->zIndex == polygons->size() - 1)
-		{			
-			polygons->pop_back();
-		}
-		else
-		{
-			//move end to where p is and update index
-			(*polygons)[p->zIndex] = polygons->back();
-			(*polygons)[p->zIndex]->zIndex = p->zIndex;
-			polygons->pop_back();
-		}
-		p->zRenderTarget = nullptr;
-		p->zIndex = -1;
+		p->zRenderTarget->RemovePoly(p);
 	}
 
-	void CDrawManager::RemoveSprite(CSprite* s)
+	void CDrawManager::RemoveSprite(Sprite* s)
 	{
-		if (s->zIndex == -1)
-			return;
-		auto sprites = &(s->zRenderTarget->zSprites);
-		if (s->zIndex >= sprites->size() || (*sprites)[s->zIndex] != s)
-		{
-			MessageBox(0, L"This sprite is not in its target sprites collection", L"Error", MB_ICONERROR);
-			return;
-		}
-		else if (s->zIndex == sprites->size() - 1)
-		{
-			sprites->pop_back();
-		}
-		else
-		{
-			//move end to where p is and update index
-			(*sprites)[s->zIndex] = sprites->back();
-			(*sprites)[s->zIndex]->zIndex = s->zIndex;
-			sprites->pop_back();
-		}
-		s->zRenderTarget = nullptr;
-		s->zIndex = -1;
+		s->zRenderTarget->RemoveSprite(s);
 	}
 
 	void CDrawManager::RemoveAnimation(Animation* a)
 	{
-		RemoveSprite(a);
+		a->zRenderTarget->RemoveSprite(a);
 	}
 
-	BitmapText* CDrawManager::AddBitmapText(BitmapFont* font, CRenderTarget* target)
+	BitmapText* CDrawManager::AddBitmapText(BitmapFont* font, RenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
 		if (font == nullptr)
-			return nullptr;
+			throw VIVA_ERROR("Font is null");
 		BitmapText* newText = new BitmapText(font);
-		target->zTexts.push_back(newText);
-		newText->zRenderTarget = target;
-		newText->zIndex = (int)target->zTexts.size() - 1;
+		target->AddText(newText);
 		return newText;
 	}
 
-	void CDrawManager::AddBitmapText(BitmapText* text, CRenderTarget* target)
+	void CDrawManager::AddBitmapText(BitmapText* text, RenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
-		if (zHasObject(text))
-			return;
-		target->zTexts.push_back(text);
-		text->zRenderTarget = target;
-		text->zIndex = (int)target->zTexts.size() - 1;
+		if (text->zIndex != -1)
+			throw VIVA_ERROR("This sprite has a render target already");
+		target->AddText(text);
 	}
 
 	void CDrawManager::RemoveBitmapText(BitmapText* t)
 	{
-		if (t->zIndex == -1)
-			return;
-		auto texts = &(t->zRenderTarget->zTexts);
-		if (t->zIndex >= texts->size() || (*texts)[t->zIndex] != t)
-		{
-			MessageBox(0, L"This text is not in target texts", L"Error", MB_ICONERROR);
-			return;
-		}
-		else if (t->zIndex == texts->size() - 1)
-		{
-			texts->pop_back();
-		}
-		else
-		{
-			//move end to where p is and update index
-			(*texts)[t->zIndex] = texts->back();
-			(*texts)[t->zIndex]->zIndex = t->zIndex;
-			texts->pop_back();
-		}
-		t->zRenderTarget = nullptr;
-		t->zIndex = -1;
+		t->zRenderTarget->RemoveText(t);
 	}
 
 	BitmapFont* CDrawManager::GetDefaultFont()
@@ -387,13 +295,14 @@ namespace Viva
 		return zDefaultFont;
 	}
 
-	CRenderTarget* CDrawManager::AddRenderTarget()
+	RenderTarget* CDrawManager::AddRenderTarget()
 	{
-		zRenderTargets.push_back(new CRenderTarget());
-		return *(zRenderTargets.end() - 1);
+		RenderTarget* r = new RenderTarget();
+		zRenderTargets.push_back(r);
+		return r;
 	}
 
-	void CDrawManager::RemoveRenderTarget(CRenderTarget* target)
+	void CDrawManager::RemoveRenderTarget(RenderTarget* target)
 	{
 		for (int i = 0; i < (int)zRenderTargets.size(); i++)
 		{
@@ -403,11 +312,13 @@ namespace Viva
 				return;
 			}
 		}
+
+		throw VIVA_ERROR("Render target not found");
 	}
 
 	void CDrawManager::ClearRenderTargets()
 	{
-		for (int i = 0; i < (int)zRenderTargets.size(); i++)
+		for (int i = (int)zRenderTargets.size() - 1; i >= 0;i--)
 			if (zRenderTargets[i] != zDefaultRenderTarget)
 				zRenderTargets[i]->Destroy();
 		zRenderTargets.clear();

@@ -7,7 +7,7 @@ namespace Viva
 		auto it = resources.find(res->GetName());
 
 		if (it != resources.end())
-			throw std::runtime_error("ResourceManager::AddResource()\nResource of that name already exists");
+			throw VIVA_ERROR("Resource of that name already exists");
 
 		res->_SetCached(true);
 		resources[res->GetName()] = res;
@@ -18,7 +18,7 @@ namespace Viva
 		auto it = resources.find(name);
 
 		if (it == resources.end())
-			throw std::runtime_error("ResourceManager::GetResource()\nResource not found");
+			throw VIVA_ERROR("Resource not found");
 
 		return it->second;
 	}
@@ -28,7 +28,7 @@ namespace Viva
 		auto it = resources.find(name);
 
 		if (it == resources.end())
-			throw std::runtime_error("ResourceManager::RemoveResource()\nResource not found");
+			throw VIVA_ERROR("Resource not found");
 
 		it->second->_SetCached(false);
 		resources.erase(it);

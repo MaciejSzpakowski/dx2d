@@ -23,11 +23,15 @@ namespace Viva
 		return 0;
 	}
 
-	CWindow::CWindow(Size clientSize,int style)
+	Window::Window(const Size& clientSize, int style, const std::function<void()>& _worker,
+		const std::function<void()>& _activity)
 	{
+		worker = _worker;
+		activity = _activity;
+
 		const wchar_t className[] = L"myWindowClass";
 		WNDCLASSEX wc;		
-		ZeroMemory(&zMsg, sizeof(zMsg));
+		ZeroMemory(&msg, sizeof(msg));
 		ZeroMemory(&wc, sizeof(wc));
 		wc.cbSize = sizeof(WNDCLASSEX);
 		wc.lpfnWndProc = WndProc;
@@ -38,52 +42,39 @@ namespace Viva
 		wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 
 		if (!RegisterClassEx(&wc))
-		{
-			MessageBox(NULL, L"Window Registration Failed!", L"Error!",
-				MB_ICONEXCLAMATION | MB_OK);
-			exit(0);
-		}
+			throw VIVA_ERROR("Window Class failed to register");
 
 		RECT rect = { 0, 0, (LONG)clientSize.width, (LONG)clientSize.height };
 		AdjustWindowRectEx(&rect, style | WS_CLIPSIBLINGS,
 			FALSE, 0);
 
-		zHandle = CreateWindowEx(0,
+		handle = CreateWindowEx(0,
 			className,	L"",	style,
 			CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top,
 			NULL, NULL, GetModuleHandle(0), NULL);
 
-		if (zHandle == NULL)
-		{
-			MessageBox(NULL, L"Window Creation Failed!", L"Error!",
-				MB_ICONEXCLAMATION | MB_OK);
-			exit(0);
-		}
+		if (handle == NULL)
+			throw VIVA_ERROR("Window creation failed");
 	}
 
-	int CWindow::zRun()
+	int Window::_Run()
 	{
-		ShowWindow(zHandle, SW_SHOW);
-		UpdateWindow(zHandle);
-		while (WM_QUIT != zMsg.message)
+		ShowWindow(handle, SW_SHOW);
+		UpdateWindow(handle);
+		while (WM_QUIT != msg.message)
 		{
-			if (PeekMessage(&zMsg, NULL, 0, 0, PM_REMOVE))
+			if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 			{
-					TranslateMessage(&zMsg);
-					DispatchMessage(&zMsg);
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
 			}
 			else
 			{
-				zWorker();
-				zActivity();
+				worker();
+				activity();
 			}
 		}
 		UnregisterClass(L"myWindowClass", GetModuleHandle(0));
-		return (int)zMsg.wParam;
-	}
-
-	void CWindow::Destroy()
-	{		
-		delete this;
+		return (int)msg.wParam;
 	}
 }

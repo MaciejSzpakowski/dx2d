@@ -8,7 +8,7 @@ namespace Viva
 		void InitViva(Size clientSize, std::function<void()> worker, int style = WS_OVERLAPPEDWINDOW);
 				
 		//check for HR when directx init functions are called
-		void Checkhr(LPCSTR file, int line, HRESULT hr);
+		void Checkhr(HRESULT hr, int line);
 	}
 
 	namespace Random

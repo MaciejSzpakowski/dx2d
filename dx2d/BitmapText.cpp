@@ -24,7 +24,7 @@ namespace Viva
 		//color
 		Core->zContext->UpdateSubresource(DrawManager->zCbBufferPS, 0, NULL, &color, 0, 0);
 		//tex
-		Core->zContext->PSSetShaderResources(0, 1, &font->GetTexture()->zShaderResource);
+		Core->zContext->PSSetShaderResources(0, 1, font->GetTexture()->_GetShaderResourceAddress());
 		int len = (int)text.length();
 		int col = 0;
 		int row = 0;
@@ -99,7 +99,8 @@ namespace Viva
 	void BitmapText::Destroy()
 	{
 		CDynamic::Destroy();
-		DrawManager->RemoveBitmapText(this);
+		if (zIndex != -1)
+			DrawManager->RemoveBitmapText(this);
 		delete this;
 	}
 }

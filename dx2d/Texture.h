@@ -4,9 +4,15 @@ namespace Viva
 {
 	class CTexture : public Resource
 	{
-	public:
+	private:
 		Size size;
-		ID3D11ShaderResourceView* zShaderResource;
+		ID3D11ShaderResourceView* shaderResource;
+	public:
+
+		CTexture(ID3D11ShaderResourceView* srv, wstring name=L"") :Resource(name), size(Size(0, 0)), shaderResource(srv) {}
+
+		ID3D11ShaderResourceView* _GetShaderResource() const { return shaderResource; }
+		ID3D11ShaderResourceView*const* _GetShaderResourceAddress() const { return &shaderResource; }
 
 		// Create texture from file.
 		CTexture(const wchar_t* filepath);
@@ -25,7 +31,7 @@ namespace Viva
 			if (cached)
 				ResourceManager->RemoveResource(name);
 
-			zShaderResource->Release();
+			shaderResource->Release();
 			delete this;
 		}
 	};

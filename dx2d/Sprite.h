@@ -2,33 +2,47 @@
 
 namespace Viva
 {
-	class CSprite : public CDynamic
+	class Sprite : public CDynamic
 	{
+	private:
+		CTexture* texture;
+		TextureFilter texFilter;
+		XMFLOAT2 scale;
+		bool flipHorizontally;
+		bool flipVertically;
+		ID3D11PixelShader* pixelShader;
+
 	public:
-		CTexture* zTexture;
-		ID3D11ShaderResourceView* zShaderResource;
+		Sprite(CTexture* _texture);
+		Sprite(const wchar_t* filename);
+
 		XMMATRIX _GetScaleMatrix() override;
 		virtual void _Play() {}
 		void _Draw() override;
-		void zCheckForCursor(XMMATRIX transform) override;
-		void zSpriteUpdate();
+		void _CheckForCursor(XMMATRIX transform) override;
+		void _SpriteUpdate();
 
-		CSprite();
-		CSprite(CTexture* texture);
-		CSprite(LPCWSTR file);
+		CTexture* GetTexture() { return texture; }
+		TextureFilter GetTextureFilter() const { return texFilter; }
+		void SetTextureFilter(TextureFilter _texFilter) { texFilter = _texFilter; }
+		XMFLOAT2 GetScale() const { return scale; }
+		void SetScale(const XMFLOAT2& _scale) { scale = _scale; }
+		void SetScaleX(float x) { scale.x = x; }
+		void SetScaleY(float y) { scale.y = y; }
+		bool IsFlippedHorizontally() const { return flipHorizontally; }
+		void SetFlipHorizontally(bool _flipHorizontally) { flipHorizontally = _flipHorizontally; }
+		bool IsFlippedVertically() const { return flipVertically; }
+		void SetFlipVertically(bool _flipVertically) { flipVertically = _flipVertically; }
+		ID3D11PixelShader* GetPixelShader() const { return pixelShader; }
+		void SetPixelShader(ID3D11PixelShader* _pixelShader) { pixelShader = _pixelShader; }
 
-		CTexture* GetTexture() { return zTexture; }
+		// Scale sprite so its size in pixels on screen is exactly the same as texture size.
+		void SetPixelPerfectScale();
 
-		//sets up scale to match texture size
-		void SetNaturalScale();
-		//set up scale to match given size
+		// Scale to match given size in pixels.
 		void SetPixelScale(const Viva::Size& _size);
+
 		void Destroy() override;
 
-		TextureFilter TexFilter; //point or linear
-		XMFLOAT2 Scale;
-		bool FlipHorizontally;
-		bool FlipVertically;
-		ID3D11PixelShader* PixelShader;
 	};
 }

@@ -2,7 +2,7 @@
 
 namespace Viva
 {
-	class Animation : public CSprite
+	class Animation : public Sprite
 	{
 	private:
 		int frameCount;

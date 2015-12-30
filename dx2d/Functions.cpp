@@ -22,7 +22,7 @@ namespace Viva
 			DrawManager->zInit();
 		}
 
-		void Checkhr(LPCSTR file, int line, HRESULT hr)
+		void Checkhr(HRESULT hr, int line)
 		{
 			if (hr == 0)
 				return;
@@ -30,10 +30,11 @@ namespace Viva
 			FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, 0,
 				hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL),
 				str, 128, 0);
-			std::stringstream message;
-			message << file << " line: " << line << "\n" << str;
 
-			throw std::runtime_error(message.str().c_str());
+			std::string s(str);
+			s += "\nLine:";
+			s += std::to_string(line);
+			throw VIVA_ERROR(s.c_str());
 		}
 	}
 

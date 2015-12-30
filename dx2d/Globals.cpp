@@ -2,10 +2,10 @@
 
 namespace Viva
 {
-	CCore* Core;
-	CDrawManager* DrawManager;
-	CInputManager* InputManager;
-	CEventManager* EventManager;
-	CResourceManager* ResourceManager;
-	CDebugManager* DebugManager;
+	CCore* Core = nullptr;
+	CDrawManager* DrawManager = nullptr;
+	CInputManager* InputManager = nullptr;
+	CEventManager* EventManager = nullptr;
+	CResourceManager* ResourceManager = nullptr;
+	CDebugManager* DebugManager = nullptr;
 }

@@ -17,9 +17,7 @@ namespace Viva
 		//assign global variable
 		Core = this;
 		//create window
-		zWindow = new CWindow(_clientSize, style);
-		zWindow->zWorker = worker;
-		zWindow->zActivity = IntActivity;
+		zWindow = new Window(_clientSize, style, worker, IntActivity);
 
 		zBackBufferColor[0] = 1.0f;
 		zBackBufferColor[1] = 1.0f;
@@ -33,7 +31,7 @@ namespace Viva
 		scd.BufferCount = 1;                                    // one back buffer
 		scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;     // use 32-bit color
 		scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;      // how swap chain is to be used
-		scd.OutputWindow = zWindow->zHandle;                 // the window to be used
+		scd.OutputWindow = zWindow->GetHandle();                // the window to be used
 		scd.SampleDesc.Quality = 0;
 		scd.SampleDesc.Count = 1;                               // no anti aliasing
 		scd.Windowed = TRUE;                                    // windowed/full-screen mode
@@ -146,10 +144,7 @@ namespace Viva
 		//timer
 		LARGE_INTEGER li;
 		if (!QueryPerformanceFrequency(&li))
-		{
-			MessageBox(0, L"QueryPerformanceFrequency() failed", L"Error", MB_ICONERROR);
-			exit(0);
-		}
+			throw VIVA_ERROR("QueryPerformanceFrequency() failed");
 		zFrequency = double(li.QuadPart);
 		QueryPerformanceCounter(&li);
 		zStartTime = li.QuadPart;
@@ -171,17 +166,17 @@ namespace Viva
 
 	HWND CCore::GetWindowHandle()
 	{
-		return zWindow->zHandle;
+		return zWindow->GetHandle();
 	}
 
 	int CCore::Run()
 	{
-		return zWindow->zRun();
+		return zWindow->_Run();
 	}
 
 	void CCore::SetWindowTitle(LPCWSTR title)
 	{
-		SetWindowText(zWindow->zHandle, title);
+		SetWindowText(zWindow->GetHandle(), title);
 	}
 
 	void CCore::SetBackgroundColor(Color color)
@@ -238,7 +233,7 @@ namespace Viva
 
 	void CCore::Exit()
 	{
-		PostMessage(zWindow->zHandle, WM_CLOSE, 0, 0);
+		PostMessage(zWindow->GetHandle(), WM_CLOSE, 0, 0);
 	}
 
 	ID3D11PixelShader* CCore::CreatePixelShaderFromFile(const wchar_t* filepath, const char* entryPoint, const char* target)
@@ -247,7 +242,7 @@ namespace Viva
 		ID3D10Blob *ps;
 		HRESULT hr = D3DCompileFromFile(filepath, 0, 0, entryPoint, target, 0, 0, &ps, 0); CHECKHR();
 		if (hr != 0)
-			throw std::runtime_error("Error compiling pixel shader");
+			throw VIVA_ERROR("Error compiling pixel shader");
 		//D3DCompile
 		hr = zDevice->CreatePixelShader(ps->GetBufferPointer(), ps->GetBufferSize(), 0,	&result); CHECKHR();
 		ps->Release();
@@ -262,7 +257,7 @@ namespace Viva
 		ID3D10Blob *ps;
 		HRESULT hr = D3DCompile(str, strlen(str), 0, 0, 0, entryPoint, target, 0, 0, &ps, 0);
 		if (hr != 0)
-			throw std::runtime_error("Error compiling pixel shader");
+			throw VIVA_ERROR("Error compiling pixel shader");
 		//D3DCompile
 		hr = zDevice->CreatePixelShader(ps->GetBufferPointer(), ps->GetBufferSize(), 0,	&result); CHECKHR();
 		ps->Release();

@@ -27,6 +27,9 @@
 #endif
 #pragma comment(linker, "/subsystem:windows /ENTRY:mainCRTStartup")
 
+#define CHECKHR() Functions::Checkhr(hr,__LINE__)
+#define VIVA_ERROR(msg) VivaError(__FUNCSIG__,msg)
+
 namespace Viva
 {
 	//using
@@ -48,7 +51,7 @@ namespace Viva
 	class CDrawManager;
 	class Camera;
 	class CInputManager;
-	class CSprite;
+	class Sprite;
 	class CEventManager;
 	class CResourceManager;
 	class Animation;
@@ -56,7 +59,7 @@ namespace Viva
 	class BitmapText;
 	class CDebugManager;
 	class CTexture;
-	class CRenderTarget;
+	class RenderTarget;
 
 	//externals
 	extern CCore* Core;

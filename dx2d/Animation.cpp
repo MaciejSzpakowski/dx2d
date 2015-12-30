@@ -2,7 +2,7 @@
 
 namespace Viva
 {
-	Animation::Animation(const wchar_t* filename, int columns, int rows) : CSprite(filename)
+	Animation::Animation(const wchar_t* filename, int columns, int rows) : Sprite(filename)
 	{
 		frameCount = columns*rows;
 		begin = 0;
@@ -19,7 +19,7 @@ namespace Viva
 		UV = uvTable[0];
 	}
 
-	Animation::Animation(const wchar_t* filename, const vector<Rect>& _uvTable) : CSprite(filename)
+	Animation::Animation(const wchar_t* filename, const vector<Rect>& _uvTable) : Sprite(filename)
 	{
 		uvTable = _uvTable;
 		frameCount = (int)_uvTable.size();

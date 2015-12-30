@@ -7,7 +7,7 @@ namespace Viva
 	private:
 		Camera* camera;
 	public:
-		CWindow* zWindow;
+		Window* zWindow;
 		ID3D11BlendState* zBlendState;
 		IDXGISwapChain* zSwapChain;
 		ID3D11RenderTargetView* zBackBuffer;
