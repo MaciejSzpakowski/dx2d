@@ -2,25 +2,31 @@
 
 namespace Viva
 {
-	class CInput
+	class CInputManager
 	{
-	public:
-		int zKeyCount;
-		bool* zCurState;
-		bool* zPrevState;
-		POINT* zCurMouse;
-		POINT* zPrevMouse;
-		int zMouseWheel;
-		bool zActiveGamepads[XUSER_MAX_COUNT];
-		XINPUT_STATE* zGamepadStatePrev;
-		XINPUT_STATE* zGamepadStateCur;
-		bool zGamepadConnected;
-		bool zGamepadDisconnected;
-		void zCheckGamepads();
-		void zActivity();
-		void zTest();
+	private:
+		int keyCount;
+		bool* curState;
+		bool* prevState;
+		POINT* curMouse;
+		POINT* prevMouse;
+		int mouseWheel;
+		bool activeGamepads[XUSER_MAX_COUNT];
+		XINPUT_STATE* gamepadStatePrev;
+		XINPUT_STATE* gamepadStateCur;
+		bool gamepadConnected;
+		bool gamepadDisconnected;
+		UINT acceptGamepads;
 
-		CInput();
+		void _CheckGamepads();
+
+	public:
+		CInputManager();
+		
+		void _Activity();
+		void _Test();
+		void _SetMouseWheel(int _mouseWheel) { mouseWheel = _mouseWheel; }
+
 
 		// MOUSE
 		int GetMouseWheel();
@@ -41,7 +47,8 @@ namespace Viva
 		//how many gamepads listen to
 		//keeps this at minimum for efficiency
 		//max count is XUSER_MAX_COUNT (currently 4)
-		UINT AcceptGamepads;
+		void SetGamepadsCount(UINT count) { acceptGamepads = count; }
+		UINT GetGamepadsCount() const { return acceptGamepads; }
 		bool IsAnyButtonDown(UINT gamepad);
 		bool IsButtonDown(UINT gamepad, Buttons button);
 		bool IsButtonPressed(UINT gamepad, Buttons button);

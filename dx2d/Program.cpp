@@ -98,7 +98,7 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 
 	EventManager->AddEvent([=]
 	{
-		if (Input->IsKeyPressed(Keys::Left) || Input->IsKeyPressed(Keys::Right))
+		if (InputManager->IsKeyPressed(Keys::Left) || InputManager->IsKeyPressed(Keys::Right))
 		{
 			w1->Destroy();
 			r1->Destroy();
@@ -152,7 +152,7 @@ void test9()
 
 	Event* e3 = EventManager->AddEvent([=]
 	{
-		if (Input->IsKeyPressed(Keys::Left) || Input->IsKeyPressed(Keys::Right))
+		if (InputManager->IsKeyPressed(Keys::Left) || InputManager->IsKeyPressed(Keys::Right))
 		{
 			try
 			{
@@ -172,10 +172,10 @@ void test8()
 {
 	wstring msg = L"Test8: collision test\n";
 	text1->SetText(msg);
-	CPolygon* p1;
-	CPolygon* r;
+	Viva::Polygon* p1;
+	Viva::Polygon* r;
 
-	CPolygon* player;
+	Viva::Polygon* player;
 	vector<XMFLOAT2> points;
 	points.push_back(XMFLOAT2(-0.3, 0));
 	points.push_back(XMFLOAT2(0, 0.8));
@@ -208,16 +208,16 @@ void test8()
 	{
 		player->SetVelocity(0, 0, 0);
 		player->SetAngularVelZ(0);
-		if (Input->IsKeyDown(Keys::KeyW))
+		if (InputManager->IsKeyDown(Keys::KeyW))
 		{
 			player->SetVelocityX(-sinf(player->GetRotation().z)*3);
 			player->SetVelocityY(cosf(player->GetRotation().z)*3);
 		}
-		if (Input->IsKeyDown(Keys::KeyA))
+		if (InputManager->IsKeyDown(Keys::KeyA))
 		{
 			player->SetAngularVelZ(3);
 		}
-		else if (Input->IsKeyDown(Keys::KeyD))
+		else if (InputManager->IsKeyDown(Keys::KeyD))
 		{
 			player->SetAngularVelZ(-3);
 		}
@@ -225,7 +225,7 @@ void test8()
 		for (int i = 2; i < obj.size(); i++)
 		{
 			obj[i]->color = Color(0, 0, 0, 1);
-			if (Collision::IsCollidingSat(player, (CPolygon*)obj[i]))
+			if (Collision::IsCollidingSat(player, (Viva::Polygon*)obj[i]))
 				obj[i]->color = Color(1, 0, 0, 1);
 		}
 		return 1;
@@ -255,7 +255,7 @@ void test7()
 
 	Event* e1 = EventManager->AddEvent([]
 	{
-		if (!Input->IsKeyDown(Keys::MouseLeft))
+		if (!InputManager->IsKeyDown(Keys::MouseLeft))
 		{
 			if (pick != nullptr)
 			{
@@ -282,9 +282,9 @@ void test7()
 			{
 				pick->SetPositionZ(-0.01f);
 				auto p = pick->GetPosition();
-				auto u = Camera->GetUnitsPerPixel(0);
-				pick->SetPositionX(p.x + Input->GetCursorDelta().x*u.x);
-				pick->SetPositionY(p.y - Input->GetCursorDelta().y*u.y);
+				auto u = Core->GetCamera()->GetUnitsPerPixel(0);
+				pick->SetPositionX(p.x + InputManager->GetCursorDelta().x*u.x);
+				pick->SetPositionY(p.y - InputManager->GetCursorDelta().y*u.y);
 			}
 		}
 		return 1;
@@ -499,14 +499,14 @@ void test2()
 		v.push_back(XMFLOAT2(sinf(0.31415f*(i+1)*2)*2, cosf(0.31415f*(i+1)*2)*2));
 	}
 	v.push_back(*v.begin());
-	CPolygon* p1 = DrawManager->AddPoly(v);
+	Viva::Polygon* p1 = DrawManager->AddPoly(v);
 	p1->SetPositionX(-10);
 	p1->color = Color(1, 0, 0, 1);
 
-	CRectangle* r1 = DrawManager->AddRect(Size(10, 3));
+	Viva::Rectangle* r1 = DrawManager->AddRect(Size(10, 3));
 	r1->color = Color(0, 0, 1, 1);
 
-	CCircle* c1 = DrawManager->AddCircle(2, 20);
+	Circle* c1 = DrawManager->AddCircle(2, 20);
 	c1->SetPositionX(10);
 
 	Event* e1 = EventManager->AddEvent([c1]
@@ -536,7 +536,7 @@ void startTest(int i)
 
 	EventManager->AddEvent([=]
 	{
-		if (Input->IsKeyPressed(Keys::Right))
+		if (InputManager->IsKeyPressed(Keys::Right))
 		{
 			if (i == tests.size() - 1)
 				return 1;
@@ -550,7 +550,7 @@ void startTest(int i)
 			startTest(i+1);
 			return 0;
 		}
-		else if (Input->IsKeyPressed(Keys::Left))
+		else if (InputManager->IsKeyPressed(Keys::Left))
 		{
 			if (i == 0)
 				return 1;

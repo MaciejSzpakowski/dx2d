@@ -2,11 +2,11 @@
 
 namespace Viva
 {
-	CPolygon::CPolygon(const vector<XMFLOAT2>& points)
+	Polygon::Polygon(const vector<XMFLOAT2>& points)
 	{
 		color = XMFLOAT4(0, 0, 0, 0);
 		zVertexCount = (int)points.size();
-		zRadius = 0;
+		span = 0;
 
 		/*/method 1
 		D3D11_BUFFER_DESC bd;
@@ -39,9 +39,9 @@ namespace Viva
 		for (int i = 0; i < points.size(); i++)
 		{
 			float distFromOrigin = sqrtf(points[i].x*points[i].x + points[i].y*points[i].y);
-			if (distFromOrigin > zRadius)
-				zRadius = distFromOrigin;
-			zVertices.push_back(XMVectorSet(points[i].x, points[i].y,0,0));
+			if (distFromOrigin > span)
+				span = distFromOrigin;
+			zVertices.push_back(DirectX::XMVectorSet(points[i].x, points[i].y,0,0));
 			vertices[i] = { points[i].x, points[i].y, 0, 1, 1, 1, 0, 0 };
 		}
 		zTransformedVertices = zVertices;
@@ -54,25 +54,25 @@ namespace Viva
 		delete[] vertices;//*/
 	}
 
-	CPolygon* CPolygon::Clone()
+	Polygon* Polygon::Clone()
 	{
-		CPolygon* newPoly = new CPolygon(*this);
+		Polygon* newPoly = new Polygon(*this);
 		newPoly->zIndex = -1;
 		newPoly->zChildren.clear();
 		DrawManager->AddPoly(newPoly, newPoly->zRenderTarget);
 		return newPoly;
 	}
 
-	XMMATRIX CPolygon::zGetScaleMatrix()
+	XMMATRIX Polygon::_GetScaleMatrix()
 	{
-		return XMMatrixIdentity();
+		return DirectX::XMMatrixIdentity();
 	}
 
-	CRectangle::CRectangle(const Size& size)
+	Rectangle::Rectangle(const Size& size)
 	{
 		zVertexCount = 5;
-		Scale.x = (float)size.width;
-		Scale.y = (float)size.height;
+		scale.x = (float)size.width;
+		scale.y = (float)size.height;
 		//method 2
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
@@ -89,11 +89,11 @@ namespace Viva
 			{ -0.5f, 0.5f, 0, 1, 1,1, 0, 0 },
 			{ -0.5f, -0.5f, 0, 1, 1,1, 0, 0 }
 		};
-		zVertices.push_back(XMVectorSet(-0.5f, -0.5f, 0, 0));
-		zVertices.push_back(XMVectorSet(0.5f, -0.5f, 0, 0));
-		zVertices.push_back(XMVectorSet(0.5f, 0.5f, 0, 0));
-		zVertices.push_back(XMVectorSet(-0.5f, 0.5f, 0, 0));
-		zVertices.push_back(XMVectorSet(-0.5f, -0.5f, 0, 0));
+		zVertices.push_back(DirectX::XMVectorSet(-0.5f, -0.5f, 0, 0));
+		zVertices.push_back(DirectX::XMVectorSet(0.5f, -0.5f, 0, 0));
+		zVertices.push_back(DirectX::XMVectorSet(0.5f, 0.5f, 0, 0));
+		zVertices.push_back(DirectX::XMVectorSet(-0.5f, 0.5f, 0, 0));
+		zVertices.push_back(DirectX::XMVectorSet(-0.5f, -0.5f, 0, 0));
 		zTransformedVertices = zVertices;
 
 		D3D11_SUBRESOURCE_DATA sd;
@@ -103,15 +103,15 @@ namespace Viva
 		Core->zDevice->CreateBuffer(&bd, &sd, &zVertexBuffer);
 	}
 
-	XMMATRIX CRectangle::zGetScaleMatrix()
+	XMMATRIX Rectangle::_GetScaleMatrix()
 	{
-		return XMMatrixScaling(Scale.x, Scale.y, 1);
+		return DirectX::XMMatrixScaling(scale.x, scale.y, 1);
 	}
 
-	CCircle::CCircle(float radius, unsigned char resolution)
+	Circle::Circle(float _radius, size_t resolution)
 	{
-		zVertexCount = resolution + 1;
-		Radius = radius;
+		zVertexCount = (int)resolution + 1;
+		radius = radius;
 
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
@@ -122,11 +122,11 @@ namespace Viva
 
 		Vertex* vertices = new Vertex[zVertexCount];
 		float angle = 0;
-		float delta = XM_2PI / (zVertexCount - 1);
+		float delta = DirectX::XM_2PI / (zVertexCount - 1);
 		for (int i = 0; i < zVertexCount; i++)
 		{
 			vertices[i] = { cos(angle)*radius, sin(angle)*radius, 0, 1, 1, 1, 0, 0 };
-			zVertices.push_back(XMVectorSet(vertices[i].X, vertices[i].Y, 0, 0));
+			zVertices.push_back(DirectX::XMVectorSet(vertices[i].X, vertices[i].Y, 0, 0));
 			angle += delta;
 		}
 		zTransformedVertices = zVertices;
@@ -139,12 +139,12 @@ namespace Viva
 		delete[] vertices;
 	}
 
-	XMMATRIX CCircle::zGetScaleMatrix()
+	XMMATRIX Circle::_GetScaleMatrix()
 	{
-		return XMMatrixScaling(Radius, Radius, 1);
+		return DirectX::XMMatrixScaling(radius, radius, 1);
 	}
 
-	void CPolygon::zDraw()
+	void Polygon::_Draw()
 	{		
 		Core->zContext->UpdateSubresource(DrawManager->zCbBufferPS, 0, NULL, &color, 0, 0);		
 		UINT stride = sizeof(Vertex);
@@ -153,7 +153,7 @@ namespace Viva
 		Core->zContext->Draw(zVertexCount, 0);
 	}
 
-	void CPolygon::Destroy()
+	void Polygon::Destroy()
 	{
 		CDynamic::Destroy();
 		DrawManager->RemovePoly(this);

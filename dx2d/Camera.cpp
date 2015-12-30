@@ -2,78 +2,68 @@
 
 namespace Viva
 {
-	CCamera::CCamera()
+	Camera::Camera()
 	{
-		zNearPlane = 0.1f;
-		zFarPlane = 1000.0f;
-		zFovAngle = 0.4f*3.14f; //72 deg
+		nearPlane = 0.1f;
+		farPlane = 1000.0f;
+		fovAngle = 0.4f*3.14f; //72 deg
 		//Camera information
 		SetPosition(0, 0, -20);
-		XMVECTOR target = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
-		zUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+		XMVECTOR target = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+		up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
 		//Set the View matrix
-		zView = XMMatrixLookAtLH(zPosition, target, zUp);
+		view = DirectX::XMMatrixLookAtLH(zPosition, target, up);
 
 		//Set the Projection matrix
-		zAspectRatio = (float)Core->clientSize.width / Core->clientSize.height;
-		zProj = XMMatrixPerspectiveFovLH(zFovAngle, zAspectRatio, zNearPlane, zFarPlane);
-		DrawManager->zRenderTargetMatrix = zView * zProj;
+		aspectRatio = (float)Core->clientSize.width / Core->clientSize.height;
+		proj = DirectX::XMMatrixPerspectiveFovLH(fovAngle, aspectRatio, nearPlane, farPlane);
+		DrawManager->zRenderTargetMatrix = view * proj;
 	}
 
-	XMMATRIX CCamera::zGetScaleMatrix()
+	XMMATRIX Camera::_GetScaleMatrix()
 	{
-		return XMMatrixIdentity();
+		return DirectX::XMMatrixIdentity();
 	}
 
-	void CCamera::zCamTransform()
+	void Camera::_CamTransform()
 	{
 		zUpdate();
-		XMVECTOR target = XMVectorAdd(zPosition, XMVectorSet(0, 0, 20, 1));
-		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(zRotation);
-		zView = XMMatrixLookAtLH(zPosition, target, zUp) * rot;
+		XMVECTOR target = DirectX::XMVectorAdd(zPosition, DirectX::XMVectorSet(0, 0, 20, 1));
+		XMMATRIX rot = DirectX::XMMatrixRotationRollPitchYawFromVector(zRotation);
+		view = DirectX::XMMatrixLookAtLH(zPosition, target, up) * rot;
 	}
 
-	XMMATRIX CCamera::GetViewMatrix()
+	XMFLOAT3 Camera::GetCursorWorldPos(float z) const
 	{
-		return zView;
-	}
-
-	XMMATRIX CCamera::GetProjMatrix()
-	{
-		return zProj;
-	}
-
-	XMFLOAT3 CCamera::GetCursorWorldPos(float z)
-	{
-		POINT p = Input->GetCursorClientPos();
+		POINT p = InputManager->GetCursorClientPos();
 		//formula to convert z distance from camera to z in z-buffer
 		//(20.0f + z) because by default camera is 20 from point (0,0,0)
-		float zbuffer = ((zFarPlane + zNearPlane) / (zFarPlane - zNearPlane) + 
-			((-2.0f * zFarPlane * zNearPlane) /
-			(zFarPlane - zNearPlane)) / (20.0f + z) + 1.0f) / 2.0f;
-		XMVECTOR pos3 = XMVectorSet((float)p.x, (float)p.y, zbuffer, 1);
+		float zbuffer = ((farPlane + nearPlane) / (farPlane - nearPlane) + 
+			((-2.0f * farPlane * nearPlane) /
+			(farPlane - nearPlane)) / (20.0f + z) + 1.0f) / 2.0f;
+		XMVECTOR pos3 = DirectX::XMVectorSet((float)p.x, (float)p.y, zbuffer, 1);
 		RECT r1;
 		GetClientRect(Core->GetWindowHandle(), &r1);
 		XMVECTOR trans = XMVector3Unproject(pos3, 0.0f, 0.0f, (float)r1.right - r1.left,
-			(float)r1.bottom - r1.top, 0.0f, 1.0f, zProj,
-			zView, XMMatrixIdentity());
+			(float)r1.bottom - r1.top, 0.0f, 1.0f, proj,
+			view, DirectX::XMMatrixIdentity());
 		XMFLOAT3 f3t;
 		XMStoreFloat3(&f3t, trans);
 		return { f3t.x, f3t.y, z };
 	}
 
-	XMFLOAT2 CCamera::GetFrustumSize(float z)
+	XMFLOAT2 Camera::GetFrustumSize(float z) const
 	{
 		XMFLOAT2 res;
-		res.x = (20 + z) * tan(zFovAngle/2) * zAspectRatio * 2;
-		res.y = (20 + z) * tan(zFovAngle/2) * 2;
+		res.x = (20 + z) * tan(fovAngle/2) * aspectRatio * 2;
+		res.y = (20 + z) * tan(fovAngle/2) * 2;
 		return res;
 	}
 
-	XMFLOAT2 CCamera::GetUnitsPerPixel(float z)
+	XMFLOAT2 Camera::GetUnitsPerPixel(float z) const
 	{
-		XMFLOAT2 frustum = Camera->GetFrustumSize(z);
+		XMFLOAT2 frustum = GetFrustumSize(z);
 		RECT client;
 		GetClientRect(Core->GetWindowHandle(), &client);
 		XMFLOAT2 clientSize = { (float)client.right - client.left,
@@ -81,7 +71,7 @@ namespace Viva
 		return XMFLOAT2( frustum.x / clientSize.x, frustum.y / clientSize.y );
 	}
 
-	void CCamera::Destroy()
+	void Camera::Destroy()
 	{
 		delete this;
 	}

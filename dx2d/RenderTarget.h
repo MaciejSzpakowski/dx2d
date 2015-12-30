@@ -9,7 +9,7 @@ namespace Viva
 		ID3D11Texture2D* zTexture;
 		ID3D11RenderTargetView* zTargetView;
 		CSprite* zSprite;
-		vector<CPolygon*> zPolygons;
+		vector<Polygon*> zPolygons;
 		vector<CSprite*> zSprites;
 		vector<BitmapText*> zTexts;
 

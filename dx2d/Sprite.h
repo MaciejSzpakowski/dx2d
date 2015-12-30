@@ -7,9 +7,9 @@ namespace Viva
 	public:
 		CTexture* zTexture;
 		ID3D11ShaderResourceView* zShaderResource;
-		XMMATRIX zGetScaleMatrix() override;
+		XMMATRIX _GetScaleMatrix() override;
 		virtual void _Play() {}
-		void zDraw() override;
+		void _Draw() override;
 		void zCheckForCursor(XMMATRIX transform) override;
 		void zSpriteUpdate();
 

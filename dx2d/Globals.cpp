@@ -4,8 +4,7 @@ namespace Viva
 {
 	CCore* Core;
 	CDrawManager* DrawManager;
-	CCamera* Camera;
-	CInput* Input;
+	CInputManager* InputManager;
 	CEventManager* EventManager;
 	CResourceManager* ResourceManager;
 	CDebugManager* DebugManager;

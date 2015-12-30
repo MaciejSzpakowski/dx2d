@@ -17,7 +17,7 @@ namespace Viva
 		metrics.verticalSpacing = 0;
 	}
 
-	void BitmapText::zDraw()
+	void BitmapText::_Draw()
 	{
 		if (text.length() == 0)
 			return;
@@ -62,22 +62,22 @@ namespace Viva
 			horAlignOffset = -len / 2.0f;
 		else if (metrics.horizontalAlign == HorizontalAlignment::Right)
 			horAlignOffset = (float)-len;
-		XMMATRIX scale = XMMatrixScaling(_Width, _Height, 1);
-		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(zRotation);
+		XMMATRIX scale = DirectX::XMMatrixScaling(_Width, _Height, 1);
+		XMMATRIX rot = DirectX::XMMatrixRotationRollPitchYawFromVector(zRotation);
 		//origin is translation matrix from the center of the text object
-		XMMATRIX origin = XMMatrixTranslation(
+		XMMATRIX origin = DirectX::XMMatrixTranslation(
 			(col*(_Width+_HorizontalSpacing) + horAlignOffset)*2,
 			(-row*(_Height+_VerticalSpacing) + verAlignOffset)*2, 0);
-		XMMATRIX loc = XMMatrixTranslationFromVector(zPosition);
+		XMMATRIX loc = DirectX::XMMatrixTranslationFromVector(zPosition);
 		XMMATRIX worldViewProj;
 		if (zParent == nullptr)
-			worldViewProj  = scale * origin * rot * loc * Camera->zView * Camera->zProj;
+			worldViewProj  = scale * origin * rot * loc * Core->GetCamera()->GetViewMatrix() * Core->GetCamera()->GetProjMatrix();
 		else
 		{
-			XMMATRIX parentLoc = XMMatrixRotationRollPitchYawFromVector(zParent->zRotation);
-			XMMATRIX parentRot = XMMatrixTranslationFromVector(zParent->zPosition);
+			XMMATRIX parentLoc = DirectX::XMMatrixRotationRollPitchYawFromVector(zParent->zRotation);
+			XMMATRIX parentRot = DirectX::XMMatrixTranslationFromVector(zParent->zPosition);
 			worldViewProj = scale * origin * rot * loc * parentLoc * parentRot *
-				Camera->zView * Camera->zProj;
+				Core->GetCamera()->GetViewMatrix() * Core->GetCamera()->GetProjMatrix();
 		}
 		worldViewProj = XMMatrixTranspose(worldViewProj);
 		Core->zContext->UpdateSubresource(DrawManager->zCbBufferVS, 0, NULL, &worldViewProj, 0, 0);
@@ -85,7 +85,7 @@ namespace Viva
 
 	void BitmapText::SetPixelScale(const Size& _size)
 	{		
-		XMFLOAT2 frustum = Camera->GetFrustumSize(GetPosition().z);
+		XMFLOAT2 frustum = Core->GetCamera()->GetFrustumSize(GetPosition().z);
 		RECT client;
 		GetClientRect(Core->GetWindowHandle(), &client);
 		XMFLOAT2 clientSize = { (float)client.right - client.left,

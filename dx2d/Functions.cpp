@@ -2,11 +2,13 @@
 
 namespace Viva
 {
+	using namespace DirectX;
+
 	void IntActivity()
 	{
-		Input->zActivity();
-		EventManager->zActivity();
-		Camera->zCamTransform();
+		InputManager->_Activity();
+		EventManager->_Activity();
+		Core->GetCamera()->_CamTransform();
 		DrawManager->zDrawAll();
 		Core->zUpdateGameTime();
 	}
@@ -60,9 +62,9 @@ namespace Viva
 		//make aligned square region from zRadius
 		//check if difference between x or y (position)
 		//is more than the sum od radii
-		bool CheckRegion(CPolygon* p1, CPolygon* p2)
+		bool CheckRegion(Polygon* p1, Polygon* p2)
 		{
-			float radi = p1->zRadius + p2->zRadius;
+			float radi = p1->GetSpan() + p2->GetSpan();
 			XMFLOAT3 pos1 = p1->GetPosition();
 			XMFLOAT3 pos2 = p2->GetPosition();
 			return !(abs(pos1.x - pos2.x) > radi ||
@@ -71,9 +73,9 @@ namespace Viva
 
 		//another fast collision check
 		//circle collision
-		bool CheckCircle(CPolygon* p1, CPolygon* p2)
+		bool CheckCircle(Polygon* p1, Polygon* p2)
 		{
-			float radi = p1->zRadius + p2->zRadius;
+			float radi = p1->GetSpan() + p2->GetSpan();
 			XMVECTOR dist = p1->zPosition - p2->zPosition;
 			XMVECTOR len = XMVector2Length(dist);
 			return !(XMVectorGetX(len) > radi);
@@ -116,29 +118,29 @@ namespace Viva
 			return result;
 		}
 
-		bool IsColliding(CCircle* c1, CCircle* c2)
+		bool IsColliding(Circle* c1, Circle* c2)
 		{
 			XMVECTOR v = XMVectorSubtract(c1->zPosition, c2->zPosition);
 			XMVECTOR len = XMVector2Length(v);
-			return XMVectorGetX(len) < (c1->Radius + c2->Radius);
+			return XMVectorGetX(len) < (c1->GetRadius() + c2->GetRadius());
 		}
 
-		bool IsColliding(CCircle* c, CRectangle* r)
+		bool IsColliding(Circle* c, Rectangle* r)
 		{
 			return false;
 		}
 
-		bool IsColliding(CRectangle* c, CRectangle* r)
+		bool IsColliding(Rectangle* c, Rectangle* r)
 		{
 			return false;
 		}
 
-		bool IsColliding(CCircle* c, CPolygon* p)
+		bool IsColliding(Circle* c, Polygon* p)
 		{
 			return false;
 		}
 
-		XMFLOAT2 GetProj(XMVECTOR edgeNormal, CPolygon* p)
+		XMFLOAT2 GetProj(XMVECTOR edgeNormal, Polygon* p)
 		{
 			float min = XMVectorGetX(XMVector2Dot(edgeNormal, p->zTransformedVertices[0]));
 			float max = min;
@@ -162,7 +164,7 @@ namespace Viva
 			return false;
 		}
 
-		bool IsCollidingSat(CPolygon* p1, CPolygon* p2)
+		bool IsCollidingSat(Polygon* p1, Polygon* p2)
 		{
 			if (!CheckRegion(p1, p2))
 				return false;
@@ -201,7 +203,7 @@ namespace Viva
 			return true;
 		}
 
-		bool IsColliding(CPolygon* p1, CPolygon* p2, XMFLOAT3* pointOfCollision)
+		bool IsColliding(Polygon* p1, Polygon* p2, XMFLOAT3* pointOfCollision)
 		{
 			if (!CheckRegion(p1, p2))
 				return false;

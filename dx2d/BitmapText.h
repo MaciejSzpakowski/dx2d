@@ -28,8 +28,8 @@ namespace Viva
 		BitmapFont* GetFont() const { return font; }
 		void SetFont(BitmapFont* _font) { font = _font; }
 
-		void zDraw() override;
-		XMMATRIX zGetScaleMatrix() override { return XMMatrixIdentity(); }
+		void _Draw() override;
+		XMMATRIX _GetScaleMatrix() override { return DirectX::XMMatrixIdentity(); }
 		void _TextTransform(int col, int row, int len);
 	};
 }

@@ -13,17 +13,17 @@ namespace Viva
 		newEvent->Activity = func;
 		newEvent->Name = name;
 		newEvent->lastPulse = 0;
-		zEvents.push_back(newEvent);
+		events.push_back(newEvent);
 		return newEvent;
 	}
 
 	void CEventManager::RemoveEvent(wstring name)
 	{
-		for(int i = 0;i<zEvents.size();i++)
-			if (zEvents[i] && zEvents[i]->Name == name)
+		for(int i = 0;i<events.size();i++)
+			if (events[i] && events[i]->Name == name)
 			{
-				delete zEvents[i];
-				zEvents[i] = nullptr;
+				delete events[i];
+				events[i] = nullptr;
 				return;
 			}
 
@@ -32,61 +32,61 @@ namespace Viva
 
 	void CEventManager::RemoveEvent(Event* e)
 	{
-		for (int i = 0; i<zEvents.size(); i++)
-			if (zEvents[i] && zEvents[i] == e)
+		for (int i = 0; i<events.size(); i++)
+			if (events[i] && events[i] == e)
 			{
-				delete zEvents[i];
-				zEvents[i] = nullptr;
+				delete events[i];
+				events[i] = nullptr;
 				return;
 			}
 
 		throw std::runtime_error("CEventManager::RemoveEvent() event not found");
 	}
 
-	void CEventManager::zActivity()
+	void CEventManager::_Activity()
 	{
 		//might be removed so backwards iteration
-		for (int i = (int)zEvents.size() - 1; i >= 0; i--)
+		for (int i = (int)events.size() - 1; i >= 0; i--)
 		{
 			//pop if last event is empty
-			if (zEvents[i] == nullptr && i == zEvents.size() - 1)
+			if (events[i] == nullptr && i == events.size() - 1)
 			{
-				zEvents.pop_back();
+				events.pop_back();
 				continue;
 			}
 			//if its empty but not last
-			else if (zEvents[i] == nullptr)
+			else if (events[i] == nullptr)
 			{
-				zEvents[i] = zEvents.back();
-				zEvents.pop_back();
+				events[i] = events.back();
+				events.pop_back();
 				continue;
 			}			
 			int ret = 1;
 			
 			//if delay time has passed...
-			if (Core->GetGameTime() - zEvents[i]->startTime > zEvents[i]->delay)
+			if (Core->GetGameTime() - events[i]->startTime > events[i]->delay)
 			//...and it's time for next pulse then run
-			if (zEvents[i]->tick == 0 ||
-				(Core->GetGameTime() - zEvents[i]->lastPulse > zEvents[i]->tick))
+			if (events[i]->tick == 0 ||
+				(Core->GetGameTime() - events[i]->lastPulse > events[i]->tick))
 			{
-				ret = zEvents[i]->Activity();
-				zEvents[i]->lastPulse = Core->GetGameTime();
+				ret = events[i]->Activity();
+				events[i]->lastPulse = Core->GetGameTime();
 			}
 			//if returned 0 or expired then remove
-			if (ret == 0 || (zEvents[i]->lifeTime > 0 &&
-				Core->GetGameTime() - zEvents[i]->startTime > zEvents[i]->lifeTime))
+			if (ret == 0 || (events[i]->lifeTime > 0 &&
+				Core->GetGameTime() - events[i]->startTime > events[i]->lifeTime))
 			{
-				delete zEvents[i];
-				zEvents[i] = zEvents.back();
-				zEvents.pop_back();
+				delete events[i];
+				events[i] = events.back();
+				events.pop_back();
 			}
 		}
 	}
 
 	void CEventManager::Destroy()
 	{
-		for (int i = 0; i < zEvents.size(); i++)
-			delete zEvents[i];
+		for (int i = 0; i < events.size(); i++)
+			delete events[i];
 		delete this;
 	}
 }

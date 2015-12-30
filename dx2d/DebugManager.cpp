@@ -2,51 +2,46 @@
 
 namespace Viva
 {
-	CDebugManager::CDebugManager()
+	CDebugManager::CDebugManager(BitmapFont* font, Camera* camera)
 	{
-		zDebugText = nullptr;		
+		debugText = new BitmapText(font);
+		debugText->SetPosition(-9, 7, 10.3f);
+		debugText->zParent = camera;
+		debugText->SetPixelScale(Size(10, 14));
 	}
 
-	void CDebugManager::Flush()
+	void CDebugManager::_Flush()
 	{
-		if (zDebugText == nullptr)
+		if (debugText == nullptr)
 			return;
-		zDebugText->SetText(zWss.str());
-		zWss.str(L"");
-	}
-
-	void CDebugManager::Init(BitmapFont* font)
-	{
-		zDebugText = new BitmapText(DrawManager->zDefaultFont);
-		zDebugText->SetPosition(-9, 7, 10.3f);
-		zDebugText->zParent = Camera;
-		zDebugText->SetPixelScale(Size(10, 14));
+		debugText->SetText(wss.str());
+		wss.str(L"");
 	}
 
 	void CDebugManager::Debug(int debug, wstring name)
 	{
-		zWss << name << ": " << debug << "\n";
+		wss << name << ": " << debug << "\n";
 	}
 
 	void CDebugManager::Debug(float debug, wstring name)
 	{
-		zWss << name << ": " << debug << "\n";
+		wss << name << ": " << debug << "\n";
 	}
 
 	void CDebugManager::Debug(double debug, wstring name)
 	{
-		zWss << name << ": " << debug << "\n";
+		wss << name << ": " << debug << "\n";
 	}
 
 	void CDebugManager::Debug(wstring debug, wstring name)
 	{
-		zWss << name << ": " << debug << "\n";
+		wss << name << ": " << debug << "\n";
 	}
 	
 	void CDebugManager::Destroy()
 	{
-		if (zDebugText != nullptr)
-			zDebugText->Destroy();
+		if (debugText != nullptr)
+			debugText->Destroy();
 		delete this;
 	}
 }

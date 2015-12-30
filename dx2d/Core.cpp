@@ -136,12 +136,12 @@ namespace Viva
 
 		//main objects
 		DrawManager = new CDrawManager;
-		Camera = new CCamera;
-		Input = new CInput;
+		camera = new Camera;
+		InputManager = new CInputManager;
 		EventManager = new CEventManager;
 		ResourceManager = new CResourceManager;
-		DebugManager = new CDebugManager;
 		DrawManager->InitDefaultFont();
+		DebugManager = new CDebugManager(DrawManager->GetDefaultFont(),camera);
 
 		//timer
 		LARGE_INTEGER li;
@@ -274,8 +274,8 @@ namespace Viva
 		//engine objects
 		DebugManager->Destroy();
 		EventManager->Destroy();
-		Input->Destroy();
-		Camera->Destroy();
+		InputManager->Destroy();
+		camera->Destroy();
 		DrawManager->Destroy();
 		ResourceManager->Destroy();
 		//com objects

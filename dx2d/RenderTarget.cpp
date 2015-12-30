@@ -70,13 +70,13 @@ namespace Viva
 		Core->zContext->PSSetShader(Core->zDefaultPS, 0, 0);
 		Core->zContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP);
 		Core->zContext->RSSetState(DrawManager->zWireframe);
-		for (CPolygon* p : zPolygons)
+		for (Polygon* p : zPolygons)
 		{
 			p->zUpdate();
 			p->zTransform();
 			if (p->Visible)
 			{
-				p->zDraw();
+				p->_Draw();
 			}
 		}
 
@@ -100,7 +100,7 @@ namespace Viva
 					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zLineSampler);
 				else
 					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zPointSampler);
-				s->zDraw();
+				s->_Draw();
 			}
 		}
 		//bitmap text
@@ -113,7 +113,7 @@ namespace Viva
 					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zLineSampler);
 				else
 					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zPointSampler);
-				t->zDraw();
+				t->_Draw();
 			}
 		}
 	}

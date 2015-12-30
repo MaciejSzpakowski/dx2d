@@ -2,54 +2,54 @@
 
 namespace Viva
 {
-	CInput::CInput()
+	CInputManager::CInputManager()
 	{
-		zMouseWheel = 0;
-		zKeyCount = 256;
-		zCurState = new bool[zKeyCount];
-		zPrevState = new bool[zKeyCount];
-		zCurMouse = new POINT;
-		zPrevMouse = new POINT;
-		zGamepadStatePrev = new XINPUT_STATE[XUSER_MAX_COUNT];
-		zGamepadStateCur = new XINPUT_STATE[XUSER_MAX_COUNT];
-		ZeroMemory(zCurState, sizeof(bool)*zKeyCount);
-		ZeroMemory(zPrevState, sizeof(bool)*zKeyCount);
-		ZeroMemory(zGamepadStatePrev, sizeof(XINPUT_STATE)*XUSER_MAX_COUNT);
-		ZeroMemory(zGamepadStateCur, sizeof(XINPUT_STATE)*XUSER_MAX_COUNT);
-		AcceptGamepads = 0;
-		zActiveGamepads[0] = false;
-		zActiveGamepads[1] = false;
-		zActiveGamepads[2] = false;
-		zActiveGamepads[3] = false;
-		zGamepadConnected = false;
-		zGamepadDisconnected = false;
-		GetCursorPos(zCurMouse);
-		GetCursorPos(zPrevMouse);
+		mouseWheel = 0;
+		keyCount = 256;
+		curState = new bool[keyCount];
+		prevState = new bool[keyCount];
+		curMouse = new POINT;
+		prevMouse = new POINT;
+		gamepadStatePrev = new XINPUT_STATE[XUSER_MAX_COUNT];
+		gamepadStateCur = new XINPUT_STATE[XUSER_MAX_COUNT];
+		ZeroMemory(curState, sizeof(bool)*keyCount);
+		ZeroMemory(prevState, sizeof(bool)*keyCount);
+		ZeroMemory(gamepadStatePrev, sizeof(XINPUT_STATE)*XUSER_MAX_COUNT);
+		ZeroMemory(gamepadStateCur, sizeof(XINPUT_STATE)*XUSER_MAX_COUNT);
+		acceptGamepads = 0;
+		activeGamepads[0] = false;
+		activeGamepads[1] = false;
+		activeGamepads[2] = false;
+		activeGamepads[3] = false;
+		gamepadConnected = false;
+		gamepadConnected = false;
+		GetCursorPos(curMouse);
+		GetCursorPos(prevMouse);
 	}
 
-	void CInput::zActivity()
+	void CInputManager::_Activity()
 	{
 		//swap current and previous states
-		zMouseWheel = 0;
-		bool* temp = zPrevState;
-		zPrevState = zCurState;
-		zCurState = temp;
-		POINT* temp1 = zPrevMouse;
-		zPrevMouse = zCurMouse;
-		zCurMouse = temp1;
+		mouseWheel = 0;
+		bool* temp = prevState;
+		prevState = curState;
+		curState = temp;
+		POINT* temp1 = prevMouse;
+		prevMouse = curMouse;
+		curMouse = temp1;
 
 		//get current state
-		for (int i = 0; i < zKeyCount; i++)
+		for (int i = 0; i < keyCount; i++)
 		{
-			zCurState[i] = (GetAsyncKeyState(i) & 0x8000) && true;
+			curState[i] = (GetAsyncKeyState(i) & 0x8000) && true;
 		}
 
-		zCheckGamepads();
+		_CheckGamepads();
 
-		GetCursorPos(zCurMouse);
+		GetCursorPos(curMouse);
 	}
 
-	POINT CInput::GetCursorClientPos()
+	POINT CInputManager::GetCursorClientPos()
 	{
 		POINT p;
 		::GetCursorPos(&p);
@@ -57,43 +57,43 @@ namespace Viva
 		return p;
 	}
 
-	bool CInput::IsKeyDown(Keys vKey)
+	bool CInputManager::IsKeyDown(Keys vKey)
 	{
-		return zCurState[(int)vKey];
+		return curState[(int)vKey];
 	}
 
-	bool CInput::IsKeyPressed(Keys vKey)
+	bool CInputManager::IsKeyPressed(Keys vKey)
 	{
-		return zCurState[(int)vKey] && !zPrevState[(int)vKey];
+		return curState[(int)vKey] && !prevState[(int)vKey];
 	}
 
-	bool CInput::IsKeyReleased(Keys vKey)
+	bool CInputManager::IsKeyReleased(Keys vKey)
 	{
-		return !zCurState[(int)vKey] && zPrevState[(int)vKey];
+		return !curState[(int)vKey] && prevState[(int)vKey];
 	}
 
-	bool CInput::IsAnyKeyDown()
+	bool CInputManager::IsAnyKeyDown()
 	{
-		for (int i = 0; i < zKeyCount; i++)
-			if (zCurState[i])
+		for (int i = 0; i < keyCount; i++)
+			if (curState[i])
 				return true;
 		return false;
 	}
 
-	POINT CInput::GetCursorDelta()
+	POINT CInputManager::GetCursorDelta()
 	{
 		POINT point;
-		point.x = zCurMouse->x - zPrevMouse->x;
-		point.y = zCurMouse->y - zPrevMouse->y;
+		point.x = curMouse->x - prevMouse->x;
+		point.y = curMouse->y - prevMouse->y;
 		return point;
 	}
 
-	bool CInput::IsCapslockActive()
+	bool CInputManager::IsCapslockActive()
 	{
 		return GetKeyState((int)Keys::CapsLock) & 1;
 	}
 
-	char CInput::GetChar(bool enableShift, bool enableCapslock)
+	char CInputManager::GetChar(bool enableShift, bool enableCapslock)
 	{
 		BYTE input[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Q', 'W', 'E', 'R', 'T',
 			'Y', 'U', 'I', 'O', 'P', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L',
@@ -123,194 +123,194 @@ namespace Viva
 		return 0;
 	}
 
-	char CInput::GetKey(int offset)
+	char CInputManager::GetKey(int offset)
 	{
-		for (int i = offset; i < zKeyCount; i++)
-			if (zCurState[i])
+		for (int i = offset; i < keyCount; i++)
+			if (curState[i])
 				return (char)i;
 		return 0;
 	}
 
-	void CInput::ResetKey(int vKey)
+	void CInputManager::ResetKey(int vKey)
 	{
-		if (vKey < 0 || vKey > zKeyCount)
+		if (vKey < 0 || vKey > keyCount)
 			return;
-		zCurState[vKey] = false;
-		zPrevState[vKey] = false;
+		curState[vKey] = false;
+		prevState[vKey] = false;
 	}
 
-	int CInput::GetMouseWheel()
+	int CInputManager::GetMouseWheel()
 	{
-		return zMouseWheel;
+		return mouseWheel;
 	}
 
-	void CInput::zCheckGamepads()
+	void CInputManager::_CheckGamepads()
 	{
-		zGamepadConnected = false;
-		zGamepadDisconnected = false;
-		if (AcceptGamepads > XUSER_MAX_COUNT)
-			AcceptGamepads = XUSER_MAX_COUNT;
-		for (UINT i = 0; i < AcceptGamepads; i++)
+		gamepadConnected = false;
+		gamepadConnected = false;
+		if (acceptGamepads > XUSER_MAX_COUNT)
+			acceptGamepads = XUSER_MAX_COUNT;
+		for (UINT i = 0; i < acceptGamepads; i++)
 		{
-			auto temp = zGamepadStatePrev;
-			zGamepadStatePrev = zGamepadStateCur;
-			zGamepadStateCur = temp;
-			ZeroMemory(zGamepadStateCur + i, sizeof(XINPUT_STATE));
-			DWORD dwResult = XInputGetState(i, zGamepadStateCur + i);
+			auto temp = gamepadStatePrev;
+			gamepadStatePrev = gamepadStateCur;
+			gamepadStateCur = temp;
+			ZeroMemory(gamepadStateCur + i, sizeof(XINPUT_STATE));
+			DWORD dwResult = XInputGetState(i, gamepadStateCur + i);
 
 			if (dwResult == ERROR_SUCCESS)
 			{
-				if (zActiveGamepads[i] == false)
-					zGamepadConnected = true;
-				zActiveGamepads[i] = true;
+				if (activeGamepads[i] == false)
+					gamepadConnected = true;
+				activeGamepads[i] = true;
 			}
 			else
 			{
-				if (zActiveGamepads[i] == true)
-					zGamepadDisconnected = true;
-				zActiveGamepads[i] = false;
+				if (activeGamepads[i] == true)
+					gamepadConnected = true;
+				activeGamepads[i] = false;
 			}
 		}
 	}
 
-	bool CInput::IsAnyButtonDown(UINT gamepad)
+	bool CInputManager::IsAnyButtonDown(UINT gamepad)
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return false;
-		return (zGamepadStateCur[gamepad].Gamepad.wButtons) && true;
+		return (gamepadStateCur[gamepad].Gamepad.wButtons) && true;
 	}
 
-	bool CInput::IsButtonDown(UINT gamepad, Buttons button)
+	bool CInputManager::IsButtonDown(UINT gamepad, Buttons button)
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return false;
-		return (zGamepadStateCur[gamepad].Gamepad.wButtons & (int)button) && true;
+		return (gamepadStateCur[gamepad].Gamepad.wButtons & (int)button) && true;
 	}
 
-	bool CInput::IsButtonPressed(UINT gamepad, Buttons button)
+	bool CInputManager::IsButtonPressed(UINT gamepad, Buttons button)
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return false;
-		return (zGamepadStateCur[gamepad].Gamepad.wButtons & (int)button) &&
-			!(zGamepadStatePrev[gamepad].Gamepad.wButtons & (int)button);
+		return (gamepadStateCur[gamepad].Gamepad.wButtons & (int)button) &&
+			!(gamepadStatePrev[gamepad].Gamepad.wButtons & (int)button);
 	}
 
-	bool CInput::IsButtonReleased(UINT gamepad, Buttons button)
+	bool CInputManager::IsButtonReleased(UINT gamepad, Buttons button)
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return false;
-		return !(zGamepadStateCur[gamepad].Gamepad.wButtons & (int)button) &&
-			(zGamepadStatePrev[gamepad].Gamepad.wButtons & (int)button);
+		return !(gamepadStateCur[gamepad].Gamepad.wButtons & (int)button) &&
+			(gamepadStatePrev[gamepad].Gamepad.wButtons & (int)button);
 	}
 
-	bool CInput::IsGamepadActive(UINT gamepad)
+	bool CInputManager::IsGamepadActive(UINT gamepad)
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return false;
-		return zActiveGamepads[gamepad];
+		return activeGamepads[gamepad];
 	}
 
-	bool CInput::GamepadConnected()
+	bool CInputManager::GamepadConnected()
 	{
-		return zGamepadConnected;
+		return gamepadConnected;
 	}
 
-	bool CInput::GamepadDisconnected()
+	bool CInputManager::GamepadDisconnected()
 	{
-		return zGamepadDisconnected;
+		return gamepadConnected;
 	}
 
-	BYTE CInput::GetLeftTrigger(UINT gamepad)
-	{
-		if (gamepad > XUSER_MAX_COUNT - 1)
-			return 0;
-		return zGamepadStateCur[gamepad].Gamepad.bLeftTrigger;
-	}
-
-	BYTE CInput::GetRightTrigger(UINT gamepad)
+	BYTE CInputManager::GetLeftTrigger(UINT gamepad)
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
-		return zGamepadStateCur[gamepad].Gamepad.bRightTrigger;
+		return gamepadStateCur[gamepad].Gamepad.bLeftTrigger;
 	}
 
-	SHORT CInput::GetLeftStickX(UINT gamepad)
+	BYTE CInputManager::GetRightTrigger(UINT gamepad)
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
-		return zGamepadStateCur[gamepad].Gamepad.sThumbLX;
+		return gamepadStateCur[gamepad].Gamepad.bRightTrigger;
 	}
 
-	SHORT CInput::GetLeftStickY(UINT gamepad)
+	SHORT CInputManager::GetLeftStickX(UINT gamepad)
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
-		return zGamepadStateCur[gamepad].Gamepad.sThumbLY;
+		return gamepadStateCur[gamepad].Gamepad.sThumbLX;
 	}
 
-	SHORT CInput::GetRightStickX(UINT gamepad)
+	SHORT CInputManager::GetLeftStickY(UINT gamepad)
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
-		return zGamepadStateCur[gamepad].Gamepad.sThumbRX;
+		return gamepadStateCur[gamepad].Gamepad.sThumbLY;
 	}
 
-	SHORT CInput::GetRightStickY(UINT gamepad)
+	SHORT CInputManager::GetRightStickX(UINT gamepad)
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
-		return zGamepadStateCur[gamepad].Gamepad.sThumbRY;
+		return gamepadStateCur[gamepad].Gamepad.sThumbRX;
 	}
 
-	BYTE CInput::GetLeftTriggerDelta(UINT gamepad)
+	SHORT CInputManager::GetRightStickY(UINT gamepad)
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
-		return zGamepadStateCur[gamepad].Gamepad.bLeftTrigger -
-			zGamepadStatePrev[gamepad].Gamepad.bLeftTrigger;
+		return gamepadStateCur[gamepad].Gamepad.sThumbRY;
 	}
 
-	BYTE CInput::GetRightTriggerDelta(UINT gamepad)
+	BYTE CInputManager::GetLeftTriggerDelta(UINT gamepad)
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
-		return zGamepadStateCur[gamepad].Gamepad.bRightTrigger -
-			zGamepadStatePrev[gamepad].Gamepad.bRightTrigger;
+		return gamepadStateCur[gamepad].Gamepad.bLeftTrigger -
+			gamepadStatePrev[gamepad].Gamepad.bLeftTrigger;
 	}
 
-	SHORT CInput::GetLeftStickXDelta(UINT gamepad)
+	BYTE CInputManager::GetRightTriggerDelta(UINT gamepad)
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
-		return zGamepadStateCur[gamepad].Gamepad.sThumbLX -
-			zGamepadStatePrev[gamepad].Gamepad.sThumbLX;
+		return gamepadStateCur[gamepad].Gamepad.bRightTrigger -
+			gamepadStatePrev[gamepad].Gamepad.bRightTrigger;
 	}
 
-	SHORT CInput::GetLeftStickYDelta(UINT gamepad)
+	SHORT CInputManager::GetLeftStickXDelta(UINT gamepad)
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
-		return zGamepadStateCur[gamepad].Gamepad.sThumbLY -
-			zGamepadStatePrev[gamepad].Gamepad.sThumbLY;
+		return gamepadStateCur[gamepad].Gamepad.sThumbLX -
+			gamepadStatePrev[gamepad].Gamepad.sThumbLX;
 	}
 
-	SHORT CInput::GetRightStickXDelta(UINT gamepad)
+	SHORT CInputManager::GetLeftStickYDelta(UINT gamepad)
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
-		return zGamepadStateCur[gamepad].Gamepad.sThumbRX -
-			zGamepadStatePrev[gamepad].Gamepad.sThumbRX;
+		return gamepadStateCur[gamepad].Gamepad.sThumbLY -
+			gamepadStatePrev[gamepad].Gamepad.sThumbLY;
 	}
 
-	SHORT CInput::GetRightStickYDelta(UINT gamepad)
+	SHORT CInputManager::GetRightStickXDelta(UINT gamepad)
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
-		return zGamepadStateCur[gamepad].Gamepad.sThumbRY -
-			zGamepadStatePrev[gamepad].Gamepad.sThumbRY;
+		return gamepadStateCur[gamepad].Gamepad.sThumbRX -
+			gamepadStatePrev[gamepad].Gamepad.sThumbRX;
 	}
 
-	void CInput::SetMotorSpeed(UINT gamepad, USHORT speedLeft, USHORT speedRight)
+	SHORT CInputManager::GetRightStickYDelta(UINT gamepad)
+	{
+		if (gamepad > XUSER_MAX_COUNT - 1)
+			return 0;
+		return gamepadStateCur[gamepad].Gamepad.sThumbRY -
+			gamepadStatePrev[gamepad].Gamepad.sThumbRY;
+	}
+
+	void CInputManager::SetMotorSpeed(UINT gamepad, USHORT speedLeft, USHORT speedRight)
 	{
 		XINPUT_VIBRATION vib;
 		vib.wLeftMotorSpeed = speedLeft;
@@ -318,137 +318,137 @@ namespace Viva
 		XInputSetState(gamepad, &vib);
 	}
 
-	void CInput::zTest()
+	void CInputManager::_Test()
 	{
-		short stickLeft = Input->GetLeftStickX(0);
+		short stickLeft = GetLeftStickX(0);
 		USHORT left = 0;
 		USHORT right = 0;
 		if (stickLeft < 0)
 			left = -stickLeft * 2;
 		else
 			right = stickLeft * 2;
-		Input->SetMotorSpeed(0, left, right);
+		SetMotorSpeed(0, left, right);
 
-		if (Input->IsButtonDown(0, Buttons::A))
+		if (IsButtonDown(0, Buttons::A))
 			DebugManager->Debug(L"A", L"A");
-		if (Input->IsButtonDown(0, Buttons::B))
+		if (IsButtonDown(0, Buttons::B))
 			DebugManager->Debug(L"B", L"B");
-		if (Input->IsButtonDown(0, Buttons::Back))
+		if (IsButtonDown(0, Buttons::Back))
 			DebugManager->Debug(L"Back", L"Back");
-		if (Input->IsButtonDown(0, Buttons::Down))
+		if (IsButtonDown(0, Buttons::Down))
 			DebugManager->Debug(L"Down", L"Down");
-		if (Input->IsButtonDown(0, Buttons::LB))
+		if (IsButtonDown(0, Buttons::LB))
 			DebugManager->Debug(L"LB", L"LB");
-		if (Input->IsButtonDown(0, Buttons::Left))
+		if (IsButtonDown(0, Buttons::Left))
 			DebugManager->Debug(L"Left", L"Left");
-		if (Input->IsButtonDown(0, Buttons::LeftStick))
+		if (IsButtonDown(0, Buttons::LeftStick))
 			DebugManager->Debug(L"LeftStick", L"LeftStick");
-		if (Input->IsButtonDown(0, Buttons::RB))
+		if (IsButtonDown(0, Buttons::RB))
 			DebugManager->Debug(L"RB", L"RB");
-		if (Input->IsButtonDown(0, Buttons::Right))
+		if (IsButtonDown(0, Buttons::Right))
 			DebugManager->Debug(L"Right", L"Right");
-		if (Input->IsButtonDown(0, Buttons::RightStick))
+		if (IsButtonDown(0, Buttons::RightStick))
 			DebugManager->Debug(L"RightStick", L"RightStick");
-		if (Input->IsButtonDown(0, Buttons::Start))
+		if (IsButtonDown(0, Buttons::Start))
 			DebugManager->Debug(L"Start", L"Start");
-		if (Input->IsButtonDown(0, Buttons::Up))
+		if (IsButtonDown(0, Buttons::Up))
 			DebugManager->Debug(L"Up", L"Up");
-		if (Input->IsButtonDown(0, Buttons::X))
+		if (IsButtonDown(0, Buttons::X))
 			DebugManager->Debug(L"X", L"X");
-		if (Input->IsButtonDown(0, Buttons::Y))
+		if (IsButtonDown(0, Buttons::Y))
 			DebugManager->Debug(L"Y", L"Y");
 
-		DebugManager->Debug(Input->GetLeftTrigger(0), L"left trigger");
-		DebugManager->Debug(Input->GetRightTrigger(0), L"right trigger");
-		DebugManager->Debug(Input->GetLeftStickX(0), L"left stick x");
-		DebugManager->Debug(Input->GetLeftStickY(0), L"left stick y");
-		DebugManager->Debug(Input->GetRightStickX(0), L"right stick x");
-		DebugManager->Debug(Input->GetRightStickY(0), L"right stick y");
-		DebugManager->Debug(Input->GetLeftTriggerDelta(0), L"left trigger Delta");
-		DebugManager->Debug(Input->GetRightTriggerDelta(0), L"right trigger Delta");
-		DebugManager->Debug(Input->GetLeftStickXDelta(0), L"left stick x Delta");
-		DebugManager->Debug(Input->GetLeftStickYDelta(0), L"left stick y Delta");
-		DebugManager->Debug(Input->GetRightStickXDelta(0), L"right stick x Delta");
-		DebugManager->Debug(Input->GetRightStickYDelta(0), L"right stick y Delta");
+		DebugManager->Debug(GetLeftTrigger(0), L"left trigger");
+		DebugManager->Debug(GetRightTrigger(0), L"right trigger");
+		DebugManager->Debug(GetLeftStickX(0), L"left stick x");
+		DebugManager->Debug(GetLeftStickY(0), L"left stick y");
+		DebugManager->Debug(GetRightStickX(0), L"right stick x");
+		DebugManager->Debug(GetRightStickY(0), L"right stick y");
+		DebugManager->Debug(GetLeftTriggerDelta(0), L"left trigger Delta");
+		DebugManager->Debug(GetRightTriggerDelta(0), L"right trigger Delta");
+		DebugManager->Debug(GetLeftStickXDelta(0), L"left stick x Delta");
+		DebugManager->Debug(GetLeftStickYDelta(0), L"left stick y Delta");
+		DebugManager->Debug(GetRightStickXDelta(0), L"right stick x Delta");
+		DebugManager->Debug(GetRightStickYDelta(0), L"right stick y Delta");
 
-		if (Input->IsButtonPressed(0, Buttons::A))
+		if (IsButtonPressed(0, Buttons::A))
 			printf("A pressed\n");
-		if (Input->IsButtonPressed(0, Buttons::B))
+		if (IsButtonPressed(0, Buttons::B))
 			printf("B pressed\n");
-		if (Input->IsButtonPressed(0, Buttons::Back))
+		if (IsButtonPressed(0, Buttons::Back))
 			printf("Back pressed\n");
-		if (Input->IsButtonPressed(0, Buttons::Down))
+		if (IsButtonPressed(0, Buttons::Down))
 			printf("Down pressed\n");
-		if (Input->IsButtonPressed(0, Buttons::LB))
+		if (IsButtonPressed(0, Buttons::LB))
 			printf("LB pressed\n");
-		if (Input->IsButtonPressed(0, Buttons::Left))
+		if (IsButtonPressed(0, Buttons::Left))
 			printf("Left pressed\n");
-		if (Input->IsButtonPressed(0, Buttons::LeftStick))
+		if (IsButtonPressed(0, Buttons::LeftStick))
 			printf("LeftStick pressed\n");
-		if (Input->IsButtonPressed(0, Buttons::RB))
+		if (IsButtonPressed(0, Buttons::RB))
 			printf("RB pressed\n");
-		if (Input->IsButtonPressed(0, Buttons::Right))
+		if (IsButtonPressed(0, Buttons::Right))
 			printf("Right pressed\n");
-		if (Input->IsButtonPressed(0, Buttons::RightStick))
+		if (IsButtonPressed(0, Buttons::RightStick))
 			printf("RightStick pressed\n");
-		if (Input->IsButtonPressed(0, Buttons::Start))
+		if (IsButtonPressed(0, Buttons::Start))
 			printf("Start pressed\n");
-		if (Input->IsButtonPressed(0, Buttons::Up))
+		if (IsButtonPressed(0, Buttons::Up))
 			printf("Up pressed\n");
-		if (Input->IsButtonPressed(0, Buttons::X))
+		if (IsButtonPressed(0, Buttons::X))
 			printf("X pressed\n");
-		if (Input->IsButtonPressed(0, Buttons::Y))
+		if (IsButtonPressed(0, Buttons::Y))
 			printf("Y pressed\n");
 
-		if (Input->IsButtonReleased(0, Buttons::A))
+		if (IsButtonReleased(0, Buttons::A))
 			printf("A released\n");
-		if (Input->IsButtonReleased(0, Buttons::B))
+		if (IsButtonReleased(0, Buttons::B))
 			printf("B released\n");
-		if (Input->IsButtonReleased(0, Buttons::Back))
+		if (IsButtonReleased(0, Buttons::Back))
 			printf("Back released\n");
-		if (Input->IsButtonReleased(0, Buttons::Down))
+		if (IsButtonReleased(0, Buttons::Down))
 			printf("Down released\n");
-		if (Input->IsButtonReleased(0, Buttons::LB))
+		if (IsButtonReleased(0, Buttons::LB))
 			printf("LB released\n");
-		if (Input->IsButtonReleased(0, Buttons::Left))
+		if (IsButtonReleased(0, Buttons::Left))
 			printf("Left released\n");
-		if (Input->IsButtonReleased(0, Buttons::LeftStick))
+		if (IsButtonReleased(0, Buttons::LeftStick))
 			printf("LeftStick released\n");
-		if (Input->IsButtonReleased(0, Buttons::RB))
+		if (IsButtonReleased(0, Buttons::RB))
 			printf("RB released\n");
-		if (Input->IsButtonReleased(0, Buttons::Right))
+		if (IsButtonReleased(0, Buttons::Right))
 			printf("Right released\n");
-		if (Input->IsButtonReleased(0, Buttons::RightStick))
+		if (IsButtonReleased(0, Buttons::RightStick))
 			printf("RightStick released\n");
-		if (Input->IsButtonReleased(0, Buttons::Start))
+		if (IsButtonReleased(0, Buttons::Start))
 			printf("Start released\n");
-		if (Input->IsButtonReleased(0, Buttons::Up))
+		if (IsButtonReleased(0, Buttons::Up))
 			printf("Up released\n");
-		if (Input->IsButtonReleased(0, Buttons::X))
+		if (IsButtonReleased(0, Buttons::X))
 			printf("X released\n");
-		if (Input->IsButtonReleased(0, Buttons::Y))
+		if (IsButtonReleased(0, Buttons::Y))
 			printf("Y released\n");
 
-		if (Input->GamepadConnected())
+		if (GamepadConnected())
 			printf("gamepad connected\n");
-		if (Input->GamepadDisconnected())
+		if (GamepadDisconnected())
 			printf("gamepad disconnected\n");
 
 		UINT connectedGamepads = 0;
 		for (UINT i = 0; i < XUSER_MAX_COUNT; i++)
-			if (Input->IsGamepadActive(i))
+			if (IsGamepadActive(i))
 				connectedGamepads++;
 		DebugManager->Debug((int)connectedGamepads, L"Connected gamepads");
 	}
 
-	void CInput::Destroy()
+	void CInputManager::Destroy()
 	{
-		delete[] zGamepadStatePrev;
-		delete[] zGamepadStateCur;
-		delete[] zCurState;
-		delete[] zPrevState;
-		delete zCurMouse;
-		delete zPrevMouse;
+		delete[] gamepadStatePrev;
+		delete[] gamepadStateCur;
+		delete[] curState;
+		delete[] prevState;
+		delete curMouse;
+		delete prevMouse;
 		delete this;
 	}
 }

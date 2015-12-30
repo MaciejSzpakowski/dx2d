@@ -2,6 +2,8 @@
 
 namespace Viva
 {
+	using namespace DirectX;
+
 	CDynamic::CDynamic()
 	{
 		zVertexCount = 0;
@@ -46,7 +48,7 @@ namespace Viva
 		zAbsolutePosition = zPosition;
 		zAbsoluteRotation = zRotation;		
 		XMMATRIX origin = XMMatrixTranslation(-Origin.x, -Origin.y, 0);
-		XMMATRIX scale = zGetScaleMatrix();
+		XMMATRIX scale = _GetScaleMatrix();
 		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(zAbsoluteRotation);
 		XMMATRIX loc = XMMatrixTranslationFromVector(zAbsolutePosition);
 		zWorld = origin * scale * rot * loc;
@@ -59,7 +61,7 @@ namespace Viva
 			zAbsolutePosition = XMVector2Transform(zAbsolutePosition, parentRot);
 			zWorld = zWorld * parentRot * parentLoc;
 		}
-		XMMATRIX worldViewProj = zWorld * Camera->zView * Camera->zProj;
+		XMMATRIX worldViewProj = zWorld * Core->GetCamera()->GetViewMatrix() * Core->GetCamera()->GetProjMatrix();
 		//check for cursor
 		if (Pickable)
 			zCheckForCursor(zWorld);

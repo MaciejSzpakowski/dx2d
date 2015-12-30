@@ -27,11 +27,11 @@ namespace Viva
 
 		CDrawManager();
 		void Destroy();
-		CPolygon* AddPoly(const vector<XMFLOAT2>& points, CRenderTarget* target = nullptr);
-		CRectangle* AddRect(const Size& size, CRenderTarget* target = nullptr);
-		CCircle* AddCircle(float radius, unsigned char resolution, CRenderTarget* target = nullptr);
-		void AddPoly(CPolygon* p, CRenderTarget* target = nullptr);
-		void RemovePoly(CPolygon* p);
+		Polygon* AddPoly(const vector<XMFLOAT2>& points, CRenderTarget* target = nullptr);
+		Rectangle* AddRect(const Size& size, CRenderTarget* target = nullptr);
+		Circle* AddCircle(float radius, unsigned char resolution, CRenderTarget* target = nullptr);
+		void AddPoly(Polygon* p, CRenderTarget* target = nullptr);
+		void RemovePoly(Polygon* p);
 
 		//add sprite from file
 		//supported file formats: BMP, GIF, JPEG, PNG, TIFF, Exif, WMF, EMF

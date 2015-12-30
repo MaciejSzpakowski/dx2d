@@ -4,6 +4,8 @@ namespace Viva
 {
 	class CCore
 	{
+	private:
+		Camera* camera;
 	public:
 		CWindow* zWindow;
 		ID3D11BlendState* zBlendState;
@@ -43,6 +45,7 @@ namespace Viva
 		bool GetFullscreen();
 		void Destroy();
 		void SaveScreenshot(LPCWSTR file);
+		Camera* GetCamera() const { return camera; }
 		void Exit();
 
 		// CREATOR

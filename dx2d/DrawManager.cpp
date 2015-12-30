@@ -120,7 +120,7 @@ namespace Viva
 		return false;
 	}
 
-	void CDrawManager::AddPoly(CPolygon* p, CRenderTarget* target)
+	void CDrawManager::AddPoly(Polygon* p, CRenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
@@ -131,33 +131,33 @@ namespace Viva
 		p->zIndex = (int)target->zPolygons.size() - 1;
 	}
 
-	CPolygon* CDrawManager::AddPoly(const vector<XMFLOAT2>& points, CRenderTarget* target)
+	Polygon* CDrawManager::AddPoly(const vector<XMFLOAT2>& points, CRenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
-		CPolygon* newPoly = new CPolygon(points);
+		Polygon* newPoly = new Polygon(points);
 		target->zPolygons.push_back(newPoly);
 		newPoly->zRenderTarget = target;
 		newPoly->zIndex = (int)target->zPolygons.size() - 1;
 		return newPoly;
 	}
 
-	CRectangle* CDrawManager::AddRect(const Size& size, CRenderTarget* target)
+	Rectangle* CDrawManager::AddRect(const Size& size, CRenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
-		CRectangle* newRect = new CRectangle(size);
+		Rectangle* newRect = new Rectangle(size);
 		target->zPolygons.push_back(newRect);
 		newRect->zRenderTarget = target;
 		newRect->zIndex = (int)target->zPolygons.size() - 1;
 		return newRect;
 	}
 
-	CCircle* CDrawManager::AddCircle(float radius, unsigned char resolution, CRenderTarget* target)
+	Circle* CDrawManager::AddCircle(float radius, unsigned char resolution, CRenderTarget* target)
 	{
 		if (target == nullptr)
 			target = zDefaultRenderTarget;
-		CCircle* newCircle = new CCircle(radius, resolution);
+		Circle* newCircle = new Circle(radius, resolution);
 		target->zPolygons.push_back(newCircle);
 		newCircle->zRenderTarget = target;
 		newCircle->zIndex = (int)target->zPolygons.size() - 1;
@@ -221,11 +221,11 @@ namespace Viva
 
 	void CDrawManager::zRenderTargetTransform(int i)
 	{
-		float scalex = (20.0f - i*0.001f) * tan(Camera->zFovAngle / 2) * Camera->zAspectRatio;
-		float scaley = (20.0f - i*0.001f) * tan(Camera->zFovAngle / 2);
+		float scalex = (20.0f - i*0.001f) * tan(Core->GetCamera()->GetFovAngle() / 2) * Core->GetCamera()->GetAspectRatio();
+		float scaley = (20.0f - i*0.001f) * tan(Core->GetCamera()->GetFovAngle() / 2);
 		//move every target above previous one
-		XMMATRIX transform = XMMatrixScaling(scalex, scaley, 1) * 
-			XMMatrixTranslation(0, 0, -i*0.001f) * zRenderTargetMatrix;
+		XMMATRIX transform = DirectX::XMMatrixScaling(scalex, scaley, 1) *
+			DirectX::XMMatrixTranslation(0, 0, -i*0.001f) * zRenderTargetMatrix;
 
 		transform = XMMatrixTranspose(transform);
 		Core->zContext->UpdateSubresource(zCbBufferVS, 0, NULL, &transform, 0, 0);
@@ -248,14 +248,14 @@ namespace Viva
 			if (zRenderTargets[i]->zExtraBufferPSdata != nullptr)
 				Core->zContext->UpdateSubresource(DrawManager->zCbBufferPSExtra, 0, 0, 
 					zRenderTargets[i]->zExtraBufferPSdata, 0, 0);
-			zRenderTargets[i]->zSprite->zDraw();
+			zRenderTargets[i]->zSprite->_Draw();
 		}
 
 		//debug text
 		Core->zContext->PSSetShader(Core->zDefaultPS, 0, 0);
-		DebugManager->Flush();
-		if(DebugManager->zDebugText->GetText() != L"")
-			DebugManager->zDebugText->zDraw();
+		DebugManager->_Flush();
+		if(DebugManager->_GetText()->GetText() != L"")
+			DebugManager->_GetText()->_Draw();
 
 		Core->zSwapChain->Present(0, 0);
 	}
@@ -278,7 +278,7 @@ namespace Viva
 		delete this;
 	}
 
-	void CDrawManager::RemovePoly(CPolygon* p)
+	void CDrawManager::RemovePoly(Polygon* p)
 	{		
 		if (p->zIndex == -1)
 			return;
@@ -430,7 +430,6 @@ namespace Viva
 		
 		CTexture* tex1 = new CTexture((Pixel*)rc_font, Size(300, 105),L"");
 		DrawManager->zDefaultFont = new BitmapFont(tex1,Size(15,21),20);
-		DebugManager->Init(DrawManager->GetDefaultFont());
 	}
 
 	CTexture* CDrawManager::GetTexture(const wchar_t* filename) const

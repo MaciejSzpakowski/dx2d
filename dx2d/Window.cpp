@@ -15,7 +15,7 @@ namespace Viva
 		case WM_COMMAND:
 			break;
 		case WM_MOUSEWHEEL:
-			Input->zMouseWheel = GET_WHEEL_DELTA_WPARAM(wParam);
+			InputManager->_SetMouseWheel (GET_WHEEL_DELTA_WPARAM(wParam));
 			break;
 		default:
 			return DefWindowProc(hwnd, msg, wParam, lParam);

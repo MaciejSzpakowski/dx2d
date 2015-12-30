@@ -51,7 +51,7 @@ namespace Viva
 		zRenderTarget = nullptr;
 	}
 
-	void CSprite::zDraw()
+	void CSprite::_Draw()
 	{
 		//ps
 		if(PixelShader != nullptr)
@@ -80,9 +80,9 @@ namespace Viva
 		size += SizeVelocity * (float)Core->GetFrameTime();
 	}
 
-	XMMATRIX CSprite::zGetScaleMatrix()
+	XMMATRIX CSprite::_GetScaleMatrix()
 	{
-		return XMMatrixScaling(Scale.x * size, Scale.y * size, 1);
+		return DirectX::XMMatrixScaling(Scale.x * size, Scale.y * size, 1);
 	}
 
 	void CSprite::SetNaturalScale()
@@ -94,7 +94,7 @@ namespace Viva
 
 	void CSprite::SetPixelScale(const Viva::Size& _size)
 	{
-		XMFLOAT2 frustum = Camera->GetFrustumSize(GetPosition().z);
+		XMFLOAT2 frustum = Core->GetCamera()->GetFrustumSize(GetPosition().z);
 		RECT client;
 		GetClientRect(Core->GetWindowHandle(), &client);
 		XMFLOAT2 clientSize = { (float)client.right - client.left,
@@ -106,24 +106,24 @@ namespace Viva
 
 	void CSprite::zCheckForCursor(XMMATRIX transform)
 	{
-		XMFLOAT3 pf = Camera->GetCursorWorldPos(GetPosition().z);
-		XMVECTOR A = XMVectorSet(-1.0f, -1.0f, 0, 1);
-		XMVECTOR B = XMVectorSet(1.0f, -1.0f, 0, 1);
-		XMVECTOR C = XMVectorSet(1.0f, 1.0f, 0, 1);
-		XMVECTOR D = XMVectorSet(-1.0f, 1.0f, 0, 1);		
-		A = XMVector3Transform(A, transform);
-		B = XMVector3Transform(B, transform);
-		C = XMVector3Transform(C, transform);
-		D = XMVector3Transform(D, transform);
+		XMFLOAT3 pf = Core->GetCamera()->GetCursorWorldPos(GetPosition().z);
+		XMVECTOR A = DirectX::XMVectorSet(-1.0f, -1.0f, 0, 1);
+		XMVECTOR B = DirectX::XMVectorSet(1.0f, -1.0f, 0, 1);
+		XMVECTOR C = DirectX::XMVectorSet(1.0f, 1.0f, 0, 1);
+		XMVECTOR D = DirectX::XMVectorSet(-1.0f, 1.0f, 0, 1);
+		A = DirectX::XMVector3Transform(A, transform);
+		B = DirectX::XMVector3Transform(B, transform);
+		C = DirectX::XMVector3Transform(C, transform);
+		D = DirectX::XMVector3Transform(D, transform);
 
-		XMVECTOR origin = XMVectorSet(pf.x, pf.y, Camera->GetPosition().z, 0);
-		XMVECTOR dir = XMVectorSet(0, 0, 1, 0);
+		XMVECTOR origin = DirectX::XMVectorSet(pf.x, pf.y, Core->GetCamera()->GetPosition().z, 0);
+		XMVECTOR dir = DirectX::XMVectorSet(0, 0, 1, 0);
 		float dist;
 		//ray - triangle collision
-		zUnderCursor = TriangleTests::Intersects(origin, dir, A, B, C, dist);
+		zUnderCursor = DirectX::TriangleTests::Intersects(origin, dir, A, B, C, dist);
 		//if cursor is not over 1st triangle, try the second one
 		if(!zUnderCursor)
-			zUnderCursor = TriangleTests::Intersects(origin, dir, A, C, D, dist);
+			zUnderCursor = DirectX::TriangleTests::Intersects(origin, dir, A, C, D, dist);
 	}
 
 	void CSprite::Destroy()

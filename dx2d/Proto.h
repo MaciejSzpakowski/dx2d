@@ -29,20 +29,25 @@
 
 namespace Viva
 {
-	//using	
-	using namespace DirectX;
+	//using
 	using std::vector;
 	using std::wstring;
 	using std::wstringstream;
 
+	using DirectX::XMMATRIX;
+	using DirectX::XMVECTOR;
+	using DirectX::XMFLOAT2;
+	using DirectX::XMFLOAT3;
+	using DirectX::XMFLOAT4;
+
 	//prototypes
 	class CCore;
-	class CPolygon;
-	class CRectangle;
-	class CCircle;
+	class Polygon;
+	class Rectangle;
+	class Circle;
 	class CDrawManager;
-	class CCamera;
-	class CInput;
+	class Camera;
+	class CInputManager;
 	class CSprite;
 	class CEventManager;
 	class CResourceManager;
@@ -56,8 +61,7 @@ namespace Viva
 	//externals
 	extern CCore* Core;
 	extern CDrawManager* DrawManager;
-	extern CCamera* Camera;
-	extern CInput* Input;
+	extern CInputManager* InputManager;
 	extern CEventManager* EventManager;
 	extern CResourceManager* ResourceManager;
 	extern CDebugManager* DebugManager;
