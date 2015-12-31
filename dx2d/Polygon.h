@@ -2,7 +2,7 @@
 
 namespace Viva
 {
-	class Polygon : public CDynamic
+	class Polygon : public Dynamic
 	{
 	protected:
 		Polygon() {}

@@ -4,138 +4,112 @@ namespace Viva
 {
 	using namespace DirectX;
 
-	CDynamic::CDynamic()
+	Dynamic::Dynamic()
 	{
 		name = L"";
-		zVertexCount = 0;
-		zVertexBuffer = nullptr;
-		zRenderTarget = nullptr;
-		Visible = true;
-		UV = Rect(0, 0, 1, 1);
-		color = XMFLOAT4(0, 0, 0, 0);
-		zIndex = -1;
-		zExtraBufferPSdata = nullptr;
-		TransformVertices = false;
-		zPosition = zAbsolutePosition = XMVectorZero();
-		zRotation = zAbsoluteRotation = XMVectorZero();
-		zVelocity = XMVectorZero();
-		zAcceleration = XMVectorZero();
-		zAngularAcc = XMVectorZero();
-		zAngularVel = XMVectorZero();
-		Origin = { 0, 0 };
-		SizeAcceleration = 0;
-		SizeVelocity = 0;
+		vertexCount = 0;
+		renderTarget = nullptr;
+		index = -1;
+		vertexBuffer = nullptr;
+		extraBufferPSdata = nullptr;
+		position = XMVectorZero();
+		rotation = XMVectorZero();
+		velocity = XMVectorZero();
+		acceleration = XMVectorZero();
+		angularVelocity = XMVectorZero();
+		angularAcceleration = XMVectorZero();
+		parent = nullptr;
+		underCursor = false;
+		pickable = false;		
 		size = 1;
-		zParent = nullptr;
-		Pickable = false;		
-		zUnderCursor = false;
+		sizeVelocity = 0;
+		sizeAcceleration = 0;
+		origin = { 0, 0 };
+		visible = true;
+		color = XMFLOAT4(0, 0, 0, 0);
+		uv = Rect(0, 0, 1, 1);
+		transformVertices = false;		
 	}
 
-	void CDynamic::SetExtraBufferPS(void* data)
+	void Dynamic::_Transform()
 	{
-		zExtraBufferPSdata = data;
-	}
+		if (transformVertices)
+			_TransformVertices();
 
-	void CDynamic::zTransform()
-	{
-		if (TransformVertices)
-			zTransformVertices();
+		absolutePosition = position;
+		absoluteRotation = rotation;
 
-		zAbsolutePosition = zPosition;
-		zAbsoluteRotation = zRotation;		
-		XMMATRIX origin = XMMatrixTranslation(-Origin.x, -Origin.y, 0);
+		XMMATRIX originMat = XMMatrixTranslation(-origin.x, -origin.y, 0);
 		XMMATRIX scale = _GetScaleMatrix();
-		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(zAbsoluteRotation);
-		XMMATRIX loc = XMMatrixTranslationFromVector(zAbsolutePosition);
-		zWorld = origin * scale * rot * loc;
-		if (zParent != nullptr)
+		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(absoluteRotation);
+		XMMATRIX loc = XMMatrixTranslationFromVector(absolutePosition);
+		world = originMat * scale * rot * loc;
+
+		if (parent != nullptr)
 		{
-			XMMATRIX parentRot = XMMatrixRotationRollPitchYawFromVector(zParent->zAbsoluteRotation);
-			XMMATRIX parentLoc = XMMatrixTranslationFromVector(zParent->zAbsolutePosition);
-			zAbsolutePosition += zParent->zAbsolutePosition;
-			zAbsoluteRotation += zParent->zAbsoluteRotation;
-			zAbsolutePosition = XMVector2Transform(zAbsolutePosition, parentRot);
-			zWorld = zWorld * parentRot * parentLoc;
+			XMMATRIX parentRot = XMMatrixRotationRollPitchYawFromVector(parent->absoluteRotation);
+			XMMATRIX parentLoc = XMMatrixTranslationFromVector(parent->absolutePosition);
+			absolutePosition += parent->absolutePosition;
+			absoluteRotation += parent->absoluteRotation;
+			absolutePosition = XMVector2Transform(absolutePosition, parentRot);
+			world = world * parentRot * parentLoc;
 		}
-		XMMATRIX worldViewProj = zWorld * Core->GetCamera()->GetViewMatrix() * Core->GetCamera()->GetProjMatrix();
+
+		XMMATRIX worldViewProj = world * Core->GetCamera()->GetViewMatrix() * Core->GetCamera()->GetProjMatrix();
 		//check for cursor
-		if (Pickable)
-			_CheckForCursor(zWorld);
+		if (pickable)
+			_CheckForCursor(world);
+
 		worldViewProj = XMMatrixTranspose(worldViewProj);
-		Core->zContext->UpdateSubresource(DrawManager->zCbBufferVS, 0, NULL, &worldViewProj, 0, 0);
+		Core->_GetContext()->UpdateSubresource(DrawManager->_GetConstantBufferVS(), 0, NULL, &worldViewProj, 0, 0);
 	}
 
-	void CDynamic::zUpdate()
+	void Dynamic::_Update()
 	{
-		XMVECTOR a = zAcceleration * (float)Core->GetFrameTime();
-		XMVECTOR v = zVelocity * (float)Core->GetFrameTime();
-		zVelocity += a;
-		zPosition += v;
-		XMVECTOR ra = zAngularAcc * (float)Core->GetFrameTime();
-		XMVECTOR rv = zAngularVel * (float)Core->GetFrameTime();
-		zAngularVel += ra;
-		zRotation += rv;
-		float sa = SizeAcceleration * (float)Core->GetFrameTime();
-		SizeVelocity += sa;
+		// v += a
+		velocity += acceleration * (float)Core->GetFrameTime();
+		// x += v
+		position += velocity * (float)Core->GetFrameTime();
+		// rv += ra
+		angularVelocity += angularAcceleration * (float)Core->GetFrameTime();
+		// r = rv
+		rotation += angularVelocity * (float)Core->GetFrameTime();
+		// sv = sa
+		sizeVelocity += sizeAcceleration * (float)Core->GetFrameTime();
 	}
 
-	bool CDynamic::IsUnderCursor()
+	void Dynamic::_TransformVertices()
 	{
-		return zUnderCursor;
+		for (int i = 0; i < vertexCount; i++)
+			transformedVertices[i] = XMVector2Transform(vertices[i], world);
 	}
 
-	void CDynamic::zTransformVertices()
-	{
-		for (int i = 0; i < zVertexCount; i++)
-			zTransformedVertices[i] = XMVector2Transform(zVertices[i], zWorld);
-	}
-
-	CDynamic* CDynamic::GetParent()
-	{
-		return zParent;
-	}
-
-	void CDynamic::SetParent(CDynamic* parent)
+	void Dynamic::SetParent(Dynamic* _parent)
 	{		
-		//add this to parent's children if applicable
-		if(parent != zParent && parent != nullptr)
-			parent->zChildren.push_back(this);
+		//add this to new parent's children if applicable
+		if(parent != _parent && _parent != nullptr)
+			_parent->children.push_back(this);
 
-		//remove this from parents children if applicable
-		else if (zParent != parent && zParent != nullptr)
+		//remove this from old parent's children if applicable
+		else if (parent != _parent && parent != nullptr)
 		{
-			for (int i = 0; i < (int)zParent->zChildren.size(); i++)
+			for (int i = 0; i < (int)parent->children.size(); i++)
 			{
-				if (zParent->zChildren[i] == this)
+				if (parent->children[i] == this)
 				{
-					zParent->zChildren.erase(zParent->zChildren.begin() + i);
+					parent->children.erase(parent->children.begin() + i);
 					break;
 				}
 			}
 		}
 
-		zParent = parent;
+		parent = _parent;
 	}
 
-	vector<CDynamic*> CDynamic::GetChildren()
-	{
-		return zChildren;
-	}
-
-	XMMATRIX CDynamic::GetWorldMatrix()
-	{
-		return zWorld;
-	}
-
-	void CDynamic::Destroy()
+	void Dynamic::Destroy()
 	{
 		//set all childrens parent to nullptr
-		for (CDynamic* d : zChildren)
-			d->zParent = nullptr;		
-	}
-
-	void CDynamic::SetColor(float r, float g, float b, float a)
-	{
-		color = XMFLOAT4(r, g, b, a);
+		for (Dynamic* d : children)
+			d->parent = nullptr;		
 	}
 }

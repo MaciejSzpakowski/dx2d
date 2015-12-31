@@ -5,7 +5,7 @@ using namespace Viva;
 BitmapFont* courier;
 BitmapText* text1;
 vector<std::function<void()>> tests;
-vector<CDynamic*> obj;
+vector<Dynamic*> obj;
 vector<Event*> events;
 
 void Activity()
@@ -33,24 +33,24 @@ void test10()
 	Sprite* s1 = DrawManager->AddSprite(L"brick.jpg",r1);
 	s1->SetPositionZ(0.1f);
 	s1->SetPixelPerfectScale();
-	s1->size = 1.2f;
+	s1->SetSize(1.2f);
 
 	Sprite* s2 = DrawManager->AddSprite(L"leaf.png", r1);
 	s2->SetPositionX(-10);
-	s2->SetAngularVelZ(1);
+	s2->SetAngularVelocityZ(1);
 	s2->SetPixelPerfectScale();
-	s2->size = 0.5f;
+	s2->SetSize(0.5f);
 
 	Sprite* s3 = DrawManager->AddSprite(L"leaf.png", r1);
 	s3->SetPositionX(10);
-	s3->SetAngularVelZ(-1);
+	s3->SetAngularVelocityZ(-1);
 	s3->SetPixelPerfectScale();
-	s3->size = 0.5f;
+	s3->SetSize(0.5f);
 
 	Pixel pixels[] = { Pixel(255,255,255,255), };
-	CTexture* w1 = new CTexture(pixels, Size(1, 1),L"whiteBackground");
+	Texture* w1 = new Texture(pixels, Size(1, 1),L"whiteBackground");
 	Sprite* s4 = new Sprite(w1);
-	s4->name = L"back";
+	s4->SetName(L"back");
 	s4->SetScaleX(19);
 	s4->SetPositionY(12.5f);
 	s4->SetPositionZ(0.1f);
@@ -124,7 +124,7 @@ void test9()
 	vector<Pixel> pixels;
 	pixels.push_back(Pixel(200, 200, 0, 255));
 
-	CTexture* t1 = new CTexture(pixels.data(), Size(1, 1));
+	Texture* t1 = new Texture(pixels.data(), Size(1, 1));
 	Sprite* s1 = new Sprite(t1);
 	DrawManager->AddSprite(s1);
 	s1->SetPositionX(-10);
@@ -133,10 +133,10 @@ void test9()
 	obj.push_back(s1);
 
 	BitmapText* text3 = DrawManager->AddBitmapText(courier);
-	text3->color = Color(0, 0, 0, 1);
+	text3->SetColor(Color(0, 0, 0, 1));
 	text3->SetPositionX(-13);
 	text3->SetPixelScale(Size(10, 19));
-	text3->size = 5;
+	text3->SetSize(5);
 
 	obj.push_back(text3);
 
@@ -190,13 +190,14 @@ void test8()
 	points.push_back(XMFLOAT2(0.3, 0));
 	points.push_back(XMFLOAT2(-0.3, 0));
 	player = DrawManager->AddPoly(points);
+	player->TransformVertices(true);
 	points.clear();
 	obj.push_back(player);
 
 	for (int i = 0; i < 20;i++)
 		points.push_back(XMFLOAT2(Random::RndDouble() * 20 - 10, Random::RndDouble() * 20 - 10));
 	r = DrawManager->AddPoly(points);
-	r->color = Color(0, 0, 1, 1);
+	r->SetColor(Color(0, 0, 1, 1));
 	obj.push_back(r);
 
 	for (int i = 0; i < 30; i++)
@@ -207,6 +208,7 @@ void test8()
 		points.push_back(XMFLOAT2(-Random::RndDouble()*3+1, 0));
 		points.push_back(*points.begin());
 		p1 = DrawManager->AddPoly(points);
+		p1->TransformVertices(true);
 		p1->SetRotationZ(Random::RndDouble()*3.1415);
 		p1->SetPosition(Random::RndDouble() * 20 - 10, Random::RndDouble() * 20 - 10, 0);
 		obj.push_back(p1);
@@ -215,7 +217,7 @@ void test8()
 	Event* e1 = EventManager->AddEvent([=]
 	{
 		player->SetVelocity(0, 0, 0);
-		player->SetAngularVelZ(0);
+		player->SetAngularVelocityZ(0);
 		if (InputManager->IsKeyDown(Keys::KeyW))
 		{
 			player->SetVelocityX(-sinf(player->GetRotation().z)*3);
@@ -223,18 +225,18 @@ void test8()
 		}
 		if (InputManager->IsKeyDown(Keys::KeyA))
 		{
-			player->SetAngularVelZ(3);
+			player->SetAngularVelocityZ(3);
 		}
 		else if (InputManager->IsKeyDown(Keys::KeyD))
 		{
-			player->SetAngularVelZ(-3);
+			player->SetAngularVelocityZ(-3);
 		}
 
 		for (int i = 2; i < obj.size(); i++)
 		{
-			obj[i]->color = Color(0, 0, 0, 1);
+			obj[i]->SetColor(Color(0, 0, 0, 1));
 			if (Collision::IsCollidingSat(player, (Viva::Polygon*)obj[i]))
-				obj[i]->color = Color(1, 0, 0, 1);
+				obj[i]->SetColor(Color(1, 0, 0, 1));
 		}
 		return 1;
 	}, L"e1", 0, 0, 0);
@@ -247,16 +249,16 @@ void test7()
 	wstring msg = L"Test7: cursor picking, click and drag bricks\n";
 	text1->SetText(msg);
 	Sprite* s1;
-	static CDynamic* pick = nullptr;
+	static Dynamic* pick = nullptr;
 
 	for (int i = 0; i < 20; i++)
 	{
 		s1 = DrawManager->AddSprite(L"brick.jpg");
-		s1->UV = Rect(0, 0, 0.5f, 0.5f);
+		s1->SetUv(Rect(0, 0, 0.5f, 0.5f));
 		s1->SetPixelScale(Size(100, 70));
 		s1->SetRotationZ(Random::RndDouble()*3.1415);
 		s1->SetPosition(Random::RndDouble() * 20 - 10, Random::RndDouble() * 20 - 10, 0);
-		s1->Pickable = true;
+		s1->SetPickable(true);
 
 		obj.push_back(s1);
 	}
@@ -267,12 +269,12 @@ void test7()
 		{
 			if (pick != nullptr)
 			{
-				pick->color = Color(1, 1, 1, 1);
+				pick->SetColor(Color(1, 1, 1, 1));
 				pick->SetPositionZ(0);
 			}
 			pick = nullptr;
 
-			for (CDynamic* s : obj)
+			for (Dynamic* s : obj)
 			{
 				if (s->IsUnderCursor())
 				{
@@ -282,7 +284,7 @@ void test7()
 			}
 
 			if (pick != nullptr)
-				pick->color = Color(0.5, 0.5, 1, 1);
+				pick->SetColor(Color(0.5, 0.5, 1, 1));
 		}
 		else
 		{
@@ -313,49 +315,49 @@ void test6()
 	
 	Sprite* s1 = DrawManager->AddSprite(L"leaf.png");
 	s1->SetPixelPerfectScale();
-	s1->size = 0.3f;
+	s1->SetSize(0.3f);
 	s1->SetPositionX(-15);
 	s1->SetPositionY(4);
-	s1->SetAngularVelZ(2);
+	s1->SetAngularVelocityZ(2);
 
 	Sprite* s2 = DrawManager->AddSprite(L"brick.jpg");
 	s2->SetPixelPerfectScale();
-	s2->size = 0.3f;
+	s2->SetSize(0.3f);
 	s2->SetPositionX(-11);
 	s2->SetPositionY(4);
-	s2->SetAngularVelZ(-3);
-	s2->Origin = XMFLOAT2(-1, 1);
+	s2->SetAngularVelocityZ(-3);
+	s2->SetOrigin(XMFLOAT2(-1, 1));
 
 	Sprite* s3 = DrawManager->AddSprite(L"brick.jpg");
 	s3->SetPixelPerfectScale();
-	s3->size = 0.1f;
+	s3->SetSize(0.1f);
 	s3->SetPositionX(0);
 	s3->SetPositionY(4);
-	s3->SizeAcceleration = 10;
+	s3->SetSizeAcceleration(10);
 
 	Sprite* s4 = DrawManager->AddSprite(L"brick.jpg");
 	s4->SetPixelPerfectScale();
-	s4->size = 0.1f;
+	s4->SetSize(0.1f);
 	s4->SetPositionX(10);
 	s4->SetPositionY(4);
 	s4->SetAccelerationY(10);
 
 	Sprite* s5 = DrawManager->AddSprite(L"leaf.png");
 	s5->SetPixelPerfectScale();
-	s5->size = 0.3f;
+	s5->SetSize(0.3f);
 	s5->SetPositionX(0);
 	s5->SetPositionY(-4);
-	s5->SetAngularAccZ(1);
+	s5->SetAngularAccelerationZ(1);
 
 	Event* e1 = EventManager->AddEvent([=]
 	{
-		if (s3->SizeVelocity > 0.4f)
+		if (s3->GetSizeVelocity() > 0.4f)
 		{
-			s3->SizeAcceleration = -1;
+			s3->SetSizeAcceleration(-1);
 		}
-		else if (s3->SizeVelocity < -0.4f)
+		else if (s3->GetSizeVelocity() < -0.4f)
 		{
-			s3->SizeAcceleration = 1;
+			s3->SetSizeAcceleration(1);
 		}
 		s3->SetScaleX((sinf((float)Core->GetGameTime()*10) + 1.5f) * 11);
 
@@ -372,13 +374,13 @@ void test6()
 			s4->SetAccelerationY(10);
 		}
 
-		if (s5->GetAngularVel().z > 10)
+		if (s5->GetAngularVelocity().z > 10)
 		{
-			s5->SetAngularAccZ(-1);
+			s5->SetAngularAccelerationZ(-1);
 		}
-		if (s5->GetAngularVel().z < -10)
+		if (s5->GetAngularVelocity().z < -10)
 		{
-			s5->SetAngularAccZ(1);
+			s5->SetAngularAccelerationZ(1);
 		}
 
 		return 1;
@@ -403,12 +405,12 @@ void test5()
 	LARGE_INTEGER time1;
 	LARGE_INTEGER time2;
 	QueryPerformanceCounter(&time1);
-	CTexture* t1;
+	Texture* t1;
 	Sprite* s1;
 
 	for (int i = 0; i < 1000; i++)
 	{
-		t1 = new CTexture(v.data(), Size(128, 128)); // this will leak memory but that's fine
+		t1 = new Texture(v.data(), Size(128, 128)); // this will leak memory but that's fine
 		s1 = new Sprite(t1);
 		DrawManager->AddSprite(s1);
 		obj.push_back(s1);
@@ -420,13 +422,13 @@ void test5()
 	msg += L" ticks\n";
 
 	QueryPerformanceCounter(&time1);
-	t1 = new CTexture(v.data(), Size(128, 128),L"5x5");
+	t1 = new Texture(v.data(), Size(128, 128),L"5x5");
 	if(!ResourceManager->PeekResource(L"5x5",nullptr))
 		ResourceManager->AddResource(t1);
 
 	for (int i = 0; i < 1000; i++)
 	{
-		s1 = new Sprite((CTexture*)ResourceManager->GetResource(L"5x5"));
+		s1 = new Sprite((Texture*)ResourceManager->GetResource(L"5x5"));
 		DrawManager->AddSprite(s1);
 		obj.push_back(s1);
 	}
@@ -448,13 +450,13 @@ void test4()
 
 	Animation* s1 = DrawManager->AddAnimation(L"ani.png", 2, 4);
 	s1->SetPixelScale(Size(512, 256));
-	s1->size = 0.5f;
+	s1->SetSize(0.5f);
 	s1->SetSpeed(20);
 	s1->SetPositionX(-10);
 
 	Animation* s2 = DrawManager->AddAnimation(L"ani.png", 2, 4);
 	s2->SetPixelScale(Size(512, 256));
-	s2->size = 0.5f;
+	s2->SetSize(0.5f);
 	s2->SetSpeed(-7);
 	s2->SetFlipHorizontally(true);
 	s2->SetPositionX(10);
@@ -480,7 +482,7 @@ void test3()
 	for (int i = 0; i < 8; i++)
 		for (int j = 0; j < 8; j++)
 			pixels.push_back(Pixel(255 - 255 * ((i+j) % 2), 255 * ((i + j) % 2), 0, 255));
-	CTexture* t1 = new CTexture(pixels.data(), Size(8, 8)); // memory leak
+	Texture* t1 = new Texture(pixels.data(), Size(8, 8)); // memory leak
 
 	Sprite* s2 = new Sprite(t1);
 	DrawManager->AddSprite(s2);
@@ -490,7 +492,7 @@ void test3()
 
 	Sprite* s3 = DrawManager->AddSprite(L"leaf.png");
 	s3->SetPixelPerfectScale();
-	s3->size = 0.5f;
+	s3->SetSize(0.5f);
 	obj.push_back(s3);
 }
 
@@ -509,17 +511,17 @@ void test2()
 	v.push_back(*v.begin());
 	Viva::Polygon* p1 = DrawManager->AddPoly(v);
 	p1->SetPositionX(-10);
-	p1->color = Color(1, 0, 0, 1);
+	p1->SetColor(Color(1, 0, 0, 1));
 
 	Viva::Rectangle* r1 = DrawManager->AddRect(Size(10, 3));
-	r1->color = Color(0, 0, 1, 1);
+	r1->SetColor(Color(0, 0, 1, 1));
 
 	Circle* c1 = DrawManager->AddCircle(2, 20);
 	c1->SetPositionX(10);
 
 	Event* e1 = EventManager->AddEvent([c1]
 	{
-		c1->color = Color((float)sin(Core->GetGameTime()), (float)cos(Core->GetGameTime()*0.6), (float)sin(Core->GetGameTime() *0.5),1);
+		c1->SetColor(Color((float)sin(Core->GetGameTime()), (float)cos(Core->GetGameTime()*0.6), (float)sin(Core->GetGameTime() *0.5),1));
 		return 1;
 	}, L"rainbow", 0, 0, 0);
 
@@ -585,9 +587,9 @@ int wrapper()
 	courier = new BitmapFont(L"courier.png", Size(10,19), 19);
 	text1 = DrawManager->AddBitmapText(courier);
 	text1->SetPosition(XMFLOAT3(-18, 13, 0));
-	text1->color = Color(0, 0, 0, 1);
+	text1->SetColor(Color(0, 0, 0, 1));
 	text1->SetPixelScale(Size(10, 19));
-	text1->size = 2;
+	text1->SetSize(2);
 
 	tests.push_back(test1);
 	tests.push_back(test2);

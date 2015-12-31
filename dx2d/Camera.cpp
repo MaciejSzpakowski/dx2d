@@ -13,25 +13,20 @@ namespace Viva
 		up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
 		//Set the View matrix
-		view = DirectX::XMMatrixLookAtLH(zPosition, target, up);
+		view = DirectX::XMMatrixLookAtLH(position, target, up);
 
 		//Set the Projection matrix
-		aspectRatio = (float)Core->clientSize.width / Core->clientSize.height;
+		aspectRatio = (float)Core->GetClientSize().width / Core->GetClientSize().height;
 		proj = DirectX::XMMatrixPerspectiveFovLH(fovAngle, aspectRatio, nearPlane, farPlane);
-		DrawManager->zRenderTargetMatrix = view * proj;
-	}
-
-	XMMATRIX Camera::_GetScaleMatrix()
-	{
-		return DirectX::XMMatrixIdentity();
+		DrawManager->_SetRenderTargetMatrix(view * proj);
 	}
 
 	void Camera::_CamTransform()
 	{
-		zUpdate();
-		XMVECTOR target = DirectX::XMVectorAdd(zPosition, DirectX::XMVectorSet(0, 0, 20, 1));
-		XMMATRIX rot = DirectX::XMMatrixRotationRollPitchYawFromVector(zRotation);
-		view = DirectX::XMMatrixLookAtLH(zPosition, target, up) * rot;
+		_Update();
+		XMVECTOR target = DirectX::XMVectorAdd(position, DirectX::XMVectorSet(0, 0, 20, 1));
+		XMMATRIX rot = DirectX::XMMatrixRotationRollPitchYawFromVector(rotation);
+		view = DirectX::XMMatrixLookAtLH(position, target, up) * rot;
 	}
 
 	XMFLOAT3 Camera::GetCursorWorldPos(float z) const

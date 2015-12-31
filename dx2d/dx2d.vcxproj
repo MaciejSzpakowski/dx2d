@@ -147,6 +147,7 @@
     <ClInclude Include="Animation.h" />
     <ClInclude Include="BitmapFont.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Collisions.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="DebugManager.h" />
     <ClInclude Include="DrawManager.h" />
@@ -171,6 +172,7 @@
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="BitmapFont.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Collisions.cpp" />
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="DebugManager.cpp" />
     <ClCompile Include="Globals.cpp" />

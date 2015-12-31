@@ -12,8 +12,8 @@ namespace Viva
 
 		ID3D11Texture2D* tex;
 		ZeroMemory(&textureDesc, sizeof(textureDesc));
-		textureDesc.Width = (UINT)Core->clientSize.width;
-		textureDesc.Height = (UINT)Core->clientSize.height;
+		textureDesc.Width = (UINT)Core->GetClientSize().width;
+		textureDesc.Height = (UINT)Core->GetClientSize().height;
 		textureDesc.MipLevels = 1;
 		textureDesc.ArraySize = 1;
 		textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -22,12 +22,12 @@ namespace Viva
 		textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 		textureDesc.CPUAccessFlags = 0;
 		textureDesc.MiscFlags = 0;
-		HRESULT hr = Core->zDevice->CreateTexture2D(&textureDesc, NULL, &tex); CHECKHR();
+		HRESULT hr = Core->_GetDevice()->CreateTexture2D(&textureDesc, NULL, &tex); CHECKHR();
 
 		renderTargetViewDesc.Format = textureDesc.Format;
 		renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 		renderTargetViewDesc.Texture2D.MipSlice = 0;
-		hr = Core->zDevice->CreateRenderTargetView(tex,
+		hr = Core->_GetDevice()->CreateRenderTargetView(tex,
 			&renderTargetViewDesc, &rtv); CHECKHR();
 
 		ID3D11ShaderResourceView* srv;
@@ -35,75 +35,72 @@ namespace Viva
 		shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
 		shaderResourceViewDesc.Texture2D.MipLevels = 1;
-		hr = Core->zDevice->CreateShaderResourceView(tex,
+		hr = Core->_GetDevice()->CreateShaderResourceView(tex,
 			&shaderResourceViewDesc, &srv); CHECKHR();
 
-		pixelShader = Core->zDefaultPost;
+		pixelShader = Core->_GetDefaultPost();
 		texture = tex;
-		sprite = new Sprite(new CTexture(srv,L"renderTargetTexture"));
+		sprite = new Sprite(new Texture(srv,L"renderTargetTexture"),TextureFilter::Point);
 		sprite->SetFlipVertically(true);
-		sprite->Pickable = false;
 		sprite->SetPixelShader(nullptr);
 	}
 
 	void RenderTarget::_DrawObjects()
 	{
-		Core->zContext->ClearDepthStencilView(Core->zDepthStencilView,
+		Core->_GetContext()->ClearDepthStencilView(Core->_GetDepthStencilView(),
 			D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-		if (Core->EnableAlpha)
-			Core->zContext->OMSetBlendState(Core->zBlendState, 0, 0xffffffff);
+		if (Core->IsAlphaEnabled())
+			Core->_GetContext()->OMSetBlendState(Core->_GetBlendState(), 0, 0xffffffff);
 
-		Core->zContext->OMSetRenderTargets(1, &rtv, Core->zDepthStencilView);
+		Core->_GetContext()->OMSetRenderTargets(1, &rtv, Core->_GetDepthStencilView());
 		float four0[4] = { 0, 0, 0, 0 };
-		Core->zContext->ClearRenderTargetView(rtv, four0);
+		Core->_GetContext()->ClearRenderTargetView(rtv, four0);
 
 		//polys
-		Core->zContext->PSSetShader(Core->zDefaultPS, 0, 0);
-		Core->zContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP);
-		Core->zContext->RSSetState(DrawManager->zWireframe);
+		Core->_GetContext()->PSSetShader(Core->_GetDefaultPS(), 0, 0);
+		Core->_GetContext()->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP);
+		Core->_GetContext()->RSSetState(DrawManager->_GetWireframe());
 		for (Polygon* p : polygons)
 		{
-			p->zUpdate();
-			p->zTransform();
-			if (p->Visible)
-			{
+			p->_Update();
+			p->_Transform();
+			if (p->IsVisible())
 				p->_Draw();
-			}
 		}
 
 		//sprites, animations
-		Core->zContext->RSSetState(DrawManager->zSolid);
-		Core->zContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		Core->_GetContext()->RSSetState(DrawManager->_GetSolid());
+		Core->_GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
-		Core->zContext->IASetVertexBuffers(0, 1, &DrawManager->zVertexBufferSprite, &stride, &offset);
-		if (Core->EnableAlpha)
+		Core->_GetContext()->IASetVertexBuffers(0, 1, DrawManager->_GetVertexBufferSpriteAddress(), &stride, &offset);
+		if (Core->IsAlphaEnabled())
 			std::sort(sprites.begin(), sprites.end(), [](Sprite* s1,Sprite* s2) {return s1->GetPosition().z > s2->GetPosition().z; });
 		for (Sprite* s : sprites)
 		{
-			s->zUpdate();
+			s->_Update();
 			s->_SpriteUpdate();
 			s->_Play();
-			s->zTransform();
-			if (s->Visible)
+			s->_Transform();
+			if (s->IsVisible())
 			{
 				if (s->GetTextureFilter() == TextureFilter::Linear)
-					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zLineSampler);
+					Core->_GetContext()->PSSetSamplers(0, 1, DrawManager->_GetLineSamplerAddress());
 				else
-					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zPointSampler);
+					Core->_GetContext()->PSSetSamplers(0, 1, DrawManager->_GetPointSamplerAddress());
 				s->_Draw();
 			}
 		}
 		//bitmap text
 		for (BitmapText* t : texts)
 		{
-			t->zUpdate();
-			if (t->Visible)
+			t->_Update();
+			if (t->IsVisible())
 			{
 				if (t->GetTexFilter() == TextureFilter::Linear)
-					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zLineSampler);
+					Core->_GetContext()->PSSetSamplers(0, 1, DrawManager->_GetLineSamplerAddress());
 				else
-					Core->zContext->PSSetSamplers(0, 1, &DrawManager->zPointSampler);
+					Core->_GetContext()->PSSetSamplers(0, 1, DrawManager->_GetPointSamplerAddress());
 				t->_Draw();
 			}
 		}
@@ -111,74 +108,22 @@ namespace Viva
 
 	void RenderTarget::MoveToBottom()
 	{
-		int size = (int)DrawManager->zRenderTargets.size();
-		if (size < 2)
-			return;
-		int index = -1;
-		for (int i = 0; i<size; i++)
-			if (DrawManager->zRenderTargets[i] == this)
-			{
-				index = i;
-				break;
-			}
-		if (index == -1)
-			return;
-		DrawManager->zRenderTargets.erase(DrawManager->zRenderTargets.begin() + index);
-		DrawManager->zRenderTargets.insert(DrawManager->zRenderTargets.begin(), this);
+		DrawManager->MoveRenderTargetToBottom(this);
 	}
 
 	void RenderTarget::MoveToTop()
 	{
-		int size = (int)DrawManager->zRenderTargets.size();
-		if (size < 2)
-			return;
-		int index = -1;
-		for (int i = 0; i<size; i++)
-			if (DrawManager->zRenderTargets[i] == this)
-			{
-				index = i;
-				break;
-			}
-		if (index == -1)
-			return;
-		DrawManager->zRenderTargets.erase(DrawManager->zRenderTargets.begin() + index);
-		DrawManager->zRenderTargets.push_back(this);
+		DrawManager->MoveRenderTargetToTop(this);
 	}
 
 	void RenderTarget::MoveUp()
 	{
-		int size = (int)DrawManager->zRenderTargets.size();
-		if (size < 2)
-			return;
-		int index = -1;
-		for (int i = 0; i<size; i++)
-			if (DrawManager->zRenderTargets[i] == this)
-			{
-				index = i;
-				break;
-			}
-		if (index == -1 || index == size - 1)
-			return;
-		DrawManager->zRenderTargets[index] = DrawManager->zRenderTargets[index + 1];
-		DrawManager->zRenderTargets[index + 1] = this;
+		DrawManager->MoveRenderTargetUp(this);
 	}
 
 	void RenderTarget::MoveDown()
 	{
-		int size = (int)DrawManager->zRenderTargets.size();
-		if (size < 2)
-			return;
-		int index = -1;
-		for (int i = 0; i<size; i++)
-			if (DrawManager->zRenderTargets[i] == this)
-			{
-				index = i;
-				break;
-			}
-		if (index == -1 || index == 0)
-			return;
-		DrawManager->zRenderTargets[index] = DrawManager->zRenderTargets[index - 1];
-		DrawManager->zRenderTargets[index - 1] = this;
+		DrawManager->MoveRenderTargetDown(this);
 	}
 
 	void RenderTarget::Destroy()
@@ -200,65 +145,71 @@ namespace Viva
 
 	void RenderTarget::RemovePoly(Polygon* p)
 	{
-		if (p->zIndex == -1)
+		int index = p->_GetIndex();
+
+		if (index == -1)
 			throw VIVA_ERROR("This poly has no render target");
 
-		if (polygons.size() <= p->zIndex || polygons[p->zIndex] != p)
+		if (polygons.size() <= index || polygons[index] != p)
 			throw VIVA_ERROR("Render target index mismatch");
-		else if (p->zIndex == polygons.size() - 1)
+		else if (index == polygons.size() - 1)
 			polygons.pop_back();
 		else
 		{
 			//swap with end and pop end
-			polygons[p->zIndex] = polygons.back();
-			polygons[p->zIndex]->zIndex = p->zIndex;
+			polygons[index] = polygons.back();
+			polygons[index]->_SetIndex(index);
 			polygons.pop_back();
 		}
 
-		p->zRenderTarget = nullptr;
-		p->zIndex = -1;
+		p->_SetRenderTarget(nullptr);
+		p->_SetIndex(-1);
 	}
 
 	void RenderTarget::RemoveText(BitmapText* t)
 	{
-		if (t->zIndex == -1)
+		int index = t->_GetIndex();
+
+		if (index == -1)
 			throw VIVA_ERROR("This text has no render target");
 
-		if (texts.size() <= t->zIndex|| texts[t->zIndex] != t)
+		if (texts.size() <= index || texts[index] != t)
 			throw VIVA_ERROR("Render target index mismatch");
-		else if (t->zIndex == texts.size() - 1)
+		else if (index == texts.size() - 1)
 		{
 			texts.pop_back();
 		}
 		else
 		{
 			//swap with end and pop end
-			texts[t->zIndex] = texts.back();
-			texts[t->zIndex]->zIndex = t->zIndex;
+			texts[index] = texts.back();
+			texts[index]->_SetIndex(index);
 			texts.pop_back();
 		}
-		t->zRenderTarget = nullptr;
-		t->zIndex = -1;
+		t->_SetRenderTarget(nullptr);
+		t->_SetIndex(-1);
 	}
 
 	void RenderTarget::RemoveSprite(Sprite* s)
 	{
-		if (s->zIndex == -1)
+		int index = s->_GetIndex();
+
+		if (index == -1)
 			throw VIVA_ERROR("This sprite has no render target");
 
-		if (sprites.size() <= s->zIndex || sprites[s->zIndex] != s)
+		if (sprites.size() <= index || sprites[index] != s)
 			throw VIVA_ERROR("Render target index mismatch");
-		else if (s->zIndex == sprites.size() - 1)
+		else if (index == sprites.size() - 1)
 			sprites.pop_back();
 		else
 		{
 			//swap with end and pop end
-			sprites[s->zIndex] = sprites.back();
-			sprites[s->zIndex]->zIndex = s->zIndex;
+			sprites[index] = sprites.back();
+			sprites[index]->_SetIndex(index);
 			sprites.pop_back();
 		}
 
-		s->zRenderTarget = nullptr;
-		s->zIndex = -1;
+		s->_SetRenderTarget(nullptr);
+		s->_SetIndex(-1);
 	}
 }

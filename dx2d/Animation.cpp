@@ -16,10 +16,11 @@ namespace Viva
 			for (int j = 0; j < columns; j++)
 				uvTable.push_back(Rect(1.0f / columns*j, 1.0f / rows*i, 1.0f /
 					columns*(j + 1), 1.0f / rows*(i + 1)));
-		UV = uvTable[0];
+		uv = uvTable[0];
 	}
 
-	Animation::Animation(const wchar_t* filename, const vector<Rect>& _uvTable) : Sprite(filename)
+	Animation::Animation(const wchar_t* filename, const vector<Rect>& _uvTable)
+		:Sprite(filename)
 	{
 		uvTable = _uvTable;
 		frameCount = (int)_uvTable.size();
@@ -29,7 +30,7 @@ namespace Viva
 		speed = 1;
 		frameChanged = true;
 		indicator = 0;
-		UV = uvTable[0];
+		uv = uvTable[0];
 	}
 
 	void Animation::_Play()
@@ -51,7 +52,7 @@ namespace Viva
 				PreviousFrame();
 			}
 		}
-		UV = uvTable[currentFrame];
+		uv = uvTable[currentFrame];
 	}
 
 	void Animation::SetOrder(const int order[])

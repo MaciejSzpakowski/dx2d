@@ -2,10 +2,10 @@
 
 namespace Viva
 {
-	class Sprite : public CDynamic
+	class Sprite : public Dynamic
 	{
 	private:
-		CTexture* texture;
+		Texture* texture;
 		TextureFilter texFilter;
 		XMFLOAT2 scale;
 		bool flipHorizontally;
@@ -13,7 +13,8 @@ namespace Viva
 		ID3D11PixelShader* pixelShader;
 
 	public:
-		Sprite(CTexture* _texture);
+		Sprite(Texture* _texture);
+		Sprite(Texture* _texture, TextureFilter _texFilter);
 		Sprite(const wchar_t* filename);
 
 		XMMATRIX _GetScaleMatrix() override;
@@ -22,7 +23,7 @@ namespace Viva
 		void _CheckForCursor(XMMATRIX transform) override;
 		void _SpriteUpdate();
 
-		CTexture* GetTexture() { return texture; }
+		Texture* GetTexture() { return texture; }
 		TextureFilter GetTextureFilter() const { return texFilter; }
 		void SetTextureFilter(TextureFilter _texFilter) { texFilter = _texFilter; }
 		XMFLOAT2 GetScale() const { return scale; }

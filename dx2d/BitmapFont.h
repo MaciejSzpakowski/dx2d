@@ -6,7 +6,7 @@ namespace Viva
 	{
 	private:
 		vector<Rect> chars; // uv cooridantes for letters 
-		CTexture* texture;
+		Texture* texture;
 	public:
 		// Create bitmap font from file.
 		// _chars: uv coordinates of each letter in ascii order
@@ -20,15 +20,15 @@ namespace Viva
 
 		// Create bitmap font from texture.
 		// _chars: uv coordinates of each letter in ascii order
-		BitmapFont(CTexture* _texture, const vector<Rect>& _chars);
+		BitmapFont(Texture* _texture, const vector<Rect>& _chars);
 
 		// Create bitmap font from texture.
 		// UV cooridnates will be generated starting from 0,0 (upper left corner).
 		// letterSize: width and height of each letter in pixels
 		// charsPerRow: how many characters there are per row
-		BitmapFont(CTexture* _texture, const Size& letterSize, int charsPerRow);
+		BitmapFont(Texture* _texture, const Size& letterSize, int charsPerRow);
 
-		CTexture* GetTexture() const { return texture; }
+		Texture* GetTexture() const { return texture; }
 
 		const vector<Rect>& _GetChars() const { return chars; }
 

@@ -45,27 +45,19 @@ namespace Viva
 
 	//prototypes
 	class CCore;
-	class Polygon;
-	class Rectangle;
-	class Circle;
 	class CDrawManager;
 	class Camera;
-	class CInputManager;
-	class Sprite;
-	class CEventManager;
-	class CResourceManager;
-	class Animation;
-	class BitmapFont;
-	class BitmapText;
-	class CDebugManager;
-	class CTexture;
 	class RenderTarget;
+	class CResourceManager;
+	class CInputManager;
+	class CEventManager;
+	class CDebugManager;
 
 	//externals
 	extern CCore* Core;
-	extern CDrawManager* DrawManager;
+	extern CDrawManager* DrawManager;	
+	extern CResourceManager* ResourceManager;
 	extern CInputManager* InputManager;
 	extern CEventManager* EventManager;
-	extern CResourceManager* ResourceManager;
 	extern CDebugManager* DebugManager;
 }

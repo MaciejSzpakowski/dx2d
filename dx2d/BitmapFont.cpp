@@ -29,13 +29,13 @@ namespace Viva
 		}
 	}
 
-	BitmapFont::BitmapFont(CTexture* _texture, const vector<Rect>& _chars)
+	BitmapFont::BitmapFont(Texture* _texture, const vector<Rect>& _chars)
 	{
 		chars = _chars;
 		texture = _texture;
 	}
 
-	BitmapFont::BitmapFont(CTexture* _texture, const Size& letterSize, int charsPerRow)
+	BitmapFont::BitmapFont(Texture* _texture, const Size& letterSize, int charsPerRow)
 	{
 		texture = _texture;
 

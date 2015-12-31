@@ -44,22 +44,22 @@ namespace Viva
 		void AddPoly(Polygon* p)
 		{
 			polygons.push_back(p);
-			p->zIndex = (int)polygons.size() - 1;
-			p->zRenderTarget = this;
+			p->_SetIndex((int)polygons.size() - 1);
+			p->_SetRenderTarget(this);
 		}
 
 		void AddSprite(Sprite* s)
 		{ 
 			sprites.push_back(s); 
-			s->zIndex = (int)sprites.size() - 1;
-			s->zRenderTarget = this;
+			s->_SetIndex((int)sprites.size() - 1);
+			s->_SetRenderTarget(this);
 		}
 
 		void AddText(BitmapText* t)
 		{ 
 			texts.push_back(t); 
-			t->zIndex = (int)texts.size() - 1; 
-			t->zRenderTarget = this;
+			t->_SetIndex((int)texts.size() - 1);
+			t->_SetRenderTarget(this);
 		}
 
 		void RemovePoly(Polygon* p);

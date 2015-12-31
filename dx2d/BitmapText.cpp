@@ -22,9 +22,9 @@ namespace Viva
 		if (text.length() == 0)
 			return;
 		//color
-		Core->zContext->UpdateSubresource(DrawManager->zCbBufferPS, 0, NULL, &color, 0, 0);
+		Core->_GetContext()->UpdateSubresource(DrawManager->_GetConstantBufferPS(), 0, NULL, &color, 0, 0);
 		//tex
-		Core->zContext->PSSetShaderResources(0, 1, font->GetTexture()->_GetShaderResourceAddress());
+		Core->_GetContext()->PSSetShaderResources(0, 1, font->GetTexture()->_GetShaderResourceAddress());
 		int len = (int)text.length();
 		int col = 0;
 		int row = 0;
@@ -41,11 +41,11 @@ namespace Viva
 			int index = text[i] - ' ';
 			if (index < 0 || index > font->_GetChars().size())
 				continue;
-			Core->zContext->UpdateSubresource(DrawManager->zCbBufferUV, 0, NULL, 
+			Core->_GetContext()->UpdateSubresource(DrawManager->_GetConstantBufferUV(), 0, NULL,
 				&(font->_GetChars()[index]), 0, 0);
 			//transform letter and draw
 			_TextTransform(col,row, len);
-			Core->zContext->DrawIndexed(6, 0, 0);
+			Core->_GetContext()->DrawIndexed(6, 0, 0);
 			col++;
 		}
 	}
@@ -63,24 +63,24 @@ namespace Viva
 		else if (metrics.horizontalAlign == HorizontalAlignment::Right)
 			horAlignOffset = (float)-len;
 		XMMATRIX scale = DirectX::XMMatrixScaling(_Width, _Height, 1);
-		XMMATRIX rot = DirectX::XMMatrixRotationRollPitchYawFromVector(zRotation);
+		XMMATRIX rot = DirectX::XMMatrixRotationRollPitchYawFromVector(rotation);
 		//origin is translation matrix from the center of the text object
 		XMMATRIX origin = DirectX::XMMatrixTranslation(
 			(col*(_Width+_HorizontalSpacing) + horAlignOffset)*2,
 			(-row*(_Height+_VerticalSpacing) + verAlignOffset)*2, 0);
-		XMMATRIX loc = DirectX::XMMatrixTranslationFromVector(zPosition);
+		XMMATRIX loc = DirectX::XMMatrixTranslationFromVector(position);
 		XMMATRIX worldViewProj;
-		if (zParent == nullptr)
+		if (parent == nullptr)
 			worldViewProj  = scale * origin * rot * loc * Core->GetCamera()->GetViewMatrix() * Core->GetCamera()->GetProjMatrix();
 		else
 		{
-			XMMATRIX parentLoc = DirectX::XMMatrixRotationRollPitchYawFromVector(zParent->zRotation);
-			XMMATRIX parentRot = DirectX::XMMatrixTranslationFromVector(zParent->zPosition);
+			XMMATRIX parentLoc = DirectX::XMMatrixRotationRollPitchYawFromVector(parent->_GetRotationVector());
+			XMMATRIX parentRot = DirectX::XMMatrixTranslationFromVector(parent->_GetPositionVector());
 			worldViewProj = scale * origin * rot * loc * parentLoc * parentRot *
 				Core->GetCamera()->GetViewMatrix() * Core->GetCamera()->GetProjMatrix();
 		}
 		worldViewProj = XMMatrixTranspose(worldViewProj);
-		Core->zContext->UpdateSubresource(DrawManager->zCbBufferVS, 0, NULL, &worldViewProj, 0, 0);
+		Core->_GetContext()->UpdateSubresource(DrawManager->_GetConstantBufferVS(), 0, NULL, &worldViewProj, 0, 0);
 	}
 
 	void BitmapText::SetPixelScale(const Size& _size)
@@ -98,8 +98,8 @@ namespace Viva
 
 	void BitmapText::Destroy()
 	{
-		CDynamic::Destroy();
-		if (zIndex != -1)
+		Dynamic::Destroy();
+		if (index != -1)
 			DrawManager->RemoveBitmapText(this);
 		delete this;
 	}

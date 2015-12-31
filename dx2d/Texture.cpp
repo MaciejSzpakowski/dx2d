@@ -26,18 +26,18 @@ namespace Viva
 		desc.CPUAccessFlags = 0;
 		desc.MiscFlags = 0;
 
-		HRESULT hr = Core->zDevice->CreateTexture2D(&desc, &sub, &tex); CHECKHR();
+		HRESULT hr = Core->_GetDevice()->CreateTexture2D(&desc, &sub, &tex); CHECKHR();
 
 		D3D11_TEXTURE2D_DESC desc2;
 		tex->GetDesc(&desc2);
 		ID3D11ShaderResourceView* srv;
-		hr = Core->zDevice->CreateShaderResourceView(tex, 0, &srv); CHECKHR();
+		hr = Core->_GetDevice()->CreateShaderResourceView(tex, 0, &srv); CHECKHR();
 		tex->Release();
 
 		return srv;
 	}
 
-	CTexture::CTexture(const wchar_t* filepath):Resource(filepath)
+	Texture::Texture(const wchar_t* filepath):Resource(filepath)
 	{
 		int a;
 
@@ -88,7 +88,7 @@ namespace Viva
 	}
 
 	// create texture from Color array
-	CTexture::CTexture(const Pixel data[], const Size& _size, const wchar_t* _name) :Resource(_name)
+	Texture::Texture(const Pixel data[], const Size& _size, const wchar_t* _name) :Resource(_name)
 	{
 		size = _size;
 		shaderResource = SrvFromColorArray(data, _size);

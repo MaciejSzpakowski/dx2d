@@ -12,58 +12,49 @@ pTextureInterface->GetDesc(&desc);
 namespace Viva
 {
 	Sprite::Sprite(const wchar_t* filename)
-	{
-		pixelShader = Core->zDefaultPS;
-		flipHorizontally = false;
-		flipVertically = false;
-		zVertexBuffer = nullptr;
-		scale = XMFLOAT2(1, 1);
-		color = XMFLOAT4(1, 1, 1, 1);
-		texFilter = DrawManager->TexFilterCreationMode;
-		texture = DrawManager->GetTexture(filename);
-		zRenderTarget = nullptr;
-	}
+		:Sprite(DrawManager->GetTexture(filename), DrawManager->GetDefaultTextureFilter()) {}
 
-	Sprite::Sprite(CTexture* _texture)
+	Sprite::Sprite(Texture* _texture) 
+		:Sprite(_texture, DrawManager->GetDefaultTextureFilter()) {}
+
+	Sprite::Sprite(Texture* _texture, TextureFilter _texFilter)
 	{
-		pixelShader = Core->zDefaultPS;
+		pixelShader = Core->_GetDefaultPS();
 		flipHorizontally = false;
 		flipVertically = false;
-		zVertexBuffer = nullptr;
 		scale = XMFLOAT2(1, 1);
-		color = XMFLOAT4(1, 1, 1, 1);
-		texFilter = DrawManager->TexFilterCreationMode;
+		color = Color(1, 1, 1, 1);
+		texFilter = _texFilter;
 		texture = _texture;
-		zRenderTarget = nullptr;
 	}
 
 	void Sprite::_Draw()
 	{
 		//ps
 		if(pixelShader != nullptr)
-			Core->zContext->PSSetShader(pixelShader, 0, 0);
+			Core->_GetContext()->PSSetShader(pixelShader, 0, 0);
 		//color		
-		Core->zContext->UpdateSubresource(DrawManager->zCbBufferPS, 0, 0, &color, 0, 0);
+		Core->_GetContext()->UpdateSubresource(DrawManager->_GetConstantBufferPS(), 0, 0, &color, 0, 0);
 		//uv
-		Rect uv;
-		uv.left = flipHorizontally ? UV.right : UV.left;
-		uv.right = flipHorizontally ? UV.left : UV.right;
-		uv.top = flipVertically ? UV.bottom : UV.top;
-		uv.bottom = flipVertically ? UV.top : UV.bottom;
-		Core->zContext->UpdateSubresource(DrawManager->zCbBufferUV, 0, 0, &uv, 0, 0);
+		Rect finaluv;
+		finaluv.left = flipHorizontally ? uv.right : uv.left;
+		finaluv.right = flipHorizontally ? uv.left : uv.right;
+		finaluv.top = flipVertically ? uv.bottom : uv.top;
+		finaluv.bottom = flipVertically ? uv.top : uv.bottom;
+		Core->_GetContext()->UpdateSubresource(DrawManager->_GetConstantBufferUV(), 0, 0, &finaluv, 0, 0);
 		//extra buffer
-		if(zExtraBufferPSdata != nullptr)
-			Core->zContext->UpdateSubresource(DrawManager->zCbBufferPSExtra, 0, 0, zExtraBufferPSdata, 0, 0);
+		if(extraBufferPSdata != nullptr)
+			Core->_GetContext()->UpdateSubresource(DrawManager->_GetConstantBufferPSExtra(), 0, 0, extraBufferPSdata, 0, 0);
 		
 		//tex
-		Core->zContext->PSSetShaderResources(0, 1, texture->_GetShaderResourceAddress());
+		Core->_GetContext()->PSSetShaderResources(0, 1, texture->_GetShaderResourceAddress());
 		//draw
-		Core->zContext->DrawIndexed(6, 0, 0);
+		Core->_GetContext()->DrawIndexed(6, 0, 0);
 	}
 
 	void Sprite::_SpriteUpdate()
 	{
-		size += SizeVelocity * (float)Core->GetFrameTime();
+		size += sizeVelocity * (float)Core->GetFrameTime();
 	}
 
 	XMMATRIX Sprite::_GetScaleMatrix()
@@ -104,16 +95,16 @@ namespace Viva
 		XMVECTOR dir = DirectX::XMVectorSet(0, 0, 1, 0);
 		float dist;
 		//ray - triangle collision
-		zUnderCursor = DirectX::TriangleTests::Intersects(origin, dir, A, B, C, dist);
+		underCursor = DirectX::TriangleTests::Intersects(origin, dir, A, B, C, dist);
 		//if cursor is not over 1st triangle, try the second one
-		if(!zUnderCursor)
-			zUnderCursor = DirectX::TriangleTests::Intersects(origin, dir, A, C, D, dist);
+		if(!underCursor)
+			underCursor = DirectX::TriangleTests::Intersects(origin, dir, A, C, D, dist);
 	}
 
 	void Sprite::Destroy()
 	{
-		CDynamic::Destroy();
-		if(zIndex != -1)
+		Dynamic::Destroy();
+		if(index != -1)
 			DrawManager->RemoveSprite(this);
 		delete this;
 	}

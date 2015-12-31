@@ -14,20 +14,23 @@ namespace Viva
 		sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 		sampDesc.MinLOD = 0;
 		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-		Core->zDevice->CreateSamplerState(&sampDesc, sampler);
+		Core->_GetDevice()->CreateSamplerState(&sampDesc, sampler);
 	}
 
 	CDrawManager::CDrawManager()
 	{
-		TexFilterCreationMode = TextureFilter::Point;
+		defaultTextureFilter = TextureFilter::Point;
+		defaultRenderTarget = new RenderTarget();
+		renderTargets.push_back(defaultRenderTarget);
+
 		D3D11_RASTERIZER_DESC rd;
 		ZeroMemory(&rd, sizeof(rd));
 		rd.FillMode = D3D11_FILL_WIREFRAME;
 		rd.CullMode = D3D11_CULL_NONE;
-		HRESULT hr = Core->zDevice->CreateRasterizerState(&rd, &zWireframe); CHECKHR();
+		HRESULT hr = Core->_GetDevice()->CreateRasterizerState(&rd, &wireframe); CHECKHR();
 		rd.FillMode = D3D11_FILL_SOLID;
 		rd.CullMode = D3D11_CULL_FRONT;
-		hr = Core->zDevice->CreateRasterizerState(&rd, &zSolid); CHECKHR();
+		hr = Core->_GetDevice()->CreateRasterizerState(&rd, &solid); CHECKHR();
 
 		//sprite shared buffer
 		Vertex v[] =
@@ -49,10 +52,10 @@ namespace Viva
 
 		D3D11_SUBRESOURCE_DATA srd;
 		srd.pSysMem = indices;
-		Core->zDevice->CreateBuffer(&indexBufferDesc, &srd, &zIndexBufferSprite);
+		Core->_GetDevice()->CreateBuffer(&indexBufferDesc, &srd, &indexBufferSprite);
 
 		//so far the only indexed buffer in the engine
-		Core->zContext->IASetIndexBuffer(zIndexBufferSprite, DXGI_FORMAT_R32_UINT, 0);
+		Core->_GetContext()->IASetIndexBuffer(indexBufferSprite, DXGI_FORMAT_R32_UINT, 0);
 
 		//shared sprite vertex buffer
 		D3D11_BUFFER_DESC vertexBufferDesc;
@@ -65,7 +68,7 @@ namespace Viva
 		D3D11_SUBRESOURCE_DATA vertexBufferData;
 		ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
 		vertexBufferData.pSysMem = v;
-		Core->zDevice->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &zVertexBufferSprite);		
+		Core->_GetDevice()->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &vertexBufferSprite);
 
 		//shared vertex shader buffer
 		D3D11_BUFFER_DESC cbbd;
@@ -75,8 +78,8 @@ namespace Viva
 		cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		cbbd.CPUAccessFlags = 0;
 		cbbd.MiscFlags = 0;
-		Core->zDevice->CreateBuffer(&cbbd, NULL, &zCbBufferVS);
-		Core->zContext->VSSetConstantBuffers(0, 1, &zCbBufferVS);
+		Core->_GetDevice()->CreateBuffer(&cbbd, NULL, &constantBufferVS);
+		Core->_GetContext()->VSSetConstantBuffers(0, 1, &constantBufferVS);
 
 		//shared vertex shader 2nd buffer and pixel shader buffer
 		ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
@@ -85,33 +88,24 @@ namespace Viva
 		cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		cbbd.CPUAccessFlags = 0;
 		cbbd.MiscFlags = 0;
-		Core->zDevice->CreateBuffer(&cbbd, NULL, &zCbBufferPS);
-		Core->zDevice->CreateBuffer(&cbbd, NULL, &zCbBufferUV); //has the same size
-		Core->zContext->PSSetConstantBuffers(0, 1, &zCbBufferPS);
-		Core->zContext->VSSetConstantBuffers(1, 1, &zCbBufferUV);
+		Core->_GetDevice()->CreateBuffer(&cbbd, NULL, &constantBufferPS);
+		Core->_GetDevice()->CreateBuffer(&cbbd, NULL, &constantBufferUV); //has the same size
+		Core->_GetContext()->PSSetConstantBuffers(0, 1, &constantBufferPS);
+		Core->_GetContext()->VSSetConstantBuffers(1, 1, &constantBufferUV);
 
-		zCbBufferPSExtra = nullptr;
+		constantBufferPSExtra = nullptr;
+				
+		CreateSampler(TextureFilter::Point, &pointSampler);
+		CreateSampler(TextureFilter::Linear, &lineSampler);
 
-		//default white texture used by non textured objects
-		Pixel whitePixel[1] = { Pixel(255,255,255,255) };
-		CTexture* tex = new CTexture(whitePixel, Size(1, 1), L"");
-		zWhiteRes = tex->_GetShaderResource();
-		delete tex;
-		
-		CreateSampler(TextureFilter::Point, &zPointSampler);
-		CreateSampler(TextureFilter::Linear, &zLineSampler);
-	}
-
-	void CDrawManager::zInit()
-	{
-		zDefaultRenderTarget = AddRenderTarget();
+		_InitDefaultFont();
 	}
 
 	void CDrawManager::AddPoly(Polygon* p, RenderTarget* target)
 	{
 		if (target == nullptr)
-			target = zDefaultRenderTarget;
-		if (p->zIndex != -1)
+			target = defaultRenderTarget;
+		if (p->_GetIndex() != -1)
 			throw VIVA_ERROR("This poly has a render target already");
 		target->AddPoly(p);
 	}
@@ -119,17 +113,17 @@ namespace Viva
 	Polygon* CDrawManager::AddPoly(const vector<XMFLOAT2>& points, RenderTarget* target)
 	{
 		if (target == nullptr)
-			target = zDefaultRenderTarget;
+			target = defaultRenderTarget;
 		Polygon* newPoly = new Polygon(points);
 		target->AddPoly(newPoly);
-		newPoly->zRenderTarget = target;
+		newPoly->_SetRenderTarget(target);
 		return newPoly;
 	}
 
 	Rectangle* CDrawManager::AddRect(const Size& size, RenderTarget* target)
 	{
 		if (target == nullptr)
-			target = zDefaultRenderTarget;
+			target = defaultRenderTarget;
 		Rectangle* newRect = new Rectangle(size);
 		target->AddPoly(newRect);
 		return newRect;
@@ -138,7 +132,7 @@ namespace Viva
 	Circle* CDrawManager::AddCircle(float radius, unsigned char resolution, RenderTarget* target)
 	{
 		if (target == nullptr)
-			target = zDefaultRenderTarget;
+			target = defaultRenderTarget;
 		Circle* newCircle = new Circle(radius, resolution);
 		target->AddPoly(newCircle);
 		return newCircle;
@@ -147,7 +141,7 @@ namespace Viva
 	Sprite* CDrawManager::AddSprite(const wchar_t* filename, RenderTarget* target)
 	{
 		if (target == nullptr)
-			target = zDefaultRenderTarget;
+			target = defaultRenderTarget;
 		Sprite* newSprite = new Sprite(filename);
 		target->AddSprite(newSprite);
 		return newSprite;
@@ -156,8 +150,8 @@ namespace Viva
 	void CDrawManager::AddSprite(Sprite* s, RenderTarget* target)
 	{
 		if (target == nullptr)
-			target = zDefaultRenderTarget;
-		if (s->zIndex != -1)
+			target = defaultRenderTarget;
+		if (s->_GetIndex() != -1)
 			throw VIVA_ERROR("This sprite has a render target already");
 		target->AddSprite(s);
 	}
@@ -165,7 +159,7 @@ namespace Viva
 	Animation* CDrawManager::AddAnimation(LPCWSTR file, int x, int y, RenderTarget* target)
 	{
 		if (target == nullptr)
-			target = zDefaultRenderTarget;
+			target = defaultRenderTarget;
 		Animation* newAnimation = new Animation(file, x, y);
 		target->AddSprite(newAnimation);
 		return newAnimation;
@@ -174,12 +168,15 @@ namespace Viva
 	void CDrawManager::AddAnimation(Animation* a, RenderTarget* target)
 	{
 		if (target == nullptr)
-			target = zDefaultRenderTarget;
+			target = defaultRenderTarget;
 		AddSprite(a, target);
 	}
 
 	void CDrawManager::CreateExtraBuffer(UINT size)
 	{
+		if (size % 16 != 0)
+			throw VIVA_ERROR("Buffer size is not multiple of 16");
+
 		D3D11_BUFFER_DESC cbbd;
 		ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
 		cbbd.Usage = D3D11_USAGE_DEFAULT;
@@ -187,88 +184,88 @@ namespace Viva
 		cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		cbbd.CPUAccessFlags = 0;
 		cbbd.MiscFlags = 0;
-		Core->zDevice->CreateBuffer(&cbbd, NULL, &zCbBufferPSExtra);
-		Core->zContext->PSSetConstantBuffers(1, 1, &zCbBufferPSExtra);
+		Core->_GetDevice()->CreateBuffer(&cbbd, NULL, &constantBufferPSExtra);
+		Core->_GetContext()->PSSetConstantBuffers(1, 1, &constantBufferPSExtra);
 	}
 
-	void CDrawManager::zRenderTargetTransform(int i)
+	void CDrawManager::_RenderTargetTransform(int i)
 	{
 		float scalex = (20.0f - i*0.001f) * tan(Core->GetCamera()->GetFovAngle() / 2) * Core->GetCamera()->GetAspectRatio();
 		float scaley = (20.0f - i*0.001f) * tan(Core->GetCamera()->GetFovAngle() / 2);
 		//move every target above previous one
 		XMMATRIX transform = DirectX::XMMatrixScaling(scalex, scaley, 1) *
-			DirectX::XMMatrixTranslation(0, 0, -i*0.001f) * zRenderTargetMatrix;
+			DirectX::XMMatrixTranslation(0, 0, -i*0.001f) * renderTargetMatrix;
 
 		transform = XMMatrixTranspose(transform);
-		Core->zContext->UpdateSubresource(zCbBufferVS, 0, NULL, &transform, 0, 0);
+		Core->_GetContext()->UpdateSubresource(constantBufferVS, 0, NULL, &transform, 0, 0);
 	}
 
-	void CDrawManager::zDrawAll()
+	void CDrawManager::_DrawAll()
 	{
-		for (int i = 0; i < (int)zRenderTargets.size(); i++)
-			zRenderTargets[i]->_DrawObjects();
+		for (int i = 0; i < (int)renderTargets.size(); i++)
+			renderTargets[i]->_DrawObjects();
 
-		Core->zContext->ClearRenderTargetView(Core->zBackBuffer, Core->zBackBufferColor);
-		Core->zContext->ClearDepthStencilView(Core->zDepthStencilView,
+		Core->_GetContext()->ClearRenderTargetView(Core->_GetBackBuffer(), Core->_GetBackBufferColor());
+		Core->_GetContext()->ClearDepthStencilView(Core->_GetDepthStencilView(),
 			D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-		Core->zContext->OMSetRenderTargets(1, &Core->zBackBuffer, Core->zDepthStencilView);
+		Core->_GetContext()->OMSetRenderTargets(1, Core->_GetBackBufferAddress(), Core->_GetDepthStencilView());
 		
-		for (int i = 0; i < (int)zRenderTargets.size(); i++)
+		for (int i = 0; i < (int)renderTargets.size(); i++)
 		{
-			zRenderTargetTransform(i);
-			Core->zContext->PSSetShader(zRenderTargets[i]->GetPixelShader(), 0, 0);
-			if (zRenderTargets[i]->GetExtraBufferPS() != nullptr)
-				Core->zContext->UpdateSubresource(DrawManager->zCbBufferPSExtra, 0, 0, 
-					zRenderTargets[i]->GetExtraBufferPS(), 0, 0);
-			zRenderTargets[i]->_DrawTarget();
+			_RenderTargetTransform(i);
+			Core->_GetContext()->PSSetShader(renderTargets[i]->GetPixelShader(), 0, 0);
+			if (renderTargets[i]->GetExtraBufferPS() != nullptr)
+				Core->_GetContext()->UpdateSubresource(DrawManager->constantBufferPSExtra, 0, 0,
+					renderTargets[i]->GetExtraBufferPS(), 0, 0);
+			renderTargets[i]->_DrawTarget();
 		}
 
 		//debug text
-		Core->zContext->PSSetShader(Core->zDefaultPS, 0, 0);
+		Core->_GetContext()->PSSetShader(Core->_GetDefaultPS(), 0, 0);
 		DebugManager->_Flush();
 		if(DebugManager->_GetText()->GetText() != L"")
 			DebugManager->_GetText()->_Draw();
 
-		Core->zSwapChain->Present(0, 0);
+		Core->_GetSwapChain()->Present(0, 0);
 	}
 
 	void CDrawManager::Destroy()
 	{
-		for (int i = (int)zRenderTargets.size() - 1; i >= 0; i--)
-			zRenderTargets[i]->Destroy();
-		if (zCbBufferPSExtra != nullptr)
-			zCbBufferPSExtra->Release();
-		zCbBufferPS->Release();
-		zCbBufferUV->Release();
-		zCbBufferVS->Release();
-		zLineSampler->Release();
-		zPointSampler->Release();
-		zIndexBufferSprite->Release();
-		zVertexBufferSprite->Release();
-		zWireframe->Release();
-		zSolid->Release();
+		for (int i = (int)renderTargets.size() - 1; i >= 0; i--)
+			renderTargets[i]->Destroy();
+		if (constantBufferPSExtra != nullptr)
+			constantBufferPSExtra->Release();
+		constantBufferPS->Release();
+		constantBufferUV->Release();
+		constantBufferVS->Release();
+		lineSampler->Release();
+		pointSampler->Release();
+		indexBufferSprite->Release();
+		vertexBufferSprite->Release();
+		wireframe->Release();
+		solid->Release();
 		delete this;
 	}
 
 	void CDrawManager::RemovePoly(Polygon* p)
 	{		
-		p->zRenderTarget->RemovePoly(p);
+		p->GetRenderTarget()->RemovePoly(p);
 	}
 
 	void CDrawManager::RemoveSprite(Sprite* s)
 	{
-		s->zRenderTarget->RemoveSprite(s);
+		s->GetRenderTarget()->RemoveSprite(s);
 	}
 
 	void CDrawManager::RemoveAnimation(Animation* a)
 	{
-		a->zRenderTarget->RemoveSprite(a);
+		a->GetRenderTarget()->RemoveSprite(a);
 	}
 
 	BitmapText* CDrawManager::AddBitmapText(BitmapFont* font, RenderTarget* target)
 	{
 		if (target == nullptr)
-			target = zDefaultRenderTarget;
+			target = defaultRenderTarget;
 		if (font == nullptr)
 			throw VIVA_ERROR("Font is null");
 		BitmapText* newText = new BitmapText(font);
@@ -279,36 +276,31 @@ namespace Viva
 	void CDrawManager::AddBitmapText(BitmapText* text, RenderTarget* target)
 	{
 		if (target == nullptr)
-			target = zDefaultRenderTarget;
-		if (text->zIndex != -1)
+			target = defaultRenderTarget;
+		if (text->_GetIndex() != -1)
 			throw VIVA_ERROR("This sprite has a render target already");
 		target->AddText(text);
 	}
 
 	void CDrawManager::RemoveBitmapText(BitmapText* t)
 	{
-		t->zRenderTarget->RemoveText(t);
-	}
-
-	BitmapFont* CDrawManager::GetDefaultFont()
-	{
-		return zDefaultFont;
+		t->GetRenderTarget()->RemoveText(t);
 	}
 
 	RenderTarget* CDrawManager::AddRenderTarget()
 	{
 		RenderTarget* r = new RenderTarget();
-		zRenderTargets.push_back(r);
+		renderTargets.push_back(r);
 		return r;
 	}
 
 	void CDrawManager::RemoveRenderTarget(RenderTarget* target)
 	{
-		for (int i = 0; i < (int)zRenderTargets.size(); i++)
+		for (int i = 0; i < (int)renderTargets.size(); i++)
 		{
-			if (target == zRenderTargets[i])
+			if (target == renderTargets[i])
 			{
-				zRenderTargets.erase(zRenderTargets.begin() + i);
+				renderTargets.erase(renderTargets.begin() + i);
 				return;
 			}
 		}
@@ -318,15 +310,15 @@ namespace Viva
 
 	void CDrawManager::ClearRenderTargets()
 	{
-		for (int i = (int)zRenderTargets.size() - 1; i >= 0;i--)
-			if (zRenderTargets[i] != zDefaultRenderTarget)
-				zRenderTargets[i]->Destroy();
-		zRenderTargets.clear();
-		zRenderTargets.push_back(zDefaultRenderTarget);
+		for (int i = (int)renderTargets.size() - 1; i >= 0;i--)
+			if (renderTargets[i] != defaultRenderTarget)
+				renderTargets[i]->Destroy();
+		renderTargets.clear();
+		renderTargets.push_back(defaultRenderTarget);
 	}
 
 	extern const unsigned char rc_font[];
-	void CDrawManager::InitDefaultFont()
+	void CDrawManager::_InitDefaultFont()
 	{
 		//defalut font
 		//15x21 one char
@@ -339,21 +331,97 @@ namespace Viva
 					300.0f*(j + 1), 21 / 105.0f*(i + 1)));
 			}
 		
-		CTexture* tex1 = new CTexture((Pixel*)rc_font, Size(300, 105),L"");
-		DrawManager->zDefaultFont = new BitmapFont(tex1,Size(15,21),20);
+		Texture* tex1 = new Texture((Pixel*)rc_font, Size(300, 105),L"");
+		defaultFont = new BitmapFont(tex1,Size(15,21),20);
 	}
 
-	CTexture* CDrawManager::GetTexture(const wchar_t* filename) const
+	Texture* CDrawManager::GetTexture(const wchar_t* filename) const
 	{
-		CTexture* tex;
+		Texture* tex;
 
 		if (ResourceManager->PeekResource(filename, (Resource**)&tex)) // WTF casting ???
 			return tex;
 		else
 		{
-			tex = new CTexture(filename);
+			tex = new Texture(filename);
 			ResourceManager->AddResource(tex);
 			return tex;
 		}
+	}
+
+	void CDrawManager::MoveRenderTargetToBottom(RenderTarget* t)
+	{
+		int size = (int)renderTargets.size();
+		if (size < 2)
+			return;
+		int index = -1;
+		for (int i = 0; i<size; i++)
+			if (renderTargets[i] == t)
+			{
+				index = i;
+				break;
+			}
+		if (index == -1)
+			throw VIVA_ERROR("Render target not in draw manager");
+		renderTargets.erase(renderTargets.begin() + index);
+		renderTargets.insert(renderTargets.begin(), t);
+	}
+
+	void CDrawManager::MoveRenderTargetToTop(RenderTarget* t)
+	{
+		int size = (int)renderTargets.size();
+		if (size < 2)
+			return;
+		int index = -1;
+		for (int i = 0; i<size; i++)
+			if (renderTargets[i] == t)
+			{
+				index = i;
+				break;
+			}
+		if (index == -1)
+			throw VIVA_ERROR("Render target not in draw manager");
+		renderTargets.erase(renderTargets.begin() + index);
+		renderTargets.push_back(t);
+	}
+
+	void CDrawManager::MoveRenderTargetUp(RenderTarget* t)
+	{
+		int size = (int)renderTargets.size();
+		if (size < 2)
+			return;
+		int index = -1;
+		for (int i = 0; i<size; i++)
+			if (renderTargets[i] == t)
+			{
+				index = i;
+				break;
+			}
+		if (index == -1)
+			throw VIVA_ERROR("Render target not in draw manager");
+		if (index == size - 1)
+			return;
+		renderTargets[index] = renderTargets[index + 1];
+		renderTargets[index + 1] = t;
+	}
+
+	void CDrawManager::MoveRenderTargetDown(RenderTarget* t)
+	{
+		int size = (int)renderTargets.size();
+		if (size < 2)
+			return;
+		int index = -1;
+		for (int i = 0; i<size; i++)
+			if (renderTargets[i] == t)
+			{
+				index = i;
+				break;
+			}
+		if (index == -1)
+			throw VIVA_ERROR("Render target not in draw manager");
+		if (index == 0)
+			return;
+		renderTargets[index] = renderTargets[index - 1];
+		renderTargets[index - 1] = t;
 	}
 }

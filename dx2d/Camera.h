@@ -2,7 +2,7 @@
 
 namespace Viva
 {
-	class Camera : public CDynamic
+	class Camera : public Dynamic
 	{
 	private:
 		XMMATRIX view;
@@ -13,7 +13,7 @@ namespace Viva
 		float fovAngle;
 		float aspectRatio;
 
-		XMMATRIX _GetScaleMatrix() override;
+		XMMATRIX _GetScaleMatrix() override { return DirectX::XMMatrixIdentity(); };
 		void _Draw() override {};
 	public:
 		Camera();

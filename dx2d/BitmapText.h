@@ -2,7 +2,7 @@
 
 namespace Viva
 {
-	class BitmapText : public CDynamic
+	class BitmapText : public Dynamic
 	{
 	private:
 		BitmapFont* font;
