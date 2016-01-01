@@ -93,7 +93,7 @@ namespace Viva
 		void SetOrigin(const XMFLOAT2& o) { origin = o; }
 		void SetOrigin(XMFLOAT2&& o) { origin = o; }
 		float GetSize() const { return size; }
-		void SetSize(float s) { size = s; }
+		virtual void SetSize(float s) { size = s; }
 		float GetSizeAcceleration() const { return sizeAcceleration; }
 		void SetSizeAcceleration(float a) { sizeAcceleration = a; }
 		float GetSizeVelocity() const { return sizeVelocity; }

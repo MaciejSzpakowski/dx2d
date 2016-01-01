@@ -75,17 +75,17 @@ namespace Viva
 
 		bool IsColliding(Circle* c, Rectangle* r)
 		{
-			return false;
+			throw VIVA_ERROR("Not implemented");
 		}
 
 		bool IsColliding(Rectangle* c, Rectangle* r)
 		{
-			return false;
+			throw VIVA_ERROR("Not implemented");
 		}
 
 		bool IsColliding(Circle* c, Polygon* p)
 		{
-			return false;
+			throw VIVA_ERROR("Not implemented");
 		}
 
 		XMFLOAT2 GetProj(XMVECTOR edgeNormal, Polygon* p)
@@ -177,6 +177,11 @@ namespace Viva
 			return true;
 			}
 			return false;*/
+		}
+
+		bool Push(Polygon* p1, Polygon* p2)
+		{
+			throw VIVA_ERROR("Not implemented");
 		}
 	}
 }

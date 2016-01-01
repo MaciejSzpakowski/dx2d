@@ -57,6 +57,9 @@ namespace Viva
 		float width;
 		float horizontalSpacing;
 		float verticalSpacing;
+
+		FontMetrics() :horizontalAlign(HorizontalAlignment::Center), verticalAlign(VerticalAlignment::Center),
+			height(1), width(1), horizontalSpacing(0), verticalSpacing(0) {}
 	};
 
 	struct Size

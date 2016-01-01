@@ -13,6 +13,36 @@ void Activity()
 	Sleep(10);
 }
 
+void test12()
+{
+	wstring msg = L"Test12: Notepad\n";
+	msg += L"Type something\n";
+	text1->SetText(msg);
+
+	BitmapText* n = DrawManager->AddBitmapText(courier);
+	n->SetPosition(XMFLOAT3(-10, 10, 0));
+	n->SetColor(Color(0, 0, 0, 1));
+	obj.push_back(n);
+
+	static wstring nt = L"";
+
+	Event* e1 = EventManager->AddEvent([=]
+	{
+		int c = InputManager->GetChar();
+
+		if (InputManager->IsKeyPressed(Keys::BackSpace) && nt.length() > 0)
+			nt.pop_back();
+		else if(c != 0)
+			nt += c;
+
+
+		n->SetText(nt);
+		return 1;
+	}, L"typing", 0, 0, 0);
+
+	events.push_back(e1);
+}
+
 void test11()
 {
 	wstring msg = L"Test11: Memory test\n";
@@ -135,8 +165,7 @@ void test9()
 	BitmapText* text3 = DrawManager->AddBitmapText(courier);
 	text3->SetColor(Color(0, 0, 0, 1));
 	text3->SetPositionX(-13);
-	text3->SetPixelScale(Size(10, 19));
-	text3->SetSize(5);
+	text3->SetSize(3);
 
 	obj.push_back(text3);
 
@@ -574,6 +603,10 @@ void startTest(int i)
 			startTest(i - 1);
 			return 0;
 		}
+		else if (InputManager->IsKeyPressed(Keys::Up))
+			text1->SetSize(text1->GetSize() + 0.001f);
+		else if (InputManager->IsKeyPressed(Keys::Down))
+			text1->SetSize(text1->GetSize() - 0.001f);
 		return 1;
 	}, L"test1", 0, 0, 0);
 }
@@ -588,9 +621,7 @@ int wrapper()
 	text1 = DrawManager->AddBitmapText(courier);
 	text1->SetPosition(XMFLOAT3(-18, 13, 0));
 	text1->SetColor(Color(0, 0, 0, 1));
-	text1->SetPixelScale(Size(10, 19));
-	text1->SetSize(2);
-
+		
 	tests.push_back(test1);
 	tests.push_back(test2);
 	tests.push_back(test3);
@@ -602,6 +633,7 @@ int wrapper()
 	tests.push_back(test9);
 	tests.push_back(test10);
 	tests.push_back(test11);
+	tests.push_back(test12);
 
 	MessageBox(0, L"TODO:\nSetextrabuffersize instead of createextrabuffer\nGive more meaningful CHECKHR error", L"Test1", 0);
 	MessageBox(0, L"1st test should display text on screen", L"Test1", 0);

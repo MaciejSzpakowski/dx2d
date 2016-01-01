@@ -38,6 +38,9 @@ namespace Viva
 		bool IsKeyPressed(Keys vkey);
 		bool IsKeyReleased(Keys vkey);
 		bool IsAnyKeyDown();
+		// Returns key typed including all ASCII chars between 32 and 127 and \n \t \b
+		// Shift and capslock for upper case is included by default but can be disabled.
+		// If not applicable char was typed, the function returns 0.
 		char GetChar(bool enableShift = true, bool enableCapslock = true);
 		//offset, where to start looking
 		bool IsCapslockActive();

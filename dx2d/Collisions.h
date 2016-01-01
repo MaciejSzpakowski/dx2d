@@ -10,9 +10,9 @@ namespace Viva
 
 		bool IsColliding(Circle* c, Polygon* p);
 
-		//very efficient collision check for rectangles
-		//if rectangle Rotation.z is 0 it's considered axis aligned
-		//if r1 and r2 are axis aligned, the test is even faster
+		// Very efficient collision check for rectangles.
+		// If rectangle Rotation.z is 0 it's considered axis aligned.
+		// If r1 and r2 are axis aligned, the test is even faster
 		bool IsColliding(Rectangle* r1, Rectangle* r2);
 
 		//the most powerful (and inefficient) collision check
@@ -26,5 +26,9 @@ namespace Viva
 		//uses separated axis theorem to check for collision
 		//faster than line by line check but polygons must be closed and convex !
 		bool IsCollidingSat(Polygon* p1, Polygon* p2);
+
+		// If p1 and p2 are colliding, p2 is pushed away.
+		// Returns true if p2 has been pushed.
+		bool Push(Polygon* p1, Polygon* p2);
 	}
 }
