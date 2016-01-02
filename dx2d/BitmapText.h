@@ -11,12 +11,11 @@ namespace Viva
 		TextureFilter texFilter;
 		wstring text;
 		FontMetrics metrics;
-		int longestLine; // used for centered text
 
-		void _TextTransform(float col, int row, int len, int _char);
+		void _TextTransform(float x, int row, float lineLen, int index);
 		XMMATRIX _GetScaleMatrix() override { return DirectX::XMMatrixIdentity(); }
 		void _UpdateScales();
-		void _FindLongestLine();
+		float _CurrentLineLength(int off);
 
 	public:
 		BitmapText(BitmapFont* _font);

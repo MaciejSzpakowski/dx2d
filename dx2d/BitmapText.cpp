@@ -24,6 +24,7 @@ namespace Viva
 	void BitmapText::_UpdateScales()
 	{
 		Size letterSize;
+		Rect uv;
 		float h;
 		float w;
 
@@ -32,11 +33,9 @@ namespace Viva
 
 		for (int i = 0; i < font->_GetChars().size(); i++)
 		{
-			const Rect& uv = font->_GetChars()[i];
-			letterSize.width = (size_t)((uv.right - uv.left)*font->GetTexture()->GetSize().width);
-			letterSize.height = (size_t)((uv.bottom - uv.top)*font->GetTexture()->GetSize().height);
-			letterSize.width = 10;
-			letterSize.height = 19;
+			uv = font->_GetCharsUv()[i];
+			letterSize.width = font->_GetChars()[i].right - font->_GetChars()[i].left;
+			letterSize.height = font->_GetChars()[i].bottom - font->_GetChars()[i].top;
 
 			XMFLOAT2 frustum = Core->GetCamera()->GetFrustumSize(GetPosition().z);
 			RECT client;
@@ -52,36 +51,27 @@ namespace Viva
 		}
 	}
 
-	void BitmapText::_FindLongestLine()
-	{
-		int index = 0;
-		int index2 = text.find(L'\n');
-		longestLine = index2 - index;
-
-		while (index2 != wstring::npos)
-		{
-
-		}
-	}
-
-	void BitmapText::_TextTransform(float col, int row, int len, int _char)
+	void BitmapText::_TextTransform(float x, int row, float lineLen, int index)
 	{
 		float _VerticalSpacing = metrics.verticalSpacing * size;
 		float horAlignOffset = 0;
 		float verAlignOffset = 0;
 
 		if (metrics.horizontalAlign == HorizontalAlignment::Center)
-			horAlignOffset = -len / 2.0f;
-		else if (metrics.horizontalAlign == HorizontalAlignment::Right)
-			horAlignOffset = (float)-len;
+			horAlignOffset = -lineLen / 2.0f;
+		if (metrics.horizontalAlign == HorizontalAlignment::Right)
+			horAlignOffset = -lineLen;
 
-		XMMATRIX& scale = charScaleMat[_char - 32];
+		XMMATRIX& scale = charScaleMat[index];
 		XMMATRIX rot = DirectX::XMMatrixRotationRollPitchYawFromVector(rotation);
-		//origin is translation matrix from the center of the text object
-		XMMATRIX origin = DirectX::XMMatrixTranslation((col + horAlignOffset)*2,
-			(-row*(charScale[_char - 32].y + _VerticalSpacing) + verAlignOffset)*2, 0);
+		//origin is translation matrix from the center of the character sprite
+		//offset is from the center becuase that how indexed buffer is built, its origin is in the middle
+		//thats why i add charScale[index].x so sprite is drawn from left, not from the middle
+		XMMATRIX origin = DirectX::XMMatrixTranslation((x + horAlignOffset) * 2 + charScale[index].x,
+				(-row*(charScale[index].y + _VerticalSpacing) + verAlignOffset)*2, 0);
 		XMMATRIX loc = DirectX::XMMatrixTranslationFromVector(position);
 		XMMATRIX worldViewProj;
+
 		if (parent == nullptr)
 			worldViewProj  = scale * origin * rot * loc * Core->GetCamera()->GetViewMatrix() * Core->GetCamera()->GetProjMatrix();
 		else
@@ -91,8 +81,19 @@ namespace Viva
 			worldViewProj = scale * origin * rot * loc * parentLoc * parentRot *
 				Core->GetCamera()->GetViewMatrix() * Core->GetCamera()->GetProjMatrix();
 		}
+
 		worldViewProj = XMMatrixTranspose(worldViewProj);
 		Core->_GetContext()->UpdateSubresource(DrawManager->_GetConstantBufferVS(), 0, NULL, &worldViewProj, 0, 0);
+	}
+
+	float BitmapText::_CurrentLineLength(int off)
+	{
+		float len = 0;
+
+		for (int i = off; text[i] != L'\n' && text[i] != 0; i++)
+			len += charScale[text[i] - 32].x + metrics.horizontalSpacing;
+
+		return len - metrics.horizontalSpacing;
 	}
 
 	void BitmapText::_Draw()
@@ -104,15 +105,21 @@ namespace Viva
 		//tex
 		Core->_GetContext()->PSSetShaderResources(0, 1, font->GetTexture()->_GetShaderResourceAddress());
 		int len = (int)text.length();
-		int lineLen = (int)text.find(L'\n');
+		float lineLen = 0;
+		if (metrics.horizontalAlign == HorizontalAlignment::Center || 
+			metrics.horizontalAlign == HorizontalAlignment::Right)
+			lineLen = _CurrentLineLength(0);
+
 		float horiOff = 0; // horizontal offset of the letter
 		int row = 0;
-		for (int i = 0; i < len; i++)
+		for (int i = 0; i < len;i++)
 		{
 			//check for new line
 			if (text[i] == '\n')
 			{
-				lineLen = (int)text.find(L'\n',i+1);
+				if (metrics.horizontalAlign == HorizontalAlignment::Center ||
+					metrics.horizontalAlign == HorizontalAlignment::Right)
+					lineLen = _CurrentLineLength(i+1);
 				row++;
 				horiOff = 0;
 				continue;
@@ -121,11 +128,13 @@ namespace Viva
 			int index = text[i] - ' ';
 			if (index < 0 || index > font->_GetChars().size())
 				continue;
+			// set uv for VS
 			Core->_GetContext()->UpdateSubresource(DrawManager->_GetConstantBufferUV(), 0, NULL,
-				&(font->_GetChars()[index]), 0, 0);
+				&(font->_GetCharsUv()[index]), 0, 0);
 			//transform letter and draw
-			_TextTransform(horiOff, row, lineLen, text[i]);
+			_TextTransform(horiOff, row, lineLen, index);
 			Core->_GetContext()->DrawIndexed(6, 0, 0);
+			// add offset
 			horiOff += charScale[text[i] - 32].x + metrics.horizontalSpacing * size;
 		}
 	}

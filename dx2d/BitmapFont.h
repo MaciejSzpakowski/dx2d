@@ -5,12 +5,13 @@ namespace Viva
 	class BitmapFont
 	{
 	private:
-		vector<Rect> chars; // uv cooridantes for letters 
+		vector<RECT> chars; // pixel cooridantes for glyphs
+		vector<Rect> charsUv; // uv coordinates for glyphs
 		Texture* texture;
 	public:
 		// Create bitmap font from file.
-		// _chars: uv coordinates of each letter in ascii order
-		BitmapFont(const wchar_t* filename, const vector<Rect>& _chars);
+		// _chars: pixel coordinates of each letter in ascii order
+		BitmapFont(const wchar_t* filename, const vector<RECT>& _chars);
 
 		// Create bitmap font from file.
 		// UV cooridnates will be generated starting from 0,0 (upper left corner).
@@ -20,7 +21,7 @@ namespace Viva
 
 		// Create bitmap font from texture.
 		// _chars: uv coordinates of each letter in ascii order
-		BitmapFont(Texture* _texture, const vector<Rect>& _chars);
+		BitmapFont(Texture* _texture, const vector<RECT>& _chars);
 
 		// Create bitmap font from texture.
 		// UV cooridnates will be generated starting from 0,0 (upper left corner).
@@ -30,7 +31,8 @@ namespace Viva
 
 		Texture* GetTexture() const { return texture; }
 
-		const vector<Rect>& _GetChars() const { return chars; }
+		const vector<RECT>& _GetChars() const { return chars; }
+		const vector<Rect>& _GetCharsUv() const { return charsUv; }
 
 		void Destroy()
 		{
