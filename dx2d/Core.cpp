@@ -35,7 +35,7 @@ namespace Viva
 		scd.SampleDesc.Quality = 0;
 		scd.SampleDesc.Count = 1;                               // no anti aliasing
 		scd.Windowed = TRUE;                                    // windowed/full-screen mode
-																//scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;     // alternative fullscreen mode
+		//scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;     // alternative fullscreen mode
 
 		UINT creationFlags = D3D11_CREATE_DEVICE_SINGLETHREADED;
 
@@ -190,10 +190,20 @@ namespace Viva
 		swapChain->SetFullscreenState(state, NULL);
 	}
 
-	void CCore::SaveScreenshot(LPCWSTR file)
+	void CCore::SaveScreenshot(const wchar_t* file)
 	{
+		/* HOW TO GET ID3D11TEXTURE2D and D3D11_TEXTURE2D_DESC from ID3D11ShaderResourceView
+		ID3D11Texture2D *pTextureInterface = 0;
+		ID3D11Resource *res;
+		shaderResource->GetResource(&res);
+		res->QueryInterface<ID3D11Texture2D>(&pTextureInterface);
+		D3D11_TEXTURE2D_DESC desc;
+		pTextureInterface->GetDesc(&desc);
+		*/
+
 		throw VIVA_ERROR("Not implemented");
 		//ID3D11DeviceContext::CopyResource
+		//context->CopyResource(
 	}
 
 	void CCore::Exit()

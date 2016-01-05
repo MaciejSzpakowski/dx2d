@@ -5,8 +5,9 @@ namespace Viva
 	CDebugManager::CDebugManager(BitmapFont* font, Camera* camera)
 	{
 		debugText = new BitmapText(font);
-		debugText->SetPosition(-9, 7, 10.3f);
 		debugText->SetParent(camera);
+		debugText->SetPixelPerfectScale();
+		debugText->SetPosition(-19, 14, 20);
 	}
 
 	void CDebugManager::_Flush()

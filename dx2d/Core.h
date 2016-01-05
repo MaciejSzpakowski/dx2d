@@ -50,7 +50,7 @@ namespace Viva
 
 		void SetFullscreen(bool state);
 		bool IsFullscreen() const { return fullscreen; }
-		void SaveScreenshot(LPCWSTR file);
+		void SaveScreenshot(const wchar_t* file);
 		Camera* GetCamera() const { return camera; }
 		void EnableTransparency(bool flag) { alphaEnabled = flag; }
 		bool IsAlphaEnabled() const { return alphaEnabled; }

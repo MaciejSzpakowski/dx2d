@@ -215,15 +215,15 @@ namespace Viva
 			_RenderTargetTransform(i);
 			Core->_GetContext()->PSSetShader(renderTargets[i]->GetPixelShader(), 0, 0);
 			if (renderTargets[i]->GetExtraBufferPS() != nullptr)
-				Core->_GetContext()->UpdateSubresource(DrawManager->constantBufferPSExtra, 0, 0,
-					renderTargets[i]->GetExtraBufferPS(), 0, 0);
+				Core->_GetContext()->UpdateSubresource(DrawManager->constantBufferPSExtra, 
+					0, 0, renderTargets[i]->GetExtraBufferPS(), 0, 0);
 			renderTargets[i]->_DrawTarget();
 		}
 
 		//debug text
 		Core->_GetContext()->PSSetShader(Core->_GetDefaultPS(), 0, 0);
 		DebugManager->_Flush();
-		if(DebugManager->_GetText()->GetText() != L"")
+		if(DebugManager->_GetText()->GetText().length() > 0)
 			DebugManager->_GetText()->_Draw();
 
 		Core->_GetSwapChain()->Present(0, 0);

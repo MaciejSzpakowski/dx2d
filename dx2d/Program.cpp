@@ -14,8 +14,6 @@ void Activity()
 
 void test12()
 {
-	wstring msg = L"Test12: Notepad, default font\n"
-	"Type something\n";
 	text1->SetText(L"");
 
 	BitmapText* n = DrawManager->AddBitmapText(DrawManager->GetDefaultFont());
@@ -29,7 +27,9 @@ void test12()
 
 	Event* e1 = EventManager->AddEvent([=]
 	{
-		DebugManager->Debug(L"Hello", L"Dziendobry");
+		DebugManager->Debug(L"This text is displayed using debug manager, type something", L"Hello");
+		DebugManager->Debug(Core->GetCamera()->GetCursorWorldPos(0).x, L"Cursor world x");
+		DebugManager->Debug(Core->GetCamera()->GetCursorWorldPos(0).y, L"Cursor world y");
 
 		int c = InputManager->GetChar();
 
@@ -51,13 +51,6 @@ void test11()
 	wstring msg = L"Test11: Memory test\n"
 	"Open task manager and check if memory is leaking\n";
 	text1->SetText(msg);
-
-	EventManager->AddEvent([]
-	{
-		if (InputManager->IsKeyPressed(Keys::LeftAlt))
-			MessageBox(0, L"LALT", 0, 0);
-		return 1;
-	}, L"", 0, 0, 0);
 }
 
 void test10()
@@ -66,10 +59,10 @@ void test10()
 	"This text is in the top render target not affected by pixel shader\n";
 	text1->SetText(msg);
 
-	static float time1 = Core->GetGameTime();
+	static float time1 = (float)Core->GetGameTime();
 	Event* e1 = EventManager->AddEvent([=]
 	{
-		time1 = Core->GetGameTime();
+		time1 = (float)Core->GetGameTime();
 		return 1;
 	}, L"e1", 0, 0, 0);
 
@@ -238,10 +231,10 @@ void test8()
 
 	Viva::Polygon* player;
 	points.clear();
-	points.push_back(XMFLOAT2(-0.3, 0));
-	points.push_back(XMFLOAT2(0, 0.8));
-	points.push_back(XMFLOAT2(0.3, 0));
-	points.push_back(XMFLOAT2(-0.3, 0));
+	points.push_back(XMFLOAT2(-0.3f, 0));
+	points.push_back(XMFLOAT2(0, 0.8f));
+	points.push_back(XMFLOAT2(0.3f, 0));
+	points.push_back(XMFLOAT2(-0.3f, 0));
 	player = DrawManager->AddPoly(points);
 	player->TransformVertices(true);
 	points.clear();
@@ -255,14 +248,14 @@ void test8()
 	for (int i = 0; i < 30; i++)
 	{
 		points.clear();
-		points.push_back(XMFLOAT2(-Random::RndDouble()*3-1, 0));
-		points.push_back(XMFLOAT2(0, Random::RndDouble()*3+1));
-		points.push_back(XMFLOAT2(-Random::RndDouble()*3+1, 0));
+		points.push_back(XMFLOAT2((float)-Random::RndDouble()*3-1, 0));
+		points.push_back(XMFLOAT2(0, (float)Random::RndDouble()*3+1));
+		points.push_back(XMFLOAT2((float)-Random::RndDouble()*3+1, 0));
 		points.push_back(*points.begin());
 		p1 = DrawManager->AddPoly(points);
 		p1->TransformVertices(true);
-		p1->SetRotationZ(Random::RndDouble()*3.1415);
-		p1->SetPosition(Random::RndDouble() * 20 - 10, Random::RndDouble() * 20 - 10, 0);
+		p1->SetRotationZ((float)Random::RndDouble()*3.1415f);
+		p1->SetPosition((float)Random::RndDouble() * 20 - 10, (float)Random::RndDouble() * 20 - 10, 0);
 		obj.push_back(p1);
 	}
 
@@ -318,8 +311,8 @@ void test7()
 		s1 = DrawManager->AddSprite(L"brick.jpg");
 		s1->SetUv(Rect(0, 0, 0.5f, 0.5f));
 		s1->SetPixelScale(Size(100, 70));
-		s1->SetRotationZ(Random::RndDouble()*3.1415);
-		s1->SetPosition(Random::RndDouble() * 20 - 10, Random::RndDouble() * 20 - 10, 0);
+		s1->SetRotationZ((float)Random::RndDouble()*3.1415f);
+		s1->SetPosition((float)Random::RndDouble() * 20 - 10, (float)Random::RndDouble() * 20 - 10, 0);
 		s1->SetPickable(true);
 
 		obj.push_back(s1);

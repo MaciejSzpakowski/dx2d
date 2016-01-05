@@ -14,7 +14,6 @@ namespace Viva
 
 		void _TextTransform(float x, int row, float lineLen, int index);
 		XMMATRIX _GetScaleMatrix() override { return DirectX::XMMatrixIdentity(); }
-		void _UpdateScales();
 		float _CurrentLineLength(int off);
 
 	public:
@@ -22,9 +21,10 @@ namespace Viva
 
 		void Destroy() override;
 
+		void SetPixelPerfectScale();
 		FontMetrics GetMetrics() const { return metrics; }
-		void SetMetrics(const FontMetrics& fm) { metrics = fm; _UpdateScales(); }
-		void SetMetrics(FontMetrics&& fm) { metrics = fm; _UpdateScales(); }
+		void SetMetrics(const FontMetrics& fm) { metrics = fm; }
+		void SetMetrics(FontMetrics&& fm) { metrics = fm; }
 		TextureFilter GetTexFilter() const { return texFilter; }
 		void SetTexFilter(TextureFilter _texFilter) { texFilter = _texFilter; }
 		wstring GetText() const { return text; }
@@ -32,7 +32,7 @@ namespace Viva
 		void SetText(wstring&& _text) { text = _text; }
 		BitmapFont* GetFont() const { return font; }
 		void SetFont(BitmapFont* _font) { font = _font; }
-		void SetSize(float s) override { size = s; _UpdateScales(); }
+		void SetSize(float s) override { size = s; }
 
 		void _Draw() override;
 	};

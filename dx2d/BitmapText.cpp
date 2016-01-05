@@ -18,10 +18,10 @@ namespace Viva
 		metrics.horizontalSpacing = 0;
 		metrics.verticalSpacing = 0;
 
-		_UpdateScales();
+		SetPixelPerfectScale();
 	}
 
-	void BitmapText::_UpdateScales()
+	void BitmapText::SetPixelPerfectScale()
 	{
 		Size letterSize;
 		Rect uv;
