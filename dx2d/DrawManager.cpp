@@ -294,6 +294,11 @@ namespace Viva
 		return r;
 	}
 
+	void CDrawManager::AddRenderTarget(RenderTarget* r)
+	{
+		renderTargets.push_back(r);
+	}
+
 	void CDrawManager::RemoveRenderTarget(RenderTarget* target)
 	{
 		for (int i = 0; i < (int)renderTargets.size(); i++)
@@ -317,22 +322,15 @@ namespace Viva
 		renderTargets.push_back(defaultRenderTarget);
 	}
 
-	extern const unsigned char rc_font[];
+	extern const int rc_font[];
 	void CDrawManager::_InitDefaultFont()
 	{
-		//defalut font
-		//15x21 one char
-		//20x5 all chars
-		vector<Rect> chars1;
-		for (int i = 0; i<5; i++)
-			for (int j = 0; j < 20; j++)
-			{
-				chars1.push_back(Rect(15.0f / 300.0f*j, 21.0f / 105.0f*i, 15.0f /
-					300.0f*(j + 1), 21 / 105.0f*(i + 1)));
-			}
-		
-		Texture* tex1 = new Texture((Pixel*)rc_font, Size(300, 105),L"");
-		defaultFont = new BitmapFont(tex1,Size(15,21),20);
+		//default font
+		//10x19 one char
+		//19x5 all chars
+
+		Texture* tex1 = new Texture((Pixel*)rc_font, Size(190, 95),L"defaultFont");
+		defaultFont = new BitmapFont(tex1,Size(10,19),19);
 	}
 
 	Texture* CDrawManager::GetTexture(const wchar_t* filename) const

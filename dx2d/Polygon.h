@@ -6,7 +6,6 @@ namespace Viva
 	{
 	protected:
 		Polygon() {}
-	private:
 		float span; //distance from origin to the furthest vertex
 
 	public:

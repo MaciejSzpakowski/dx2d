@@ -156,27 +156,27 @@ namespace Viva
 
 		bool IsColliding(Polygon* p1, Polygon* p2, XMFLOAT3* pointOfCollision)
 		{
-			throw VIVA_ERROR("Not implemented");
-
-			// i transofmr vertices over there instead of using transformed vertices
-
-			/*if (!CheckRegion(p1, p2))
-			return false;
+			if (!CheckRegion(p1, p2))
+				return false;
 
 			if (!CheckCircle(p1, p2))
-			return false;
+				return false;
 
-			for (int i = 0; i<p1->zVertexCount - 1; i++)
-			for (int j = 0; j < p2->zVertexCount - 1; j++)
+			for (int i = 0; i < p1->GetVertexCount() - 1; i++)
 			{
-			XMVECTOR A = XMVector2Transform(p1->zVertices[i], p1->zWorld);
-			XMVECTOR B = XMVector2Transform(p1->zVertices[i + 1], p1->zWorld);
-			XMVECTOR C = XMVector2Transform(p2->zVertices[j], p2->zWorld);
-			XMVECTOR D = XMVector2Transform(p2->zVertices[j + 1], p2->zWorld);
-			if (DoLinesIntersect(A, B, C, D, pointOfCollision))
-			return true;
+				for (int j = 0; j < p2->GetVertexCount() - 1; j++)
+				{
+					XMVECTOR A = p1->GetVerticesTransformed()[i];
+					XMVECTOR B = p1->GetVerticesTransformed()[i + 1];
+					XMVECTOR C = p2->GetVerticesTransformed()[j];
+					XMVECTOR D = p2->GetVerticesTransformed()[j + 1];
+
+					if (DoLinesIntersect(A, B, C, D, pointOfCollision))
+						return true;
+				}
 			}
-			return false;*/
+
+			return false;
 		}
 
 		bool Push(Polygon* p1, Polygon* p2)

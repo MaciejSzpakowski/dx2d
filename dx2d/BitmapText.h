@@ -23,7 +23,8 @@ namespace Viva
 		void Destroy() override;
 
 		FontMetrics GetMetrics() const { return metrics; }
-		void SetMetrics(const FontMetrics& _metrics) { metrics = _metrics; _UpdateScales(); }
+		void SetMetrics(const FontMetrics& fm) { metrics = fm; _UpdateScales(); }
+		void SetMetrics(FontMetrics&& fm) { metrics = fm; _UpdateScales(); }
 		TextureFilter GetTexFilter() const { return texFilter; }
 		void SetTexFilter(TextureFilter _texFilter) { texFilter = _texFilter; }
 		wstring GetText() const { return text; }

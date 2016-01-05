@@ -90,6 +90,7 @@ namespace Viva
 
 		// Create and add render target to draw manager.
 		RenderTarget* AddRenderTarget();
+		void AddRenderTarget(RenderTarget* r);
 
 		// Remove render target from draw manager.
 		void RemoveRenderTarget(RenderTarget* target);

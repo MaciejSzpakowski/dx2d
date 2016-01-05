@@ -6,6 +6,12 @@ namespace Viva
 	{
 		switch (msg)
 		{
+		case WM_SYSKEYDOWN:
+			if (wParam == VK_MENU)// left-alt key
+			{
+				//ignore left alt stop
+			}
+			break;
 		case WM_CLOSE:
 			DestroyWindow(hwnd);
 			break;

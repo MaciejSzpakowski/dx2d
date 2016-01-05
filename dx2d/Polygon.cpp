@@ -112,6 +112,7 @@ namespace Viva
 	{
 		vertexCount = (int)resolution + 1;
 		radius = _radius;
+		span = _radius*10;
 
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));

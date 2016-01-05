@@ -15,6 +15,9 @@ namespace Viva
 		void Debug(double debug, wstring name);
 		void Debug(wstring debug, wstring name);
 
+		void SetColor(const Color& c) { debugText->SetColor(c); }
+		void SetColor(Color&& c) { debugText->SetColor(c); }
+
 		BitmapText* _GetText() const { return debugText; }
 
 		// Send wss to debugText and clear wss.
