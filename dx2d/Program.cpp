@@ -665,7 +665,15 @@ int wrapper()
 	MessageBox(0, L"1st test should display text on screen", L"Test1", 0);
 	startTest(0);
 
-	Core->Run();
+	while (true)
+	{
+		Core->Run();
+		char input[100];
+		printf("Exit ?\n");
+		scanf("%99s", input);
+		if (memcmp(input, "yes",3) == 0)
+			break;
+	}
 	Core->Destroy();
 	return 0;
 }

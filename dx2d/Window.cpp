@@ -13,9 +13,7 @@ namespace Viva
 			}
 			break;
 		case WM_CLOSE:
-			DestroyWindow(hwnd);
-			break;
-		case WM_DESTROY:
+			ShowWindow(hwnd, false);
 			PostQuitMessage(0);
 			break;
 		case WM_COMMAND:
@@ -63,16 +61,29 @@ namespace Viva
 			throw VIVA_ERROR("Window creation failed");
 	}
 
+	void Window::Destroy()
+	{
+		DestroyWindow(handle);
+		UnregisterClass(L"myWindowClass", GetModuleHandle(0));
+		delete this;
+	}
+
 	int Window::_Run()
 	{
 		ShowWindow(handle, SW_SHOW);
 		UpdateWindow(handle);
-		while (WM_QUIT != msg.message)
+
+		while (true)
 		{
 			if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 			{
-					TranslateMessage(&msg);
-					DispatchMessage(&msg);
+				if (msg.message == WM_QUIT)
+				{
+					ZeroMemory(&msg, sizeof(msg));
+					break;
+				}
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
 			}
 			else
 			{
@@ -80,7 +91,7 @@ namespace Viva
 				activity();
 			}
 		}
-		UnregisterClass(L"myWindowClass", GetModuleHandle(0));
+
 		return (int)msg.wParam;
 	}
 }

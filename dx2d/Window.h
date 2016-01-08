@@ -15,6 +15,6 @@ namespace Viva
 			const std::function<void()>& _activity);
 		int _Run();
 		HWND GetHandle() const { return handle; }
-		void Destroy() { delete this; }
+		void Destroy();
 	};
 }
