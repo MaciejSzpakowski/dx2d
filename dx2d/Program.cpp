@@ -98,7 +98,6 @@ void test10()
 
 	obj.push_back(s4);
 
-	DrawManager->CreateExtraBuffer(16);
 	s1->SetExtraBufferPS(&time1);
 
 	const char ps2[] = R"(
@@ -639,7 +638,7 @@ void startTest(int i)
 
 int wrapper()
 {
-	Functions::InitViva(Size(800, 600), Activity);
+	Functions::InitViva(Size(800, 600));
 	Core->SetBackgroundColor(Color(1, 1, 1, 1));
 	Core->SetWindowTitle(L"Test");
 	Core->OpenConsole();
@@ -667,11 +666,11 @@ int wrapper()
 
 	while (true)
 	{
-		Core->Run();
+		Core->Run(Activity);
 		char input[100];
-		printf("Exit ?\n");
+		printf("Exit ? y/n\n");
 		scanf("%99s", input);
-		if (memcmp(input, "yes",3) == 0)
+		if (memcmp(input, "y",1) == 0)
 			break;
 	}
 	Core->Destroy();

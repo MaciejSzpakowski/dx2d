@@ -4,7 +4,8 @@ namespace Viva
 {
 	void IntActivity()
 	{
-		InputManager->_Activity();
+		if (GetActiveWindow() == Core->GetWindowHandle())
+			InputManager->_Activity();
 		EventManager->_Activity();
 		Core->GetCamera()->_CamTransform();
 		DrawManager->_DrawAll();
@@ -13,10 +14,10 @@ namespace Viva
 
 	namespace Functions
 	{
-		void InitViva(Size clientSize, std::function<void()> worker, int style)
+		void InitViva(Size clientSize, int style)
 		{
 			// for now core assigns itself to global variable
-			new CCore(clientSize, worker, style);
+			new CCore(clientSize, style);
 		}
 
 		void Checkhr(HRESULT hr, int line)

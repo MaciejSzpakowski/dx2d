@@ -27,11 +27,9 @@ namespace Viva
 		return 0;
 	}
 
-	Window::Window(const Size& clientSize, int style, const std::function<void()>& _worker,
-		const std::function<void()>& _activity)
+	Window::Window(const Size& clientSize, int style, const std::function<void()>& _worker)
 	{
 		worker = _worker;
-		activity = _activity;
 
 		const wchar_t className[] = L"myWindowClass";
 		WNDCLASSEX wc;		
@@ -52,9 +50,8 @@ namespace Viva
 		AdjustWindowRectEx(&rect, style | WS_CLIPSIBLINGS,
 			FALSE, 0);
 
-		handle = CreateWindowEx(0,
-			className,	L"",	style,
-			CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top,
+		handle = CreateWindowEx(0, className, L"", style, CW_USEDEFAULT, CW_USEDEFAULT, 
+			rect.right - rect.left, rect.bottom - rect.top,
 			NULL, NULL, GetModuleHandle(0), NULL);
 
 		if (handle == NULL)
@@ -68,10 +65,12 @@ namespace Viva
 		delete this;
 	}
 
-	int Window::_Run()
+	int Window::_Run(std::function<void()> _activity)
 	{
 		ShowWindow(handle, SW_SHOW);
 		UpdateWindow(handle);
+
+		activity = _activity;
 
 		while (true)
 		{

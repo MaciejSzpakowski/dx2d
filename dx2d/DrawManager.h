@@ -107,11 +107,11 @@ namespace Viva
 		// and add it to the resource manager.
 		Texture* GetTexture(const wchar_t* filename) const;
 
-		//create extra buffer for PS
-		//size in bytes must be multiple of 16
-		void CreateExtraBuffer(UINT size);
+		// Set size of the extra pixel shader buffer.
+		// Size in bytes must be multiple of 16.
+		void SetExtraBufferSize(UINT size);
 
-		//destroys all but default render target
+		// Destroys all but default render target.
 		void ClearRenderTargets();
 
 	};

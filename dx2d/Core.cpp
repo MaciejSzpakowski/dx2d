@@ -8,7 +8,7 @@ namespace Viva
 	extern const char rc_PostProcessing[];
 	extern const char rc_VertexShader[];
 
-	CCore::CCore(Size _clientSize, std::function<void()> worker, int style)
+	CCore::CCore(Size _clientSize, int style)
 	{
 		HRESULT hr = 0;
 		alphaEnabled = false;
@@ -17,7 +17,7 @@ namespace Viva
 		//assign global variable
 		Core = this;
 		//create window
-		window = new Window(_clientSize, style, worker, IntActivity);
+		window = new Window(_clientSize, style, IntActivity);
 
 		backBufferColor[0] = 1.0f;
 		backBufferColor[1] = 1.0f;

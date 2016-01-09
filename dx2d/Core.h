@@ -30,11 +30,11 @@ namespace Viva
 
 	public:
 
-		CCore(Size _clientSize, std::function<void()> worker, int style);
+		CCore(Size _clientSize, int style);
 		HWND GetWindowHandle() const { return window->GetHandle(); }
 		void SetWindowTitle(LPCWSTR title) { SetWindowText(window->GetHandle(), title); }
 		void SetBackgroundColor(const Color& color);
-		int Run() { return window->_Run(); }
+		int Run(std::function<void()> _activity) { return window->_Run(_activity); }
 		void OpenConsole();
 		void CloseConsole();
 		Size GetClientSize() const { return clientSize; }

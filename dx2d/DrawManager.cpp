@@ -7,7 +7,7 @@ namespace Viva
 		D3D11_SAMPLER_DESC sampDesc;
 		ZeroMemory(&sampDesc, sizeof(sampDesc));
 		sampDesc.Filter = mode == TextureFilter::Point ?
-		D3D11_FILTER_MIN_MAG_MIP_POINT : D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+			D3D11_FILTER_MIN_MAG_MIP_POINT : D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -92,8 +92,8 @@ namespace Viva
 		Core->_GetDevice()->CreateBuffer(&cbbd, NULL, &constantBufferUV); //has the same size
 		Core->_GetContext()->PSSetConstantBuffers(0, 1, &constantBufferPS);
 		Core->_GetContext()->VSSetConstantBuffers(1, 1, &constantBufferUV);
-
-		constantBufferPSExtra = nullptr;
+		Core->_GetDevice()->CreateBuffer(&cbbd, NULL, &constantBufferPSExtra); // also same size
+		Core->_GetContext()->PSSetConstantBuffers(1, 1, &constantBufferPSExtra);
 				
 		CreateSampler(TextureFilter::Point, &pointSampler);
 		CreateSampler(TextureFilter::Linear, &lineSampler);
@@ -172,10 +172,10 @@ namespace Viva
 		AddSprite(a, target);
 	}
 
-	void CDrawManager::CreateExtraBuffer(UINT size)
+	void CDrawManager::SetExtraBufferSize(UINT size)
 	{
-		if (size % 16 != 0)
-			throw VIVA_ERROR("Buffer size is not multiple of 16");
+		if (size % 16 != 0 || size == 0)
+			throw VIVA_ERROR("Buffer size is not multiple of 16 or it's 0");
 
 		D3D11_BUFFER_DESC cbbd;
 		ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
@@ -184,6 +184,7 @@ namespace Viva
 		cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		cbbd.CPUAccessFlags = 0;
 		cbbd.MiscFlags = 0;
+		constantBufferPSExtra->Release();
 		Core->_GetDevice()->CreateBuffer(&cbbd, NULL, &constantBufferPSExtra);
 		Core->_GetContext()->PSSetConstantBuffers(1, 1, &constantBufferPSExtra);
 	}
@@ -233,8 +234,7 @@ namespace Viva
 	{
 		for (int i = (int)renderTargets.size() - 1; i >= 0; i--)
 			renderTargets[i]->Destroy();
-		if (constantBufferPSExtra != nullptr)
-			constantBufferPSExtra->Release();
+		constantBufferPSExtra->Release();
 		constantBufferPS->Release();
 		constantBufferUV->Release();
 		constantBufferVS->Release();

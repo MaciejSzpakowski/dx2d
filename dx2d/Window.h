@@ -11,9 +11,8 @@ namespace Viva
 		std::function<void()> activity; // client size activity
 
 	public:
-		Window(const Size& clientSize, int style, const std::function<void()>& _worker, 
-			const std::function<void()>& _activity);
-		int _Run();
+		Window(const Size& clientSize, int style, const std::function<void()>& _worker);
+		int _Run(std::function<void()> _activity);
 		HWND GetHandle() const { return handle; }
 		void Destroy();
 	};
