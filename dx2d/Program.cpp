@@ -59,10 +59,13 @@ void test10()
 	"This text is in the top render target not affected by pixel shader\n";
 	text1->SetText(msg);
 
+	DebugManager->SetColor(Color(1, 0, 0, 1));
+
 	static float time1 = (float)Core->GetGameTime();
 	Event* e1 = EventManager->AddEvent([=]
 	{
 		time1 = (float)Core->GetGameTime();
+		DebugManager->Debug(L"Test string", L"Test");
 		return 1;
 	}, L"e1", 0, 0, 0);
 

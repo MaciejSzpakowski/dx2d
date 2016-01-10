@@ -191,7 +191,8 @@ namespace Viva
 
 	void CDrawManager::_RenderTargetTransform(int i)
 	{
-		float scalex = (20.0f - i*0.001f) * tan(Core->GetCamera()->GetFovAngle() / 2) * Core->GetCamera()->GetAspectRatio();
+		float scalex = (20.0f - i*0.001f) * tan(Core->GetCamera()->GetFovAngle() / 2) 
+			* Core->GetCamera()->GetAspectRatio();
 		float scaley = (20.0f - i*0.001f) * tan(Core->GetCamera()->GetFovAngle() / 2);
 		//move every target above previous one
 		XMMATRIX transform = DirectX::XMMatrixScaling(scalex, scaley, 1) *
