@@ -12,6 +12,37 @@ void Activity()
 	Sleep(1);
 }
 
+void test13()
+{
+	wstring msg = L"Test13: Single parent, absolute vs relative position,\n pixel perfect scale for a child\n";
+	text1->SetText(msg);
+
+	Pixel pixels[1] = { Pixel(255,255,0,255) };
+	Texture* t1 = new Texture(pixels, Size(1, 1));
+	Sprite* s1 = new Sprite(t1);
+	s1->SetPickable(true);
+	DrawManager->AddSprite(s1);
+
+	Sprite* s2 = new Sprite(t1);
+	DrawManager->AddSprite(s2);
+	s2->SetScale(XMFLOAT2(0.3f, 0.3f));
+	s2->SetPickable(true);
+	s2->SetParent(s1);
+
+	Sprite* s1;
+	s1->
+
+	Event* e1 = EventManager->AddEvent([&]
+	{
+		if ()
+		{
+		}
+	}, L"", 0, 0, 0);
+
+	obj.push_back(s2);
+	obj.push_back(s1);
+}
+
 void test12()
 {
 	text1->SetText(L"");
@@ -662,6 +693,7 @@ int wrapper()
 	tests.push_back(test10);
 	tests.push_back(test11);
 	tests.push_back(test12);
+	tests.push_back(test13);
 
 	MessageBox(0, L"TODO:\nSetextrabuffersize instead of createextrabuffer\nGive more meaningful CHECKHR error", L"Test1", 0);
 	MessageBox(0, L"1st test should display text on screen", L"Test1", 0);
