@@ -14,31 +14,76 @@ void Activity()
 
 void test13()
 {
-	wstring msg = L"Test13: Single parent, absolute vs relative position,\n pixel perfect scale for a child\n";
+	wstring msg = L"Test13: Single parent, absolute vs relative position,\n"
+		"pixel perfect scale for a child\n"
+		"1 to select red, 2 to select green";
 	text1->SetText(msg);
 
-	Pixel pixels[1] = { Pixel(255,255,0,255) };
+	Pixel pixels[1] = { Pixel(255,255,255,255) };
 	Texture* t1 = new Texture(pixels, Size(1, 1));
 	Sprite* s1 = new Sprite(t1);
-	s1->SetPickable(true);
+	s1->SetColor(Color(1, 0, 0, 1));
 	DrawManager->AddSprite(s1);
 
 	Sprite* s2 = new Sprite(t1);
 	DrawManager->AddSprite(s2);
 	s2->SetScale(XMFLOAT2(0.3f, 0.3f));
-	s2->SetPickable(true);
+	s2->SetColor(Color(0, 1, 0, 1));
 	s2->SetParent(s1);
-
-	Sprite* s1;
-	s1->
-
-	Event* e1 = EventManager->AddEvent([&]
+	
+	Event* e1 = EventManager->AddEvent([=]
 	{
-		if ()
+		static Dynamic* activeObj = s1;
+
+		DebugManager->Debug(L"", L"");
+		DebugManager->Debug(L"", L"");
+		DebugManager->Debug(L"", L"");
+		DebugManager->Debug(L"", L"");
+		wstringstream wss;
+		wss << s1->GetPosition().x << L";" << s1->GetPosition().y << ";" << s1->GetPosition().z;
+		DebugManager->Debug(wss.str(), L"red.pos");
+		wss.str(L"");
+		wss << s2->GetPosition().x << L";" << s2->GetPosition().y << ";" << s2->GetPosition().z;
+		DebugManager->Debug(wss.str(), L"green.pos");
+		wss.str(L"");
+		wss << s1->GetAbsolutePosition().x << L";" << s1->GetAbsolutePosition().y << ";" << s1->GetAbsolutePosition().z;
+		DebugManager->Debug(wss.str(), L"red.apos");
+		wss.str(L"");
+		wss << s2->GetAbsolutePosition().x << L";" << s2->GetAbsolutePosition().y << ";" << s2->GetAbsolutePosition().z;
+		DebugManager->Debug(wss.str(), L"green.apos");
+		wss.str(L"");
+
+		if (InputManager->IsKeyDown(Keys::Key1))
 		{
+			activeObj = s1;
 		}
+		else if (InputManager->IsKeyDown(Keys::Key2))
+		{
+			activeObj = s2;
+		}
+
+			s1->SetVelocity(0, 0, 0);
+			s1->SetAngularVelocity(0, 0, 0);
+			s2->SetVelocity(0, 0, 0);
+			s2->SetAngularVelocity(0, 0, 0);
+
+			if (InputManager->IsKeyDown(Keys::KeyA))
+				activeObj->SetVelocityX(-2);
+			if (InputManager->IsKeyDown(Keys::KeyD))
+				activeObj->SetVelocityX(2);
+			if (InputManager->IsKeyDown(Keys::KeyW))
+				activeObj->SetVelocityY(2);
+			if (InputManager->IsKeyDown(Keys::KeyS))
+				activeObj->SetVelocityY(-2);
+			if (InputManager->IsKeyDown(Keys::KeyQ))
+				activeObj->SetAngularVelocityZ(1);
+			if (InputManager->IsKeyDown(Keys::KeyE))
+				activeObj->SetAngularVelocityZ(-1);
+
+		return 1;
 	}, L"", 0, 0, 0);
 
+	events.push_back(e1);
 	obj.push_back(s2);
 	obj.push_back(s1);
 }
