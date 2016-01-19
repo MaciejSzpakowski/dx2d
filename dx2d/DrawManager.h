@@ -46,7 +46,7 @@ namespace Viva
 		Polygon* AddPoly(const vector<XMFLOAT2>& points, RenderTarget* target = nullptr);
 		
 		// Create a new rectangle and add it to draw manager.
-		Rectangle* AddRect(const Size& size, RenderTarget* target = nullptr);
+		Rectangle* AddRect(const XMFLOAT2& size, RenderTarget* target = nullptr);
 		
 		// Create a new circle and add it to draw manager.
 		Circle* AddCircle(float radius, unsigned char resolution, RenderTarget* target = nullptr);
@@ -61,6 +61,9 @@ namespace Viva
 		// Supported file formats: BMP, GIF, JPEG, PNG, TIFF, Exif, WMF, EMF.
 		Sprite* AddSprite(const wchar_t* filename, RenderTarget* target = nullptr);
 
+        // Create sprite from texture and add it to draw manager.
+        Sprite* AddSprite(Texture* t, RenderTarget* target = nullptr);
+
 		// Add existing sprite to draw manager.
 		void AddSprite(Sprite* s, RenderTarget* target = nullptr);
 
@@ -70,6 +73,10 @@ namespace Viva
 		// Create animation from file and add it to draw manager.
 		// Supported file formats: BMP, GIF, JPEG, PNG, TIFF, Exif, WMF, EMF.
 		Animation* AddAnimation(LPCWSTR file, int x, int y, RenderTarget* target = nullptr);
+
+        // Create animation from file and add it to draw manager.
+        // Supported file formats: BMP, GIF, JPEG, PNG, TIFF, Exif, WMF, EMF.
+        Animation* AddAnimation(LPCWSTR file, const vector<Rect>& _uvTable, RenderTarget* target = nullptr);
 
 		// Add existing animation to draw manager.
 		void AddAnimation(Animation* a, RenderTarget* target = nullptr);

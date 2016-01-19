@@ -120,7 +120,7 @@ namespace Viva
 		return newPoly;
 	}
 
-	Rectangle* CDrawManager::AddRect(const Size& size, RenderTarget* target)
+	Rectangle* CDrawManager::AddRect(const XMFLOAT2& size, RenderTarget* target)
 	{
 		if (target == nullptr)
 			target = defaultRenderTarget;
@@ -147,6 +147,15 @@ namespace Viva
 		return newSprite;
 	}
 
+    Sprite* CDrawManager::AddSprite(Texture* t, RenderTarget* target)
+    {
+        if (target == nullptr)
+            target = defaultRenderTarget;
+        Sprite* newSprite = new Sprite(t);
+        target->AddSprite(newSprite);
+        return newSprite;
+    }
+
 	void CDrawManager::AddSprite(Sprite* s, RenderTarget* target)
 	{
 		if (target == nullptr)
@@ -164,6 +173,15 @@ namespace Viva
 		target->AddSprite(newAnimation);
 		return newAnimation;
 	}
+
+    Animation* CDrawManager::AddAnimation(LPCWSTR file, const vector<Rect>& _uvTable, RenderTarget* target)
+    {
+        if (target == nullptr)
+            target = defaultRenderTarget;
+        Animation* newAnimation = new Animation(file, _uvTable);
+        target->AddSprite(newAnimation);
+        return newAnimation;
+    }
 
 	void CDrawManager::AddAnimation(Animation* a, RenderTarget* target)
 	{

@@ -68,11 +68,11 @@ namespace Viva
 		return DirectX::XMMatrixIdentity();
 	}
 
-	Rectangle::Rectangle(const Size& size)
+	Rectangle::Rectangle(const XMFLOAT2& size)
 	{
 		vertexCount = 5;
-		scale.x = (float)size.width;
-		scale.y = (float)size.height;
+		scale.x = size.x;
+		scale.y = size.y;
 		//method 2
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));

@@ -29,7 +29,7 @@ namespace Viva
 		XMFLOAT2 scale;
 
 	public:
-		Rectangle(const Size& size);
+		Rectangle(const XMFLOAT2& size);
 
 		XMFLOAT2 GetScale() const { return scale; }
 		void SetScale(const XMFLOAT2& _scale) { scale = _scale; }

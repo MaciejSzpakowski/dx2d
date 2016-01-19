@@ -24,7 +24,6 @@ void test13()
 	Sprite* s1 = new Sprite(t1);
 	s1->SetColor(Color(1, 0, 0, 1));
 	DrawManager->AddSprite(s1);
-
 	Sprite* s2 = new Sprite(t1);
 	DrawManager->AddSprite(s2);
 	s2->SetScale(XMFLOAT2(0.3f, 0.3f));
@@ -52,6 +51,8 @@ void test13()
 		wss << s2->GetAbsolutePosition().x << L";" << s2->GetAbsolutePosition().y << ";" << s2->GetAbsolutePosition().z;
 		DebugManager->Debug(wss.str(), L"green.apos");
 		wss.str(L"");
+        wss << Core->GetCamera()->GetCursorWorldPos(0).x << L";" << Core->GetCamera()->GetCursorWorldPos(0).y;
+        DebugManager->Debug(wss.str(), L"Cur.worldPos(0)");
 
 		if (InputManager->IsKeyDown(Keys::Key1))
 		{
@@ -127,6 +128,29 @@ void test11()
 	wstring msg = L"Test11: Memory test\n"
 	"Open task manager and check if memory is leaking\n";
 	text1->SetText(msg);
+
+    Pixel pixel(255, 255, 255, 255);
+    Texture* t1 = new Texture(&pixel, Size(1, 1));
+
+    Event* e1 = EventManager->AddEvent([=]
+    {
+        Sprite* s1 = DrawManager->AddSprite(t1);
+        s1->SetColor(Color((float)Random::RndDouble(), (float)Random::RndDouble(), (float)Random::RndDouble(), 1));
+        s1->SetVelocity((float)Random::RndDouble()*10-5, (float)Random::RndDouble() * 10 - 5,0);
+        s1->SetSize((float)Random::RndDouble() + 0.2f);
+        s1->SetAngularVelocityZ((float)Random::RndDouble()*3-1.5f);
+
+        EventManager->AddEvent([=]
+        {
+            s1->Destroy();
+            return 0;
+        }, L"", 5, 0, 0);
+
+        return 1;
+        
+    }, L"", 0, 0, 0);
+
+    events.push_back(e1);
 }
 
 void test10()
@@ -580,6 +604,7 @@ void test4()
 	"On the left, cat running to the right\n"
 	"On the right, cat running slower backwards and flipped hori.\n";
 	text1->SetText(msg);
+    text1->SetVisible(true);
 
 	Animation* s1 = DrawManager->AddAnimation(L"ani.png", 2, 4);
 	s1->SetPixelScale(Size(512, 256));
@@ -600,10 +625,11 @@ void test4()
 
 void test3()
 {
-	wstring msg = L"Test3: texture and sprites\n"
-	"On the left, brick 200x200 in pixels (take a screenshot and check)\n"
-	"On the right, red-green checkerboard 200x200\n"
-	"In the middle, leaf (should be proportional)";
+    wstring msg = L"Test3: texture and sprites\n"
+        "On the left, brick 200x200 in pixels (take a screenshot and check)\n"
+        "On the right, red-green checkerboard 200x200\n"
+        "In the middle, leaf in pink square (should be proportional)\n"
+        "Press 1 to hide everything";
 	text1->SetText(msg);
 
 	Sprite* s1 = DrawManager->AddSprite(L"brick.jpg");
@@ -627,6 +653,33 @@ void test3()
 	s3->SetPixelPerfectScale();
 	s3->SetSize(0.5f);
 	obj.push_back(s3);
+
+    Viva::Polygon* p1 = DrawManager->AddRect(s3->GetScale());
+    p1->SetColor(Color(1, 0, 1, 1));
+    obj.push_back(p1);
+
+    Event* e1 = EventManager->AddEvent([=]
+    {
+        if (InputManager->IsKeyDown(Keys::Key1))
+        {
+            text1->SetVisible(false);
+            s1->SetVisible(false);
+            s2->SetVisible(false);
+            s3->SetVisible(false);
+            p1->SetVisible(false);
+        }
+        else
+        {
+            text1->SetVisible(true);
+            s1->SetVisible(true);
+            s2->SetVisible(true);
+            s3->SetVisible(true);
+            p1->SetVisible(true);
+        }
+        return 1;
+    }, L"", 0, 0, 0);
+
+    events.push_back(e1);
 }
 
 void test2()
@@ -634,6 +687,7 @@ void test2()
 	wstring msg = L"Test2: polygons and colors\n"
 	"Red star on the left, blue rectangle in the middle, \nrainbow circle on the right";
 	text1->SetText(msg);
+    text1->SetVisible(true);
 
 	vector<XMFLOAT2> v;
 	for (int i = 0; i < 10; i+=2)
@@ -646,7 +700,7 @@ void test2()
 	p1->SetPositionX(-10);
 	p1->SetColor(Color(1, 0, 0, 1));
 
-	Viva::Rectangle* r1 = DrawManager->AddRect(Size(10, 3));
+	Viva::Rectangle* r1 = DrawManager->AddRect(XMFLOAT2(10, 3));
 	r1->SetColor(Color(0, 0, 1, 1));
 
 	Circle* c1 = DrawManager->AddCircle(2, 20);

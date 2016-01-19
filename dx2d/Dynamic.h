@@ -85,7 +85,13 @@ namespace Viva
 		Rect GetUv() const { return uv; }
 		void SetUv(const Rect& _uv) { uv = _uv; }
 		void SetUv(Rect&& _uv) { uv = _uv; }
+
 		// Enable or disable vertices transformation.
+        // Normally vertices are transformed by GPU when rendering.
+        // In main memory (what's available to user) they stay fixed
+        // Enable to this transofrm them so the transofmration is
+        // reflected in main memory.
+        // This has to be enabled for collision detection.
 		void TransformVertices(bool flag) { transformVertices = flag; }
 
 		// dynamics
