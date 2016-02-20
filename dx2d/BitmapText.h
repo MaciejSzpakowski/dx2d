@@ -12,7 +12,7 @@ namespace Viva
 		wstring text;
 		FontMetrics metrics;
 
-		void _TextTransform(float x, int row, float lineLen, int index);
+		void _TextTransform(float x, int row, float lineLen, int index, const XMMATRIX* view, const XMMATRIX* proj);
 		XMMATRIX _GetScaleMatrix() override { return DirectX::XMMatrixIdentity(); }
 		float _CurrentLineLength(int off);
 

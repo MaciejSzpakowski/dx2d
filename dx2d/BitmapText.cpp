@@ -23,7 +23,12 @@ namespace Viva
 
 	void BitmapText::SetPixelPerfectScale()
 	{
+		XMFLOAT2 frustum = Core->GetCamera()->GetFrustumSize(GetPosition().z);
 		Size letterSize;
+        RECT client;
+		GetClientRect(Core->GetWindowHandle(), &client);
+		XMFLOAT2 clientSize = { (float)client.right - client.left, (float)client.bottom - client.top };
+		XMFLOAT2 unitsPerPixel = { frustum.x / clientSize.x, frustum.y / clientSize.y };
 		Rect uv;
 		float h;
 		float w;
@@ -35,14 +40,7 @@ namespace Viva
 		{
 			uv = font->_GetCharsUv()[i];
 			letterSize.width = font->_GetChars()[i].right - font->_GetChars()[i].left;
-			letterSize.height = font->_GetChars()[i].bottom - font->_GetChars()[i].top;
-
-			XMFLOAT2 frustum = Core->GetCamera()->GetFrustumSize(GetPosition().z);
-			RECT client;
-			GetClientRect(Core->GetWindowHandle(), &client);
-			XMFLOAT2 clientSize = { (float)client.right - client.left,
-				(float)client.bottom - client.top };
-			XMFLOAT2 unitsPerPixel = { frustum.x / clientSize.x, frustum.y / clientSize.y };
+			letterSize.height = font->_GetChars()[i].bottom - font->_GetChars()[i].top;			
 			w = metrics.width * size * unitsPerPixel.x * letterSize.width / 2;
 			h = metrics.height * size * unitsPerPixel.y * letterSize.height / 2;
 
@@ -51,7 +49,7 @@ namespace Viva
 		}
 	}
 
-	void BitmapText::_TextTransform(float x, int row, float lineLen, int index)
+	void BitmapText::_TextTransform(float x, int row, float lineLen, int index, const XMMATRIX* view, const XMMATRIX* proj)
 	{
 		float _VerticalSpacing = metrics.verticalSpacing * size;
 		float horAlignOffset = 0;
@@ -73,13 +71,12 @@ namespace Viva
 		XMMATRIX worldViewProj;
 
 		if (parent == nullptr)
-			worldViewProj  = scale * origin * rot * loc * Core->GetCamera()->GetViewMatrix() * Core->GetCamera()->GetProjMatrix();
+			worldViewProj  = scale * origin * rot * loc * *view * *proj;
 		else
 		{
 			XMMATRIX parentLoc = DirectX::XMMatrixRotationRollPitchYawFromVector(parent->_GetRotationVector());
 			XMMATRIX parentRot = DirectX::XMMatrixTranslationFromVector(parent->_GetPositionVector());
-			worldViewProj = scale * origin * rot * loc * parentLoc * parentRot *
-				Core->GetCamera()->GetViewMatrix() * Core->GetCamera()->GetProjMatrix();
+			worldViewProj = scale * origin * rot * loc * parentLoc * parentRot * *view * *proj;
 		}
 
 		worldViewProj = XMMatrixTranspose(worldViewProj);
@@ -98,6 +95,9 @@ namespace Viva
 
 	void BitmapText::_Draw()
 	{
+        const XMMATRIX* view = Core->GetCamera()->_GetViewPtr();
+        const XMMATRIX* proj = Core->GetCamera()->_GetProjPtr();
+
 		if (text.length() == 0)
 			return;
 		//color
@@ -132,7 +132,7 @@ namespace Viva
 			Core->_GetContext()->UpdateSubresource(DrawManager->_GetConstantBufferUV(), 0, NULL,
 				&(font->_GetCharsUv()[index]), 0, 0);
 			//transform letter and draw
-			_TextTransform(horiOff, row, lineLen, index);
+			_TextTransform(horiOff, row, lineLen, index, view, proj);
 			Core->_GetContext()->DrawIndexed(6, 0, 0);
 			// add offset
 			horiOff += charScale[text[i] - 32].x + metrics.horizontalSpacing * size;

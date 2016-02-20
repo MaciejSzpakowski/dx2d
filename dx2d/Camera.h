@@ -19,6 +19,8 @@ namespace Viva
 		Camera();
 
 		void _CamTransform();
+        const XMMATRIX* _GetViewPtr() const { return &view; }
+        const XMMATRIX* _GetProjPtr() const { return &proj; }
 
 		// Get cursor position in world cooridnates at speicifc z.
 		// Notice that it depends on z value (think about it).

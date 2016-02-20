@@ -20,6 +20,8 @@ namespace Viva
 		ID3D11Buffer* constantBufferUV;
 		ID3D11Buffer* constantBufferPSExtra;
 		TextureFilter defaultTextureFilter;
+        const XMMATRIX* view;
+        const XMMATRIX* proj;
 
 		void _RenderTargetTransform(int i);
 	public:
@@ -29,7 +31,6 @@ namespace Viva
 		ID3D11Buffer* _GetConstantBufferPS() const { return constantBufferPS; }
 		ID3D11Buffer* _GetConstantBufferUV() const { return constantBufferUV; }
 		ID3D11Buffer* _GetConstantBufferPSExtra() const { return constantBufferPSExtra; }
-		void _SetRenderTargetMatrix(XMMATRIX&& mat) { renderTargetMatrix = mat; }
 		ID3D11RasterizerState* _GetWireframe() const { return wireframe; }
 		ID3D11RasterizerState* _GetSolid() const { return solid; }
 		ID3D11Buffer*const* _GetVertexBufferSpriteAddress() const { return &vertexBufferSprite; }

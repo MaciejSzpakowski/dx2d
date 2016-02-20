@@ -18,6 +18,8 @@ namespace Viva
 		acceleration = XMVectorZero();
 		angularVelocity = XMVectorZero();
 		angularAcceleration = XMVectorZero();
+        absolutePosition = XMVectorZero();
+        absoluteRotation = XMVectorZero();
 		parent = nullptr;
 		underCursor = false;
 		pickable = false;		
@@ -28,34 +30,36 @@ namespace Viva
 		visible = true;
 		color = XMFLOAT4(0, 0, 0, 0);
 		uv = Rect(0, 0, 1, 1);
-		transformVertices = false;		
+		transformVertices = false;
 	}
 
-	void Dynamic::_Transform()
+	void Dynamic::_Transform(const XMMATRIX* view, const XMMATRIX* proj)
 	{
 		if (transformVertices)
 			_TransformVertices();
 
-		absolutePosition = position;
-		absoluteRotation = rotation;
-
 		XMMATRIX originMat = XMMatrixTranslation(-origin.x, -origin.y, 0);
 		XMMATRIX scale = _GetScaleMatrix();
-		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(absoluteRotation);
-		XMMATRIX loc = XMMatrixTranslationFromVector(absolutePosition);
+		XMMATRIX rot = XMMatrixRotationRollPitchYawFromVector(rotation);
+		XMMATRIX loc = XMMatrixTranslationFromVector(position);
 		world = originMat * scale * rot * loc;
 
 		if (parent != nullptr)
 		{
 			XMMATRIX parentRot = XMMatrixRotationRollPitchYawFromVector(parent->absoluteRotation);
 			XMMATRIX parentLoc = XMMatrixTranslationFromVector(parent->absolutePosition);
-			absolutePosition += parent->absolutePosition;
-			absoluteRotation += parent->absoluteRotation;
-			absolutePosition = XMVector2Transform(absolutePosition, parentRot);
-			world = world * parentRot * parentLoc;
+            XMMATRIX parentRotLoc = parentRot * parentLoc;
+            absolutePosition = DirectX::XMVector3Transform(position, parentRotLoc);
+			absoluteRotation = rotation + parent->absoluteRotation;
+			world = world * parentRotLoc;
 		}
+        else
+        {
+            absolutePosition = position;
+            absoluteRotation = rotation;
+        }
 
-		XMMATRIX worldViewProj = world * Core->GetCamera()->GetViewMatrix() * Core->GetCamera()->GetProjMatrix();
+		XMMATRIX worldViewProj = world * *view * *proj;
 		//check for cursor
 		if (pickable)
 			_CheckForCursor(world);

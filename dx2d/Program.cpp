@@ -2,6 +2,7 @@
 
 using namespace Viva;
 
+Viva::Polygon* cursor;
 BitmapText* text1;
 vector<std::function<void()>> tests;
 vector<Dynamic*> obj;
@@ -21,14 +22,16 @@ void test13()
 
 	Pixel pixels[1] = { Pixel(255,255,255,255) };
 	Texture* t1 = new Texture(pixels, Size(1, 1));
-	Sprite* s1 = new Sprite(t1);
-	s1->SetColor(Color(1, 0, 0, 1));
-	DrawManager->AddSprite(s1);
-	Sprite* s2 = new Sprite(t1);
-	DrawManager->AddSprite(s2);
-	s2->SetScale(XMFLOAT2(0.3f, 0.3f));
+	Sprite* s1 = DrawManager->AddSprite(t1);
+	s1->SetColor(Color(1, 0, 0, 1));	
+	Sprite* s2 = DrawManager->AddSprite(t1);
+	s2->SetScale(XMFLOAT2(0.6f, 0.6f));
 	s2->SetColor(Color(0, 1, 0, 1));
 	s2->SetParent(s1);
+    Sprite* s3 = DrawManager->AddSprite(t1);
+    s3->SetScale(XMFLOAT2(0.3f, 0.3f));
+    s3->SetColor(Color(0, 0, 1, 1));
+    s3->SetParent(s2);
 	
 	Event* e1 = EventManager->AddEvent([=]
 	{
@@ -39,17 +42,21 @@ void test13()
 		DebugManager->Debug(L"", L"");
 		DebugManager->Debug(L"", L"");
 		wstringstream wss;
-		wss << s1->GetPosition().x << L";" << s1->GetPosition().y << ";" << s1->GetPosition().z;
-		DebugManager->Debug(wss.str(), L"red.pos");
+		wss << s1->GetPosition().x << L";" << s1->GetPosition().y << ";" << s1->GetPosition().z << "/"
+            << (int)(s1->GetRotation().z*180/DirectX::XM_PI) << "deg";
+		DebugManager->Debug(wss.str(), L"red.pos/red.rot");
 		wss.str(L"");
-		wss << s2->GetPosition().x << L";" << s2->GetPosition().y << ";" << s2->GetPosition().z;
-		DebugManager->Debug(wss.str(), L"green.pos");
+		wss << s2->GetPosition().x << L";" << s2->GetPosition().y << ";" << s2->GetPosition().z << "/"
+            << (int)(s2->GetRotation().z * 180 / DirectX::XM_PI) << "deg";
+		DebugManager->Debug(wss.str(), L"green.pos/green.rot");
 		wss.str(L"");
-		wss << s1->GetAbsolutePosition().x << L";" << s1->GetAbsolutePosition().y << ";" << s1->GetAbsolutePosition().z;
-		DebugManager->Debug(wss.str(), L"red.apos");
+		wss << s1->GetAbsolutePosition().x << L";" << s1->GetAbsolutePosition().y << ";" << s1->GetAbsolutePosition().z << "/"
+            << (int)(s1->GetAbsoluteRotation().z * 180 / DirectX::XM_PI) << "deg";
+		DebugManager->Debug(wss.str(), L"red.apos/red.arot");
 		wss.str(L"");
-		wss << s2->GetAbsolutePosition().x << L";" << s2->GetAbsolutePosition().y << ";" << s2->GetAbsolutePosition().z;
-		DebugManager->Debug(wss.str(), L"green.apos");
+        wss << s2->GetAbsolutePosition().x << L";" << s2->GetAbsolutePosition().y << ";" << s2->GetAbsolutePosition().z << "/"
+            << (int)(s2->GetAbsoluteRotation().z * 180 / DirectX::XM_PI) << "deg";
+		DebugManager->Debug(wss.str(), L"green.apos/green.arot");
 		wss.str(L"");
         wss << Core->GetCamera()->GetCursorWorldPos(0).x << L";" << Core->GetCamera()->GetCursorWorldPos(0).y;
         DebugManager->Debug(wss.str(), L"Cur.worldPos(0)");
@@ -62,24 +69,30 @@ void test13()
 		{
 			activeObj = s2;
 		}
+        else if (InputManager->IsKeyDown(Keys::Key3))
+        {
+            activeObj = s3;
+        }
 
-			s1->SetVelocity(0, 0, 0);
-			s1->SetAngularVelocity(0, 0, 0);
-			s2->SetVelocity(0, 0, 0);
-			s2->SetAngularVelocity(0, 0, 0);
+		s1->SetVelocity(0, 0, 0);
+		s1->SetAngularVelocity(0, 0, 0);
+		s2->SetVelocity(0, 0, 0);
+		s2->SetAngularVelocity(0, 0, 0);
+        s3->SetVelocity(0, 0, 0);
+        s3->SetAngularVelocity(0, 0, 0);
 
-			if (InputManager->IsKeyDown(Keys::KeyA))
-				activeObj->SetVelocityX(-2);
-			if (InputManager->IsKeyDown(Keys::KeyD))
-				activeObj->SetVelocityX(2);
-			if (InputManager->IsKeyDown(Keys::KeyW))
-				activeObj->SetVelocityY(2);
-			if (InputManager->IsKeyDown(Keys::KeyS))
-				activeObj->SetVelocityY(-2);
-			if (InputManager->IsKeyDown(Keys::KeyQ))
-				activeObj->SetAngularVelocityZ(1);
-			if (InputManager->IsKeyDown(Keys::KeyE))
-				activeObj->SetAngularVelocityZ(-1);
+		if (InputManager->IsKeyDown(Keys::KeyA))
+			activeObj->SetVelocityX(-2);
+		if (InputManager->IsKeyDown(Keys::KeyD))
+			activeObj->SetVelocityX(2);
+		if (InputManager->IsKeyDown(Keys::KeyW))
+			activeObj->SetVelocityY(2);
+		if (InputManager->IsKeyDown(Keys::KeyS))
+			activeObj->SetVelocityY(-2);
+		if (InputManager->IsKeyDown(Keys::KeyQ))
+			activeObj->SetAngularVelocityZ(1);
+		if (InputManager->IsKeyDown(Keys::KeyE))
+			activeObj->SetAngularVelocityZ(-1);
 
 		return 1;
 	}, L"", 0, 0, 0);
@@ -725,14 +738,34 @@ void test1()
 	"If you see this text it means that primer, bitmap font, \nbitmap text some texture loading works.\n"
 	"Press left/right to navigate. If test2 will load, it means that some input \nand basics of event manager works.";
 	text1->SetText(msg);
+
+    EventManager->AddEvent([]
+    {
+        if (InputManager->IsKeyPressed(Keys::Escape))
+            exit(0);
+
+        return 1;
+    }, L"", 0, 0, 0);
 }
 
 void startTest(int i)
 {
 	tests[i]();
+    DebugManager->SetColor(Color(0, 0, 0, 1));
+   // InputManager->ShowCursor(false);    
 
 	EventManager->AddEvent([=]
 	{
+        if (InputManager->IsKeyPressed(Keys::PrintScreen))
+            Core->SaveScreenshot(L"ss.bmp");
+
+        XMFLOAT3 pos = cursor->GetPosition();
+        POINT delta = InputManager->GetCursorDelta();
+        pos.x += Core->GetCamera()->GetUnitsPerPixel(0).x * delta.x;
+        pos.y -= Core->GetCamera()->GetUnitsPerPixel(0).y * delta.y;
+
+        cursor->SetPosition(pos);
+
 		if (InputManager->IsKeyPressed(Keys::Right))
 		{
 			if (i == tests.size() - 1)
@@ -761,6 +794,10 @@ void startTest(int i)
 			startTest(i - 1);
 			return 0;
 		}
+        else if (InputManager->IsKeyPressed(Keys::Escape))
+        {
+            Core->Exit();
+        }
 		else if (InputManager->IsKeyPressed(Keys::Up))
 			text1->SetSize(text1->GetSize() + 0.001f);
 		else if (InputManager->IsKeyPressed(Keys::Down))
@@ -771,7 +808,7 @@ void startTest(int i)
 
 int wrapper()
 {
-	Functions::InitViva(Size(800, 600));
+	Functions::InitViva(Size(1920, 1080));
 	Core->SetBackgroundColor(Color(1, 1, 1, 1));
 	Core->SetWindowTitle(L"Test");
 	Core->OpenConsole();
@@ -779,6 +816,14 @@ int wrapper()
 	text1 = DrawManager->AddBitmapText(DrawManager->GetDefaultFont());
 	text1->SetPosition(XMFLOAT3(-18, 13, 0));
 	text1->SetColor(Color(0, 0, 0, 1));
+
+    vector<XMFLOAT2> points;
+    points.push_back(XMFLOAT2(0, 0));
+    points.push_back(XMFLOAT2(0, 1));
+    points.push_back(XMFLOAT2(0.5f, 0.2f));
+    points.push_back(XMFLOAT2(0, 0));
+    cursor = DrawManager->AddPoly(points);
+    cursor->SetColor(Color(1, 0, 0, 1));
 		
 	tests.push_back(test1);
 	tests.push_back(test2);

@@ -43,7 +43,7 @@ namespace Viva
 		
 		// Updates PVAJ etc.
 		void _Update();
-		void _Transform();
+		void _Transform(const XMMATRIX* view, const XMMATRIX* proj);
 		virtual XMMATRIX _GetScaleMatrix() = 0;
 		virtual void _CheckForCursor(XMMATRIX transform) {}
 		virtual void _TransformVertices();
@@ -154,5 +154,6 @@ namespace Viva
 		XMFLOAT3 GetAngularAcc() { XMFLOAT3 v; XMStoreFloat3(&v, angularAcceleration); return v; }
 		//It's different from position if object has a parent
 		XMFLOAT3 GetAbsolutePosition() { XMFLOAT3 v; XMStoreFloat3(&v, absolutePosition); return v; }
+        XMFLOAT3 GetAbsoluteRotation() { XMFLOAT3 v; XMStoreFloat3(&v, absoluteRotation); return v; }
 	};
 }

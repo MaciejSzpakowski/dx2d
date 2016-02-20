@@ -54,6 +54,9 @@ namespace Viva
 		Camera* GetCamera() const { return camera; }
 		void EnableTransparency(bool flag) { alphaEnabled = flag; }
 		bool IsAlphaEnabled() const { return alphaEnabled; }
+
+        // breaks the game loop, it does not exit the program itself
+        // remember to call Core->Destroy if yout program won't exit and you don't need engine anymore
 		void Exit();
 		void Destroy();
 

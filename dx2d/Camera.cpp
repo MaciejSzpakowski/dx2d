@@ -18,7 +18,6 @@ namespace Viva
 		//Set the Projection matrix
 		aspectRatio = (float)Core->GetClientSize().width / Core->GetClientSize().height;
 		proj = DirectX::XMMatrixPerspectiveFovLH(fovAngle, aspectRatio, nearPlane, farPlane);
-		DrawManager->_SetRenderTargetMatrix(view * proj);
 	}
 
 	void Camera::_CamTransform()

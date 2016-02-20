@@ -45,7 +45,7 @@ namespace Viva
 		sprite->SetPixelShader(nullptr);
 	}
 
-	void RenderTarget::_DrawObjects()
+	void RenderTarget::_DrawObjects(const XMMATRIX* view, const XMMATRIX* proj)
 	{
 		Core->_GetContext()->ClearDepthStencilView(Core->_GetDepthStencilView(),
 			D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
@@ -63,7 +63,7 @@ namespace Viva
 		for (Polygon* p : polygons)
 		{
 			p->_Update();
-			p->_Transform();
+            p->_Transform(view, proj);
 			if (p->IsVisible())
 				p->_Draw();
 		}
@@ -81,7 +81,7 @@ namespace Viva
 			s->_Update();
 			s->_SpriteUpdate();
 			s->_Play();
-			s->_Transform();
+			s->_Transform(view,proj);
 			if (s->IsVisible())
 			{
 				if (s->GetTextureFilter() == TextureFilter::Linear)

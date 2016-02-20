@@ -4,12 +4,12 @@ namespace Viva
 {
 	CInputManager::CInputManager()
 	{
+        cursorVisible = true;
+        curDelta = { 0,0 };
 		mouseWheel = 0;
 		keyCount = 256;
 		curState = new bool[keyCount];
 		prevState = new bool[keyCount];
-		curMouse = new POINT;
-		prevMouse = new POINT;
 		gamepadStatePrev = new XINPUT_STATE[XUSER_MAX_COUNT];
 		gamepadStateCur = new XINPUT_STATE[XUSER_MAX_COUNT];
 		ZeroMemory(curState, sizeof(bool)*keyCount);
@@ -23,8 +23,8 @@ namespace Viva
 		activeGamepads[3] = false;
 		gamepadConnected = false;
 		gamepadConnected = false;
-		GetCursorPos(curMouse);
-		GetCursorPos(prevMouse);
+		::GetCursorPos(&curMouse);
+        hwnd = Core->GetWindowHandle();
 	}
 
 	void CInputManager::_Activity()
@@ -34,9 +34,14 @@ namespace Viva
 		bool* temp = prevState;
 		prevState = curState;
 		curState = temp;
-		POINT* temp1 = prevMouse;
-		prevMouse = curMouse;
-		curMouse = temp1;
+
+        //lock cursor
+        if (!cursorVisible)
+        {
+            RECT r;
+            GetWindowRect(hwnd, &r);
+            ClipCursor(&r);
+        }
 
 		//get current state
 		for (int i = 0; i < keyCount; i++)
@@ -46,10 +51,37 @@ namespace Viva
 
 		_CheckGamepads();
 
-		GetCursorPos(curMouse);
+		::GetCursorPos(&curMouse);
 	}
 
-	POINT CInputManager::GetCursorClientPos()
+    void CInputManager::_SetCursorDelta(int x, int y)
+    {
+        curDelta.x = x;
+        curDelta.y = y;
+    }
+
+    void CInputManager::SetCursorPos(int x, int y)
+    {
+        ::SetCursorPos(x, y);
+    }
+
+    POINT CInputManager::GetCursorPos() const
+    {
+        return curMouse;
+    }
+
+    void CInputManager::ShowCursor(bool visible)
+    {
+        cursorVisible = visible;
+        ::ShowCursor(visible);
+    }
+
+    bool CInputManager::IsCursorVisible() const
+    {
+        return cursorVisible;
+    }
+
+	POINT CInputManager::GetCursorClientPos() const
 	{
 		POINT p;
 		::GetCursorPos(&p);
@@ -57,22 +89,22 @@ namespace Viva
 		return p;
 	}
 
-	bool CInputManager::IsKeyDown(Keys vKey)
+	bool CInputManager::IsKeyDown(Keys vKey) const
 	{
 		return curState[(int)vKey];
 	}
 
-	bool CInputManager::IsKeyPressed(Keys vKey)
+	bool CInputManager::IsKeyPressed(Keys vKey) const
 	{
 		return curState[(int)vKey] && !prevState[(int)vKey];
 	}
 
-	bool CInputManager::IsKeyReleased(Keys vKey)
+	bool CInputManager::IsKeyReleased(Keys vKey) const
 	{
 		return !curState[(int)vKey] && prevState[(int)vKey];
 	}
 
-	bool CInputManager::IsAnyKeyDown()
+	bool CInputManager::IsAnyKeyDown() const
 	{
 		for (int i = 0; i < keyCount; i++)
 			if (curState[i])
@@ -80,20 +112,17 @@ namespace Viva
 		return false;
 	}
 
-	POINT CInputManager::GetCursorDelta()
+	POINT CInputManager::GetCursorDelta() const
 	{
-		POINT point;
-		point.x = curMouse->x - prevMouse->x;
-		point.y = curMouse->y - prevMouse->y;
-		return point;
+        return curDelta;
 	}
 
-	bool CInputManager::IsCapslockActive()
+	bool CInputManager::IsCapslockActive() const
 	{
 		return GetKeyState((int)Keys::CapsLock) & 1;
 	}
 
-	char CInputManager::GetChar(bool enableShift, bool enableCapslock)
+	char CInputManager::GetChar(bool enableShift, bool enableCapslock) const
 	{
 		BYTE input[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Q', 'W', 'E', 'R', 'T',
 			'Y', 'U', 'I', 'O', 'P', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L',
@@ -123,7 +152,7 @@ namespace Viva
 		return 0;
 	}
 
-	char CInputManager::GetKey(int offset)
+	char CInputManager::GetKey(int offset) const
 	{
 		for (int i = offset; i < keyCount; i++)
 			if (curState[i])
@@ -173,21 +202,21 @@ namespace Viva
 		}
 	}
 
-	bool CInputManager::IsAnyButtonDown(UINT gamepad)
+	bool CInputManager::IsAnyButtonDown(UINT gamepad)  const
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return false;
 		return (gamepadStateCur[gamepad].Gamepad.wButtons) && true;
 	}
 
-	bool CInputManager::IsButtonDown(UINT gamepad, Buttons button)
+	bool CInputManager::IsButtonDown(UINT gamepad, Buttons button) const
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return false;
 		return (gamepadStateCur[gamepad].Gamepad.wButtons & (int)button) && true;
 	}
 
-	bool CInputManager::IsButtonPressed(UINT gamepad, Buttons button)
+	bool CInputManager::IsButtonPressed(UINT gamepad, Buttons button) const
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return false;
@@ -195,7 +224,7 @@ namespace Viva
 			!(gamepadStatePrev[gamepad].Gamepad.wButtons & (int)button);
 	}
 
-	bool CInputManager::IsButtonReleased(UINT gamepad, Buttons button)
+	bool CInputManager::IsButtonReleased(UINT gamepad, Buttons button) const
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return false;
@@ -203,66 +232,66 @@ namespace Viva
 			(gamepadStatePrev[gamepad].Gamepad.wButtons & (int)button);
 	}
 
-	bool CInputManager::IsGamepadActive(UINT gamepad)
+	bool CInputManager::IsGamepadActive(UINT gamepad) const
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return false;
 		return activeGamepads[gamepad];
 	}
 
-	bool CInputManager::GamepadConnected()
+	bool CInputManager::GamepadConnected() const
 	{
 		return gamepadConnected;
 	}
 
-	bool CInputManager::GamepadDisconnected()
+	bool CInputManager::GamepadDisconnected() const
 	{
 		return gamepadConnected;
 	}
 
-	BYTE CInputManager::GetLeftTrigger(UINT gamepad)
+	BYTE CInputManager::GetLeftTrigger(UINT gamepad) const
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
 		return gamepadStateCur[gamepad].Gamepad.bLeftTrigger;
 	}
 
-	BYTE CInputManager::GetRightTrigger(UINT gamepad)
+	BYTE CInputManager::GetRightTrigger(UINT gamepad) const
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
 		return gamepadStateCur[gamepad].Gamepad.bRightTrigger;
 	}
 
-	SHORT CInputManager::GetLeftStickX(UINT gamepad)
+	SHORT CInputManager::GetLeftStickX(UINT gamepad) const
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
 		return gamepadStateCur[gamepad].Gamepad.sThumbLX;
 	}
 
-	SHORT CInputManager::GetLeftStickY(UINT gamepad)
+	SHORT CInputManager::GetLeftStickY(UINT gamepad) const
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
 		return gamepadStateCur[gamepad].Gamepad.sThumbLY;
 	}
 
-	SHORT CInputManager::GetRightStickX(UINT gamepad)
+	SHORT CInputManager::GetRightStickX(UINT gamepad) const
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
 		return gamepadStateCur[gamepad].Gamepad.sThumbRX;
 	}
 
-	SHORT CInputManager::GetRightStickY(UINT gamepad)
+	SHORT CInputManager::GetRightStickY(UINT gamepad) const
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
 		return gamepadStateCur[gamepad].Gamepad.sThumbRY;
 	}
 
-	BYTE CInputManager::GetLeftTriggerDelta(UINT gamepad)
+	BYTE CInputManager::GetLeftTriggerDelta(UINT gamepad) const
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
@@ -270,7 +299,7 @@ namespace Viva
 			gamepadStatePrev[gamepad].Gamepad.bLeftTrigger;
 	}
 
-	BYTE CInputManager::GetRightTriggerDelta(UINT gamepad)
+	BYTE CInputManager::GetRightTriggerDelta(UINT gamepad) const
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
@@ -278,7 +307,7 @@ namespace Viva
 			gamepadStatePrev[gamepad].Gamepad.bRightTrigger;
 	}
 
-	SHORT CInputManager::GetLeftStickXDelta(UINT gamepad)
+	SHORT CInputManager::GetLeftStickXDelta(UINT gamepad) const
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
@@ -286,7 +315,7 @@ namespace Viva
 			gamepadStatePrev[gamepad].Gamepad.sThumbLX;
 	}
 
-	SHORT CInputManager::GetLeftStickYDelta(UINT gamepad)
+	SHORT CInputManager::GetLeftStickYDelta(UINT gamepad) const
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
@@ -294,7 +323,7 @@ namespace Viva
 			gamepadStatePrev[gamepad].Gamepad.sThumbLY;
 	}
 
-	SHORT CInputManager::GetRightStickXDelta(UINT gamepad)
+	SHORT CInputManager::GetRightStickXDelta(UINT gamepad) const
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
@@ -302,7 +331,7 @@ namespace Viva
 			gamepadStatePrev[gamepad].Gamepad.sThumbRX;
 	}
 
-	SHORT CInputManager::GetRightStickYDelta(UINT gamepad)
+	SHORT CInputManager::GetRightStickYDelta(UINT gamepad) const
 	{
 		if (gamepad > XUSER_MAX_COUNT - 1)
 			return 0;
@@ -447,8 +476,6 @@ namespace Viva
 		delete[] gamepadStateCur;
 		delete[] curState;
 		delete[] prevState;
-		delete curMouse;
-		delete prevMouse;
 		delete this;
 	}
 }

@@ -7,20 +7,44 @@ namespace Viva
 		switch (msg)
 		{
 		case WM_SYSKEYDOWN:
-			if (wParam == VK_MENU)// left-alt key
-			{
-				//ignore left alt stop
-			}
-			break;
+        {
+            if (wParam == VK_MENU)//ignore left alt stop
+            {}
+            else
+                return DefWindowProc(hwnd, msg, wParam, lParam); // this makes ALT+F4 work
+            break;
+        }
 		case WM_CLOSE:
-			ShowWindow(hwnd, false);
-			PostQuitMessage(0);
-			break;
+        {
+            ShowWindow(hwnd, false);
+            PostQuitMessage(0);
+            break;
+        }
 		case WM_COMMAND:
 			break;
 		case WM_MOUSEWHEEL:
-			InputManager->_SetMouseWheel (GET_WHEEL_DELTA_WPARAM(wParam));
-			break;
+        {
+            InputManager->_SetMouseWheel(GET_WHEEL_DELTA_WPARAM(wParam));
+            break;
+        }
+        case WM_INPUT:
+        {
+            UINT dwSize = 48; // 48 for 64bit build
+            static BYTE lpb[48];
+
+            GetRawInputData((HRAWINPUT)lParam, RID_INPUT,
+                lpb, &dwSize, sizeof(RAWINPUTHEADER)); // this gets relative coords
+
+            RAWINPUT* raw = (RAWINPUT*)lpb;
+
+            if (raw->header.dwType == RIM_TYPEMOUSE)
+            {
+                int xPosRelative = raw->data.mouse.lLastX;
+                int yPosRelative = raw->data.mouse.lLastY;
+                InputManager->_SetCursorDelta(xPosRelative, yPosRelative);
+            }
+            break;
+        }
 		default:
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 		}
@@ -54,6 +78,15 @@ namespace Viva
 			rect.right - rect.left, rect.bottom - rect.top,
 			NULL, NULL, GetModuleHandle(0), NULL);
 
+        USHORT HID_USAGE_PAGE_GENERIC = 1;
+        USHORT HID_USAGE_GENERIC_MOUSE = 2;
+
+        Rid[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
+        Rid[0].usUsage = HID_USAGE_GENERIC_MOUSE;
+        Rid[0].dwFlags = RIDEV_INPUTSINK;
+        Rid[0].hwndTarget = handle;
+        RegisterRawInputDevices(Rid, 1, sizeof(RAWINPUTDEVICE));
+
 		if (handle == NULL)
 			throw VIVA_ERROR("Window creation failed");
 	}
@@ -86,8 +119,10 @@ namespace Viva
 			}
 			else
 			{
-				worker();
-				activity();
+                worker();
+                activity();
+                // reset cursor delta
+                InputManager->_SetCursorDelta(0, 0);
 			}
 		}
 

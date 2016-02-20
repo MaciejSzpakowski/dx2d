@@ -18,7 +18,7 @@ namespace Viva
 		RenderTarget();
 
 		//draw all objects that belong to the render target
-		void _DrawObjects();
+		void _DrawObjects(const XMMATRIX* view, const XMMATRIX* proj);
 
 		// Draw target itself.
 		void _DrawTarget() { sprite->_Draw(); }

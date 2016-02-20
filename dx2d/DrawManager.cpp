@@ -2,6 +2,8 @@
 
 namespace Viva
 {
+    extern const int rc_font[];
+
 	void CreateSampler(TextureFilter mode, ID3D11SamplerState** sampler)
 	{
 		D3D11_SAMPLER_DESC sampDesc;
@@ -98,7 +100,14 @@ namespace Viva
 		CreateSampler(TextureFilter::Point, &pointSampler);
 		CreateSampler(TextureFilter::Linear, &lineSampler);
 
-		_InitDefaultFont();
+		//_InitDefaultFont();
+        Texture* tex1 = new Texture((Pixel*)rc_font, Size(190, 95), L"defaultFont");
+        defaultFont = new BitmapFont(tex1, Size(10, 19), 19);
+
+        view = Core->GetCamera()->_GetViewPtr();
+        proj = Core->GetCamera()->_GetProjPtr();
+        renderTargetMatrix = *view * *proj;
+
 	}
 
 	void CDrawManager::AddPoly(Polygon* p, RenderTarget* target)
@@ -223,7 +232,7 @@ namespace Viva
 	void CDrawManager::_DrawAll()
 	{
 		for (int i = 0; i < (int)renderTargets.size(); i++)
-			renderTargets[i]->_DrawObjects();
+			renderTargets[i]->_DrawObjects(view,proj);
 
 		Core->_GetContext()->ClearRenderTargetView(Core->_GetBackBuffer(), Core->_GetBackBufferColor());
 		Core->_GetContext()->ClearDepthStencilView(Core->_GetDepthStencilView(),
@@ -340,8 +349,7 @@ namespace Viva
 		renderTargets.clear();
 		renderTargets.push_back(defaultRenderTarget);
 	}
-
-	extern const int rc_font[];
+	
 	void CDrawManager::_InitDefaultFont()
 	{
 		//default font

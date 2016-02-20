@@ -5,6 +5,7 @@ namespace Viva
 	class Window
 	{
 	private:
+        RAWINPUTDEVICE Rid[1]; // you can have more than one
 		HWND handle;
 		MSG msg;
 		std::function<void()> worker;   // lib side worker

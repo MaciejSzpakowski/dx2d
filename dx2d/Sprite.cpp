@@ -86,7 +86,7 @@ namespace Viva
 		XMVECTOR B = DirectX::XMVectorSet(1.0f, -1.0f, 0, 1);
 		XMVECTOR C = DirectX::XMVectorSet(1.0f, 1.0f, 0, 1);
 		XMVECTOR D = DirectX::XMVectorSet(-1.0f, 1.0f, 0, 1);
-		A = DirectX::XMVector3Transform(A, transform);
+        A = DirectX::XMVector3Transform(A, transform);
 		B = DirectX::XMVector3Transform(B, transform);
 		C = DirectX::XMVector3Transform(C, transform);
 		D = DirectX::XMVector3Transform(D, transform);

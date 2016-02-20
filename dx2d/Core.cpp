@@ -1,5 +1,6 @@
 #include "Viva.h"
 #include "Embedded.h"
+#include <fstream>
 
 namespace Viva
 {
@@ -31,11 +32,11 @@ namespace Viva
 		scd.BufferCount = 1;                                    // one back buffer
 		scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;     // use 32-bit color
 		scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;      // how swap chain is to be used
-		scd.OutputWindow = window->GetHandle();                // the window to be used
+		scd.OutputWindow = window->GetHandle();                 // the window to be used
 		scd.SampleDesc.Quality = 0;
 		scd.SampleDesc.Count = 1;                               // no anti aliasing
 		scd.Windowed = TRUE;                                    // windowed/full-screen mode
-		//scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;     // alternative fullscreen mode
+		//scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;   // alternative fullscreen mode
 
 		UINT creationFlags = D3D11_CREATE_DEVICE_SINGLETHREADED;
 
@@ -133,8 +134,8 @@ namespace Viva
 		//// *********** PIPELINE SETUP ENDS HERE *********** ////
 
 		//main objects
-		DrawManager = new CDrawManager();
 		camera = new Camera();
+		DrawManager = new CDrawManager();
 		InputManager = new CInputManager();
 		EventManager = new CEventManager();
 		ResourceManager = new CResourceManager();
@@ -190,21 +191,128 @@ namespace Viva
 		swapChain->SetFullscreenState(state, NULL);
 	}
 
-	void CCore::SaveScreenshot(const wchar_t* file)
-	{
-		/* HOW TO GET ID3D11TEXTURE2D and D3D11_TEXTURE2D_DESC from ID3D11ShaderResourceView
-		ID3D11Texture2D *pTextureInterface = 0;
-		ID3D11Resource *res;
-		shaderResource->GetResource(&res);
-		res->QueryInterface<ID3D11Texture2D>(&pTextureInterface);
-		D3D11_TEXTURE2D_DESC desc;
-		pTextureInterface->GetDesc(&desc);
-		*/
+	//void CCore::SaveScreenshot(const wchar_t* filepath)
+	//{
+	//	/* HOW TO GET ID3D11TEXTURE2D and D3D11_TEXTURE2D_DESC from ID3D11ShaderResourceView
+	//	ID3D11Texture2D *pTextureInterface = 0;
+	//	ID3D11Resource *res;
+	//	shaderResource->GetResource(&res);
+	//	res->QueryInterface<ID3D11Texture2D>(&pTextureInterface);
+	//	D3D11_TEXTURE2D_DESC desc;
+	//	pTextureInterface->GetDesc(&desc);
+	//	*/
 
-		throw VIVA_ERROR("Not implemented");
-		//ID3D11DeviceContext::CopyResource
-		//context->CopyResource(
-	}
+ //       RECT r;
+ //       GetClientRect(window->GetHandle(), &r);
+ //       POINT p = { 0,0 };
+ //       ClientToScreen(window->GetHandle(), &p);
+ //       r.bottom += p.y;
+ //       r.left += p.x;
+ //       r.right += p.x;
+ //       r.top += p.y;
+ //       int w = r.right - r.left;
+ //       int h = r.bottom - r.top;
+
+ //       HDC outdc = GetDC(0);
+ //       HDC screen = CreateDC(TEXT("DISPLAY"), NULL, NULL, NULL);
+ //       HDC capture = CreateCompatibleDC(screen);
+ //       BYTE* data = new BYTE[w*h * 4];
+ //       HBITMAP bmp = CreateCompatibleBitmap(screen, w, h);
+ //       SelectObject(capture, bmp);
+
+ //       BitBlt(capture, 0, 0, w, h, screen, 0, 0, SRCCOPY);
+ //       BitBlt(outdc, 0, 0, w, h, capture, 0, 0, SRCCOPY);
+ //       GetBitmapBits(bmp, w*h * 4, data);
+
+ //       /*std::ofstream f(filepath,std::ios::trunc);
+
+ //       f << "P3\n" << w << " " << h << "\n255\n";
+ //       for (int i = 0; i < w * h * 4; i += 4)
+ //       {
+ //           byte r, g, b;
+
+ //           b = data[i];
+ //           g = data[i + 1];
+ //           r = data[i + 2];
+
+ //           f << r << " " << g << " " << b << " ";
+ //       }*/
+
+ //       delete[] data;
+ //       ReleaseDC(0, outdc);
+ //       DeleteDC(screen);
+ //       DeleteObject(bmp);
+ //       DeleteDC(capture);
+	//}
+
+    void CCore::SaveScreenshot(const wchar_t* filepath)
+    {
+        RECT r;
+        GetClientRect(window->GetHandle(), &r);
+        POINT p = { 0,0 };
+        ClientToScreen(window->GetHandle(), &p);
+        int w = r.right - r.left;
+        int h = r.bottom - r.top;
+
+        HDC primaryScreenDC = GetDC(NULL);
+        HDC desktopDC = CreateDC(TEXT("DISPLAY"), NULL, NULL, NULL);
+        HDC captureDC = CreateCompatibleDC(desktopDC);
+        BYTE* data = new BYTE[w*h*4];
+        BYTE* dataOutput = new BYTE[w * h * 3];
+        HBITMAP bmp = CreateCompatibleBitmap(desktopDC, w, h);
+        SelectObject(captureDC,bmp);
+        BitBlt(captureDC, 0, 0, w, h, desktopDC, p.x, p.y, SRCCOPY);
+        GetBitmapBits(bmp, w*h * 4, data);
+
+        //BitBlt(primaryScreenDC, 0, 0, w, h, captureDC, 0, 0, SRCCOPY);
+
+        std::ofstream f(filepath, std::ios::trunc | std::ios::binary);
+
+        byte bm[] = { 'B','M' };
+        int header[] = {
+            0, //filesize
+            0, //reserved
+            54, //offset (where data starts)
+            40,
+            w,
+            h,
+            1 + (24 << 16), // planes + colors
+            0, // compression
+            w*h * 3,0,0,0,0 };
+
+        int size = 2 + sizeof(header) + w*h * 3;
+        header[0] = size;
+        
+        int it = 0;
+        int it2;
+        for (int row = h - 1; row >= 0;row--)
+            for (int col = 0; col < w; col++)
+            {
+                it2 = (row * w + col) * 4;
+                dataOutput[it] = data[it2];
+                dataOutput[it + 1] = data[it2 + 1];
+                dataOutput[it + 2] = data[it2 + 2];
+                it += 3;
+            }
+
+        /*for (int i = 0, j = 0; i < w*h * 4; i += 4,j+=3)
+        {
+            dataOutput[j] = data[i];
+            dataOutput[j+1] = data[i+1];
+            dataOutput[j+2] = data[i+2];
+        }*/
+
+        f.write((const char*)bm, 2);
+        f.write((const char*)header, sizeof(header));
+        f.write((const char*)dataOutput, w*h * 3);
+
+        delete[] data;
+        delete[] dataOutput;
+        ReleaseDC(NULL, primaryScreenDC);
+        DeleteObject(bmp);
+        DeleteDC(captureDC);
+        DeleteDC(desktopDC);
+    }
 
 	void CCore::Exit()
 	{
