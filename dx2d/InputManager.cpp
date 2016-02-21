@@ -112,7 +112,7 @@ namespace Viva
 		return false;
 	}
 
-	POINT CInputManager::GetCursorDelta() const
+	POINT CInputManager::GetMouseDelta() const
 	{
         return curDelta;
 	}

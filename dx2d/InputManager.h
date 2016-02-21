@@ -32,13 +32,13 @@ namespace Viva
 
 		// MOUSE
 		int GetMouseWheel();
-		POINT GetCursorDelta() const;
+		POINT GetMouseDelta() const;
 		POINT GetCursorClientPos() const;
 
         // sets Windows cursor position in desktop cooridnates
         void SetCursorPos(int x, int y);
 
-        // in desktop cooridnates
+        // in desktop coordinates
         POINT GetCursorPos() const;
         void ShowCursor(bool visible);
 

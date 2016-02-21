@@ -13,6 +13,28 @@ void Activity()
 	Sleep(1);
 }
 
+void test14()
+{
+    wstring msg = L"Performance test";
+    text1->SetText(msg);
+    Circle* c;
+    
+    for (int i = 0; i < 2000; i++)
+    {
+        c = DrawManager->AddCircle(1, 10);
+        c->SetPosition((float)Random::RndDouble() * 20 - 10, (float)Random::RndDouble() * 20 - 10, 0);
+        c->TransformVertices(true);
+        c->SetAngularVelocityZ((float)Random::RndDouble() * 3 - 1.5f);
+        obj.push_back(c);
+    }
+
+    Event* e = EventManager->AddEvent([]
+    {
+        DebugManager->Debug(Core->GetFps(), L"Fps");
+        return 1;
+    }, L"", 0, 0, 0);
+}
+
 void test13()
 {
 	wstring msg = L"Test13: Single parent, absolute vs relative position,\n"
@@ -100,6 +122,7 @@ void test13()
 	events.push_back(e1);
 	obj.push_back(s2);
 	obj.push_back(s1);
+    obj.push_back(s3);
 }
 
 void test12()
@@ -463,8 +486,8 @@ void test7()
 				pick->SetPositionZ(-0.01f);
 				auto p = pick->GetPosition();
 				auto u = Core->GetCamera()->GetUnitsPerPixel(0);
-				pick->SetPositionX(p.x + InputManager->GetCursorDelta().x*u.x);
-				pick->SetPositionY(p.y - InputManager->GetCursorDelta().y*u.y);
+				pick->SetPositionX(p.x + InputManager->GetMouseDelta().x*u.x);
+				pick->SetPositionY(p.y - InputManager->GetMouseDelta().y*u.y);
 			}
 		}
 		return 1;
@@ -760,7 +783,7 @@ void startTest(int i)
             Core->SaveScreenshot(L"ss.bmp");
 
         XMFLOAT3 pos = cursor->GetPosition();
-        POINT delta = InputManager->GetCursorDelta();
+        POINT delta = InputManager->GetMouseDelta();
         pos.x += Core->GetCamera()->GetUnitsPerPixel(0).x * delta.x;
         pos.y -= Core->GetCamera()->GetUnitsPerPixel(0).y * delta.y;
 
@@ -808,7 +831,7 @@ void startTest(int i)
 
 int wrapper()
 {
-	Functions::InitViva(Size(1920, 1080));
+	Functions::InitViva(Size(800, 600));
 	Core->SetBackgroundColor(Color(1, 1, 1, 1));
 	Core->SetWindowTitle(L"Test");
 	Core->OpenConsole();
@@ -838,6 +861,7 @@ int wrapper()
 	tests.push_back(test11);
 	tests.push_back(test12);
 	tests.push_back(test13);
+    tests.push_back(test14);
 
 	MessageBox(0, L"TODO:\nSetextrabuffersize instead of createextrabuffer\nGive more meaningful CHECKHR error", L"Test1", 0);
 	MessageBox(0, L"1st test should display text on screen", L"Test1", 0);

@@ -157,6 +157,7 @@
     <ClInclude Include="Functions.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Keys.h" />
+    <ClInclude Include="Math.h" />
     <ClInclude Include="Polygon.h" />
     <ClInclude Include="RenderTarget.h" />
     <ClInclude Include="ResourceManager.h" />
