@@ -1,2 +1,2 @@
 # Viva
-Website http://50.140.146.223/dx2d.py
+Website http://50.140.146.223/viva
