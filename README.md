@@ -1,3 +1,3 @@
 # Viva
-obsolete
+obsolete,
 see Viva2 for newer version
